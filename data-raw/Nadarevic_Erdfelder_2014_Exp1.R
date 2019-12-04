@@ -1,4 +1,3 @@
-## code to prepare dataset goes here
 library("tidyverse")
 
 dat <- read_csv("Nadarevic_Erdfelder_2014_Exp1.csv",
@@ -91,6 +90,8 @@ NE_exp1 <- subjects %>%
   mutate(subj_id = factor(subj_id),
          item_id = factor(item_id),
          repetition = factor(repetition),
+         R = if_else(repetition == "old", .5, -.5),
+         D = if_else(delay == "10m", .5, -.5),
          delay = factor(delay),
          trating = factor(trating, levels = 1:6, ordered = TRUE))
 

@@ -1,15 +1,24 @@
 Package: truthiness
-Title: What the Package Does (One Line, Title Case)
+Title: Simulation and Analysis of Illusory-Truth Data
 Version: 0.0.0.9000
+Date: 2019-12-04
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Dale",
+           family = "Barr",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: What license it uses
+           email = "dalejbarr@protonmail.com")
+URL: https://github.com/dalejbarr/truthiness
+Description: Encapsulates data, analysis, and simulation routines for the illusory-truth project.
+License: file LICENSE
 Encoding: UTF-8
 LazyData: true
+Depends: R (>= 2.10)
 Imports: 
-    ordinal
+    ordinal,
+    magrittr,
+    dplyr,
+    MASS,
+    tibble,
+    tidyr,
+    stats
+RoxygenNote: 6.1.1
