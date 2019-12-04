@@ -1,0 +1,11 @@
+#+TITLE: truthiness package
+#+AUTHOR: Dale Barr
+#+EMAIL: dalejbarr@protonmail.com
+
+* Process raw data
+
+#+begin_src R
+  clmm_maximal <- readRDS("~/illusory-truth/reanalysis_NE/clmm_maximal.rds")
+  usethis::use_data(clmm_maximal)
+#+end_src
+
