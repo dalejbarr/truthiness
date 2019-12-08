@@ -5,7 +5,88 @@
 * Process raw data
 
 #+begin_src R
-  clmm_maximal <- readRDS("~/illusory-truth/reanalysis_NE/clmm_maximal.rds")
-  usethis::use_data(clmm_maximal)
+  devtools::load_all()
+  library("tidyverse")
+
+  gen_data(576) %>%
+    group_by(repetition, interval) %>%
+    summarize(m = mean(trating))
 #+end_src
+
+
+* Calculate cohen's d
+
+#+begin_src R
+  devtools::load_all()
+  library("tidyverse")
+
+  mdat <- gen_data(576, raw_eff = .14)
+
+  diffs <- mdat %>%
+    mutate(trating = as.integer(trating)) %>%
+    filter(interval == "1 day") %>%
+    group_by(subj_id, repetition) %>%
+    summarize(m = mean(trating)) %>%
+    pivot_wider(names_from = repetition, values_from = m) %>%
+    mutate(diff = old - new)
+
+  vv <- diffs %>% pull(diff)
+  stderr <- sd(vv) / sqrt(length(vv))
+  tstat <- mean(vv) / stderr
+
+  sd_10000 <- .5451675
+  sd_576 <- .5198214
+
+  .1 / sd(vv)
+
+  t.test(vv)
+
+  diffs %>%
+    group_by(interval == "immediate") %>%
+    summarize(m = mean(diff), sd = sd(diff), n = mean(new), o = mean(old))
+
+#+end_src
+
+* Type I error rate (ANOVA)
+
+#+begin_src R
+  devtools::load_all()
+  library("tidyverse")
+  library("lme4")
+
+  anova_once <- function(raw_eff = .14, version = "single") {
+    dat <- gen_data(576, raw_eff = raw_eff, version = version) %>%
+      mutate(trating = as.integer(trating))
+
+    res <- dat %>%
+      group_by(subj_id, repetition, interval, R, I1, I2, I3) %>%
+      summarize(m = mean(trating)) %>%
+      ungroup()
+
+    mod1 <- lmer(m ~ R * (I1 + I2 + I3) + (1 | subj_id),
+		 res, REML=FALSE)
+    mod2 <- update(mod1, . ~ . -R:I1 -R:I2 -R:I3)
+    mod3 <- update(mod1, . ~ . -R)
+
+    ff <- anova(mod2, mod1)
+    gg <- anova(mod3, mod1)
+    c(p.ix = ff$`Pr(>Chisq)`[2],
+      p.me = gg$`Pr(>Chisq)`[2])  
+  }
+
+  ## 'single' version (effect appears at one phase only)
+  ##
+  ## power to detect the main effect has only about 60% of the power for
+  ## the interaction
+  res <- replicate(100, anova_once())
+  apply(res, 1, function(x) sum(x < .05))
+
+  ## asymptote version
+  ##
+  ## power to detect the main effect is 108% the power for the interaction
+  res <- replicate(100, anova_once(version = "asymptote"))
+  apply(res, 1, function(x) sum(x < .05))
+#+end_src
+
+* generate fake prolific files
 

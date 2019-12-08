@@ -28,6 +28,11 @@
 #'   remaining participants dropping out after 1 week and before 1
 #'   month. For example, the default values of .05, .1, and 1 encode
 #'   dropout rates of 5\%, 10\%, and 10\%.
+#' @param version Determine how the effect evolves over time; must be
+#'   one of the following two strings: "asymptote" (default) or
+#'   "single". For the asymptote version, the effect appears at phase
+#'   2 and remains constant over phases 3 and 4. For the "single"
+#'   version, the effect only appears at phase 4.
 #' 
 #' @details By default, the thresholds and parameter estimates for
 #'   variance components used in the simulation are from the
@@ -111,7 +116,8 @@ gen_data <- function(nsubj,
                      raw_eff = 0,
                      subj_rfx = ordinal::VarCorr(clmm_maximal)$subj_id,
                      item_rfx = ordinal::VarCorr(clmm_maximal)$item_id,
-                     dropout = c(.05, .1, .1)) {
+                     dropout = c(.05, .1, .1),
+                     version = "asymptote") {
   list_id <- n <- repetition <- interval <- NULL
   `(Intercept).s` <- `(Intercept).i` <- R.s <- R.i <- R <- NULL
   I1.s <- I1.i <- I1 <- I2.s <- I2.i <- I2 <- I3.s <- I3.i <- I3 <- NULL
@@ -128,15 +134,24 @@ gen_data <- function(nsubj,
     dplyr::count(list_id) %>% dplyr::pull(n) %>% unique()
   stopifnot(length(nitem) == 1L)
 
+  if (!version %in% c("asymptote", "single"))
+    stop("'version' must be one of 'asymptote', 'single'")
+  
   effnames <- c(
     "(Intercept)",
     "R", "I1", "I2", "I3",
     "R:I1", "R:I2", "R:I3")
 
-  ## fixed effects (betas)
-  betas <- c((3 * raw_eff) / 4,
-             rep((raw_eff) / 2, 3),
-             rep(raw_eff, 3))
+  if (version == "asymptote") {
+    ## fixed effects (betas)
+    betas <- c((3 * raw_eff) / 4,
+               rep((raw_eff) / 2, 3),
+               rep(raw_eff, 3))
+  } else {
+    betas <- c(raw_eff / 4,
+               0, 0, raw_eff / 2,
+               0, 0, raw_eff)
+  }
   names(betas) <- effnames[-1]
 
   ## variance-covariance matrices
@@ -180,7 +195,9 @@ gen_data <- function(nsubj,
                (`R:I1.s` + `R:I1.i` + betas["R:I1"]) * R * I1 +
                (`R:I2.s` + `R:I2.i` + betas["R:I2"]) * R * I2 +
                (`R:I3.s` + `R:I3.i` + betas["R:I3"]) * R * I3,
-             trating = eta2resp(eta, thresh)) %>%
+             trating = factor(eta2resp(eta, thresh),
+                              levels = 1:7,
+                              ordered = TRUE)) %>%
     dplyr::select(subj_id, list_id, item_id, repetition, interval, eta,
                   trating, R, I1, I2, I3)
 
