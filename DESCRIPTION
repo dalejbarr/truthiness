@@ -20,5 +20,6 @@ Imports:
     MASS,
     tibble,
     tidyr,
-    stats
+    stats,
+    lme4
 RoxygenNote: 6.1.1

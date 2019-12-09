@@ -7,7 +7,7 @@
 gen_data(nsubj, thresh = alpha_6_to_7(clmm_maximal$alpha), raw_eff = 0,
   subj_rfx = ordinal::VarCorr(clmm_maximal)$subj_id,
   item_rfx = ordinal::VarCorr(clmm_maximal)$item_id, dropout = c(0.05,
-  0.1, 0.1))
+  0.1, 0.1), version = "asymptote")
 }
 \arguments{
 \item{nsubj}{Number of subjects. Because of counterbalancing, must
@@ -43,6 +43,12 @@ week. The third and final element represents the proportion of
 remaining participants dropping out after 1 week and before 1
 month. For example, the default values of .05, .1, and 1 encode
 dropout rates of 5\%, 10\%, and 10\%.}
+
+\item{version}{Determine how the effect evolves over time; must be
+one of the following two strings: "asymptote" (default) or
+"single". For the asymptote version, the effect appears at phase
+2 and remains constant over phases 3 and 4. For the "single"
+version, the effect only appears at phase 4.}
 }
 \value{
 A data frame, with \code{nsubj * 128} rows and 11 variables, where:
