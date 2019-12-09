@@ -39,7 +39,7 @@ eta2resp <- function(eta, thresh) {
 #' clmm_maximal$alpha # original thresholds
 #' alpha_6_to_7(clmm_maximal$alpha) 
 #' @export
-alpha_6_to_7 <- function(thresh = clmm_maximal$alpha) {
+alpha_6_to_7 <- function(thresh = truthiness::clmm_maximal$alpha) {
   newthresh <- double(6)
   names(newthresh) <- paste(1:6, 2:7, sep = "|")
 

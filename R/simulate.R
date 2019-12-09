@@ -112,10 +112,10 @@
 #' @seealso \code{\link{clmm_maximal}}, \code{\link{NE_exp1}}
 #' @export
 gen_data <- function(nsubj,
-                     thresh = alpha_6_to_7(clmm_maximal$alpha),
+                     thresh = alpha_6_to_7(truthiness::clmm_maximal$alpha),
                      raw_eff = 0,
-                     subj_rfx = ordinal::VarCorr(clmm_maximal)$subj_id,
-                     item_rfx = ordinal::VarCorr(clmm_maximal)$item_id,
+                     subj_rfx = ordinal::VarCorr(truthiness::clmm_maximal)$subj_id,
+                     item_rfx = ordinal::VarCorr(truthiness::clmm_maximal)$item_id,
                      dropout = c(.05, .1, .1),
                      version = "asymptote") {
   list_id <- n <- repetition <- interval <- NULL

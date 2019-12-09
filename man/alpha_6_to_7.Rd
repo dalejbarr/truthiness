@@ -4,7 +4,7 @@
 \alias{alpha_6_to_7}
 \title{Convert threshold values from six to seven point scale}
 \usage{
-alpha_6_to_7(thresh = clmm_maximal$alpha)
+alpha_6_to_7(thresh = truthiness::clmm_maximal$alpha)
 }
 \arguments{
 \item{thresh}{Log-odds thresholds from a cumulative logit model fit. Should be a five-element vector.}
