@@ -86,6 +86,6 @@ power_sim <- function(model,
   } else {
     saveRDS(results, outfile)
     message("Results saved to ", outfile)
-    outfile
+    cat(outfile, "\n", sep = "")
   }
 }
