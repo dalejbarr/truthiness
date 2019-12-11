@@ -12,7 +12,13 @@ clmm_maximal
 Fitted cumulative mixed model for Nadarevic & Erdfelder data.
 }
 \details{
-The object is the result of the function call \code{ordinal::clmm(trating ~ R * D + (R * D | subj_id) + (R * D | item_id), NE_exp1)}. The fitted model is stored as an independent object in the package because the fitting process is too slow to allow it to be re-created whenever it is needed.
+The object is the result of the function call
+\code{ordinal::clmm(trating ~ R * D + (R * D | subj_id) +
+                                      (R * D | item_id), NE_exp1)}.
+
+The fitted model is stored as an independent object in the package
+because the fitting process is too slow to allow it to be
+re-created whenever it is needed.
 }
 \seealso{
 \code{\link{NE_exp1}}

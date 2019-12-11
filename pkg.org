@@ -2,14 +2,6 @@
 #+AUTHOR: Dale Barr
 #+EMAIL: dalejbarr@protonmail.com
 
-* Re-analyze Nadarevic & Erdfelder
-
-#+begin_src R
-  devtools::load_all()
-
-
-#+end_src
-
 * Process raw data
 
 #+begin_src R
@@ -98,3 +90,8 @@
 
 * generate fake prolific files
 
+#+begin_src R
+  devtools::load_all()
+
+
+#+end_src
