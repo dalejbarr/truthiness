@@ -11,7 +11,14 @@ stimcond <- stim_lists(
        n_item = 128L,
        between_item = "actual_truth")) %>%
   rename(stim_id = item_id) %>%
-  as_tibble()
+  as_tibble() %>%
+  mutate(repetition = factor(repetition,
+                             levels = c("repeated", "novel")),
+         interval = factor(interval,
+                           levels = c("immediate", "1 day",
+                                      "1 week", "1 month")),
+         list_id = factor(list_id),
+         stim_id = factor(stim_id))
 
 write_csv(stimcond, "stimulus_conditions.csv")
 
@@ -33,6 +40,9 @@ truth_list <- stimcond %>%
   select(list_id, stim_id, task, task_id, phase_id)
 
 plists <- bind_rows(interest_list, truth_list) %>%
+  mutate(phase_id = factor(phase_id),
+         task = factor(task),
+         task_id = factor(task_id)) %>%
   arrange(list_id, task) %>%
   nest(data = c(stim_id, task_id)) %>%
   mutate(order = map(data, ~sample(seq_len(nrow(.x))))) %>%
@@ -75,29 +85,18 @@ test_cond <- plists %>%
 stopifnot(setequal(test_cond %>%
 		   select(list_id, stim_id, repetition, interval),
 		   stimcond %>%
-		   select(list_id, stim_id, repetition, interval)))
+		   select(list_id, stim_id, repetition, interval) %>%
+                   mutate(repetition = as.character(repetition))))
 
 ## ok if we've got this far, we've passed all the tests. write it out
 write_csv(plists, "presentation_lists.csv")
 
-statements <- read_csv("stimulus_materials.csv",
-		       col_types = "icl")
+stimulus_materials <- read_csv("stimulus_materials.csv",
+		       col_types = "icl") %>%
+  mutate(stim_id = factor(stim_id))
 
-## now write out to separate files
-todo <- plists %>%
-  inner_join(statements %>% select(-actual_truth), "stim_id") %>%
-  arrange(phase_id, task, list_id, order) %>%
-  select(phase_id, list_id, task_id, statement) %>%
-  split(list(.$phase_id, .$list_id))
-
-if (dir.exists("prolific_files"))
-  unlink("prolific_files", TRUE, TRUE)
-
-dir.create("prolific_files", FALSE)
-
-## write them out
-walk(todo,
-     function(x) {
-       fname <- sprintf("prolific_files/P%dL%d.csv", x$phase_id[1], x$list_id[1])
-       x %>% select(-phase_id, -list_id) %>% write_csv(fname)
-     })
+usethis::use_data(stimulus_materials, overwrite = TRUE)
+presentation_lists <- plists
+usethis::use_data(presentation_lists, overwrite = TRUE)
+stimulus_conditions <- stimcond
+usethis::use_data(stimulus_conditions, overwrite = TRUE)

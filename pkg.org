@@ -92,6 +92,10 @@
 
 #+begin_src R
   devtools::load_all()
+  library("tidyverse")
 
+  lvers1 <- gen_data(576) %>%
+    distinct(list_id, stim_id, repetition, interval)
 
+  stimulus_conditions
 #+end_src

@@ -47,22 +47,22 @@ Fits a linear-mixed effects model to the data and tests
 
 \code{trating ~ R * (I1 + I2 + I3) +
    (1 + R:I1 + R:I2 + R:I3 || subj_id) +
-   (1 + R:I1 + R:I2 + R:I3 || item_id)}
+   (1 + R:I1 + R:I2 + R:I3 || stim_id)}
 
 \code{trating ~ R + I1 + I2 + I3 +
    (1 + R:I1 + R:I2 + R:I3 || subj_id) +
-   (1 + R:I1 + R:I2 + R:I3 || item_id)}.
+   (1 + R:I1 + R:I2 + R:I3 || stim_id)}.
 
 If the main effect is to be tested, then the following two models
 are compared.
 
 \code{trating ~ R * (I1 + I2 + I3) +
    (1 + R || subj_id) +
-   (1 + R || item_id)}
+   (1 + R || stim_id)}
 
 \code{trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3) +
    (1 + R || subj_id) +
-   (1 + R || item_id)}.
+   (1 + R || stim_id)}.
 }
 \examples{
 set.seed(62)

@@ -34,22 +34,22 @@ tryFit <- function(tf.formula, tf.data, ...) {
 #'
 #' \code{trating ~ R * (I1 + I2 + I3) +
 #'    (1 + R:I1 + R:I2 + R:I3 || subj_id) +
-#'    (1 + R:I1 + R:I2 + R:I3 || item_id)}
+#'    (1 + R:I1 + R:I2 + R:I3 || stim_id)}
 #'
 #' \code{trating ~ R + I1 + I2 + I3 +
 #'    (1 + R:I1 + R:I2 + R:I3 || subj_id) +
-#'    (1 + R:I1 + R:I2 + R:I3 || item_id)}.
+#'    (1 + R:I1 + R:I2 + R:I3 || stim_id)}.
 #'
 #' If the main effect is to be tested, then the following two models
 #' are compared.
 #'
 #' \code{trating ~ R * (I1 + I2 + I3) +
 #'    (1 + R || subj_id) +
-#'    (1 + R || item_id)}
+#'    (1 + R || stim_id)}
 #'
 #' \code{trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3) +
 #'    (1 + R || subj_id) +
-#'    (1 + R || item_id)}.
+#'    (1 + R || stim_id)}.
 #' 
 #' @return A vector, with the following elements.
 #' \describe{
@@ -86,19 +86,19 @@ fit_lmem <- function(.data, main_effect = FALSE) {
   if (main_effect) {
     form <- trating ~ R + I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
       (1 + R || subj_id) +
-      (1 + R || item_id)
+      (1 + R || stim_id)
     
     form2 <- trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
       (1 + R || subj_id) +
-      (1 + R || item_id)
+      (1 + R || stim_id)
   } else {
     form <- trating ~ R * (I1 + I2 + I3) +
       (1 + R:I1 + R:I2 + R:I3 || subj_id) +
-      (1 + R:I1 + R:I2 + R:I3 || item_id)
+      (1 + R:I1 + R:I2 + R:I3 || stim_id)
     
     form2 <- trating ~ R + I1 + I2 + I3 +
       (1 + R:I1 + R:I2 + R:I3 || subj_id) +
-      (1 + R:I1 + R:I2 + R:I3 || item_id)
+      (1 + R:I1 + R:I2 + R:I3 || stim_id)
   }
 
   ## fit the model and print the results
@@ -130,22 +130,22 @@ fit_lmem <- function(.data, main_effect = FALSE) {
 #'
 #' \code{trating ~ R * (I1 + I2 + I3) +
 #'    (1 + R:I1 + R:I2 + R:I3 | subj_id) +
-#'    (1 + R:I1 + R:I2 + R:I3 | item_id)}
+#'    (1 + R:I1 + R:I2 + R:I3 | stim_id)}
 #'
 #' \code{trating ~ R + I1 + I2 + I3 +
 #'    (1 + R:I1 + R:I2 + R:I3 | subj_id) +
-#'    (1 + R:I1 + R:I2 + R:I3 | item_id)}.
+#'    (1 + R:I1 + R:I2 + R:I3 | stim_id)}.
 #'
 #' If the main effect is to be tested, then the following two models
 #' are compared.
 #'
 #' \code{trating ~ R * (I1 + I2 + I3) +
 #'    (1 + R | subj_id) +
-#'    (1 + R | item_id)}
+#'    (1 + R | stim_id)}
 #'
 #' \code{trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3) +
 #'    (1 + R | subj_id) +
-#'    (1 + R | item_id)}.
+#'    (1 + R | stim_id)}.
 #' 
 #' @return A vector, with the following elements.
 #' \describe{
@@ -179,19 +179,19 @@ fit_clmm <- function(.data, main_effect = FALSE) {
   if (main_effect) {
     form <- trating ~ R + I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
       (1 + R | subj_id) +
-      (1 + R | item_id)
+      (1 + R | stim_id)
     
     form2 <- trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
       (1 + R | subj_id) +
-      (1 + R | item_id)    
+      (1 + R | stim_id)    
   } else {
     form <- trating ~ R * (I1 + I2 + I3) +
       (1 + R:I1 + R:I2 + R:I3 | subj_id) +
-      (1 + R:I1 + R:I2 + R:I3 | item_id)
+      (1 + R:I1 + R:I2 + R:I3 | stim_id)
     
     form2 <- trating ~ R + I1 + I2 + I3 +
       (1 + R:I1 + R:I2 + R:I3 | subj_id) +
-      (1 + R:I1 + R:I2 + R:I3 | item_id)
+      (1 + R:I1 + R:I2 + R:I3 | stim_id)
   }
 
   ## fit the model and print the results

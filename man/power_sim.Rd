@@ -4,10 +4,16 @@
 \alias{power_sim}
 \title{Run power simulations}
 \usage{
-power_sim(model, version, effect, nsubj, raw_eff, nruns,
-  outfile = sprintf("\%s_\%s_\%s_\%04d_128_\%05d_\%0.2f_\%s_\%d.rds",
-  model, version, effect, nsubj, nruns, raw_eff, Sys.info()[["nodename"]],
-  Sys.getpid()))
+power_sim(
+  model,
+  version,
+  effect,
+  nsubj,
+  raw_eff,
+  nruns,
+  outfile = sprintf("\%s_\%s_\%s_\%04d_128_\%05d_\%0.2f_\%s_\%d.rds", model, version,
+    effect, nsubj, nruns, raw_eff, Sys.info()[["nodename"]], Sys.getpid())
+)
 }
 \arguments{
 \item{model}{Which type of model to fit: use 'lmem' for linear

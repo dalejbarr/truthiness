@@ -70,7 +70,7 @@
 #'
 #' \item{\code{list_id}}{Which set of statements the subject received.}
 #'
-#' \item{\code{item_id}}{Unique stimulus (statement) identifier.}
+#' \item{\code{stim_id}}{Unique stimulus (statement) identifier.}
 #'
 #' \item{\code{repetition}}{Whether the statement was old or new.}
 #'
@@ -122,7 +122,7 @@ gen_data <- function(nsubj,
   `(Intercept).s` <- `(Intercept).i` <- R.s <- R.i <- R <- NULL
   I1.s <- I1.i <- I1 <- I2.s <- I2.i <- I2 <- I3.s <- I3.i <- I3 <- NULL
   `R:I1.s` <- `R:I2.s` <- `R:I3.s` <- `R:I1.i` <- `R:I2.i` <- `R:I3.i` <- NULL
-  eta <- subj_id <- item_id <- trating <- NULL
+  eta <- subj_id <- stim_id <- trating <- NULL
   
   if (nsubj %% 8)
     stop("'nsubj' must be multiple of 8 (the number of stimulus lists)")
@@ -130,7 +130,7 @@ gen_data <- function(nsubj,
   if (length(thresh) != 6L)
     stop("'thresh' must be a six-element vector")
 
-  nitem <- stimlists %>%
+  nitem <- stimulus_conditions %>%
     dplyr::count(list_id) %>% dplyr::pull(n) %>% unique()
   stopifnot(length(nitem) == 1L)
 
@@ -169,20 +169,21 @@ gen_data <- function(nsubj,
   names(mus) <- effnames
   sfx <- MASS::mvrnorm(nsubj, mus, subj_mx) %>%
     tibble::as_tibble() %>%
-    dplyr::mutate(subj_id = dplyr::row_number())
+    dplyr::mutate(subj_id = factor(dplyr::row_number()))
 
+  ## generate random effects for items
   ifx <- MASS::mvrnorm(nitem, mus, item_mx) %>%
     tibble::as_tibble() %>%
-    dplyr::mutate(item_id = dplyr::row_number())
+    dplyr::mutate(stim_id = factor(dplyr::row_number()))
 
-  subj <- tibble::tibble(subj_id = seq_len(nsubj),
-                         list_id = rep(1:8, nsubj / 8L))
+  subj <- tibble::tibble(subj_id = factor(seq_len(nsubj)),
+                         list_id = factor(rep(1:8, nsubj / 8L)))
 
-  trials <- dplyr::inner_join(subj, stimlists, "list_id") %>%
+  trials <- dplyr::inner_join(subj, stimulus_conditions, "list_id") %>%
     dplyr::inner_join(sfx, "subj_id") %>%
-    dplyr::inner_join(ifx, "item_id", suffix = c(".s", ".i")) %>%
+    dplyr::inner_join(ifx, "stim_id", suffix = c(".s", ".i")) %>%
     dplyr::mutate(
-             R = dplyr::if_else(repetition == "old", 1/2, -1/2),
+             R = dplyr::if_else(repetition == "repeated", 1/2, -1/2),
              I1 = dplyr::if_else(interval == "1 day", 3/4, -1/4),
              I2 = dplyr::if_else(interval == "1 week", 3/4, -1/4),
              I3 = dplyr::if_else(interval == "1 month", 3/4, -1/4),
@@ -198,7 +199,7 @@ gen_data <- function(nsubj,
              trating = factor(eta2resp(eta, thresh),
                               levels = 1:7,
                               ordered = TRUE)) %>%
-    dplyr::select(subj_id, list_id, item_id, repetition, interval, eta,
+    dplyr::select(subj_id, list_id, stim_id, repetition, interval, eta,
                   trating, R, I1, I2, I3)
 
   ## now drop participants
@@ -209,7 +210,8 @@ gen_data <- function(nsubj,
 
   all_sphase <- dplyr::distinct(trials, subj_id, interval)
 
-  remaining <- dplyr::distinct(trials, subj_id) %>% dplyr::pull()
+  remaining <- dplyr::distinct(trials, subj_id) %>% dplyr::pull() %>%
+    as.integer()
   lvls <- trials %>% dplyr::pull(interval) %>% levels()
   res <- list()
   for (.i in seq_along(ndrop)) {
@@ -225,7 +227,9 @@ gen_data <- function(nsubj,
                       dplyr::distinct(res[[3]], subj_id)) %>% nrow()) == 0L)
 
   discard <- dplyr::bind_rows(res[[1]], res[[2]], res[[3]]) %>%
-    dplyr::mutate(interval = factor(interval, levels = lvls))
+    dplyr::mutate(subj_id = factor(subj_id,
+                                   levels = levels(trials[["subj_id"]])),
+                  interval = factor(interval, levels = lvls))
   stopifnot(nrow(dplyr::distinct(discard, subj_id)) == sum(ndrop))
 
   dplyr::anti_join(trials, discard, c("subj_id", "interval"))
