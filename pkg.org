@@ -94,8 +94,192 @@
   devtools::load_all()
   library("tidyverse")
 
-  lvers1 <- gen_data(576) %>%
-    distinct(list_id, stim_id, repetition, interval)
+  #### filler header fields to pad
+  ## StartDate, EndDate, Status,
+  ## Progress, RecordedDate, ResponseId, DistributionChannel,
+  ## UserLanguage
 
-  stimulus_conditions
+  ## header fields to fill in
+  ## Duration (in seconds)
+  ## Consent
+
+  #### tail fields to pad
+  ## age, gender, nationality, comments,
+
+  #### tail fields to fill in
+  ## cheat
+
+  #### extra fields we need:
+  ## repeater
+
+  make_prolific_file <- function(data, segment_id, subj_data, idata, path) {
+    id <- as.integer(strsplit(segment_id, "\\.")[[1]])
+    names(id) <- c("L", "P")
+    pad_string <- "xxxx"
+    dur_id <- paste0("dur_", id[["P"]])
+    wide_data <- tidyr::pivot_wider(data,
+				    names_from = "task_id",
+				    values_from = "trating")
+    jtib <- wide_data[, "subj_id"]
+    jtib[["StartDate"]] <-
+      jtib[["EndDate"]] <-
+      jtib[["Status"]] <-
+      jtib[["Progress"]] <-
+      jtib[["RecordedDate"]] <-
+      jtib[["ResponseId"]] <-
+      jtib[["DistributionChannel"]] <-
+      jtib[["UserLanguage"]] <-
+      pad_string
+
+    rtib <- wide_data[, "subj_id"]
+    rtib[["age"]] <-
+      rtib[["gender"]] <-
+      rtib[["nationality"]] <-
+      rtib[["comments"]] <-
+      pad_string
+
+    extra <- 
+      dplyr::inner_join(
+	       wide_data[, "subj_id"],
+	       subj_data[, c("subj_id", dur_id, "Finished",
+			     "ConsentAll", "Consent", "PID",
+			     "cheat", "repeater", "nativelang")],
+	       "subj_id")
+    names(extra)[names(extra) == dur_id] <- "Duration (in seconds)"
+
+    this_idata <- idata[[as.character(id[["L"]])]]
+    ftbl <- dplyr::inner_join(jtib, extra, "subj_id") %>%
+      dplyr::inner_join(wide_data, "subj_id") %>%
+      dplyr::left_join(this_idata, "subj_id") %>%
+      dplyr::inner_join(rtib, "subj_id")
+    ftbl[["PROLIFIC_PID"]] <- ftbl[["PID"]]
+
+    wide_cnames <- setdiff(colnames(wide_data),
+			   c("list_id", "phase_id", "subj_id"))
+    inames <- setdiff(colnames(this_idata), "subj_id")
+
+    ## repeaters
+    rtodo <- which(ftbl[["repeater"]])
+    for (i in rtodo) {
+      ftbl[i, wide_cnames] <- factor(rep(sample(1:7, 1), length(wide_cnames)),
+				     levels = 1:7, ordered = TRUE)
+    }
+
+    tt <- truthiness::prolific_headers[["head_cols"]]
+    zz <- truthiness::prolific_headers[["tail_cols"]]
+    if (id[["P"]] == 1L) {
+      cc <- which(tt == "Consent")
+      ee <- which(zz == "comments")
+      col_select <- c(tt[1:(cc - 1L)],
+		      "ConsentAll",
+		      tt[cc:length(tt)],
+		      inames,
+		      wide_cnames,
+		      zz[1:(ee - 1L)], "nativelang",
+		      zz[ee:length(zz)])
+    } else {
+      dd <- which(zz == "comments")
+      col_select <- c(tt,
+		      wide_cnames,
+		      zz[dd:length(zz)])
+    }
+
+    ftbl[, col_select]
+  }
+
+  nsubj <- 88L
+  ##############
+
+  ## list_id <- subj_id <- phase_id <-
+  ##   task_id <- trating <- NULL
+
+  PIDs <- replicate(nsubj, {
+    paste0(sample(c(LETTERS, letters), 24L),
+	   collapse = "")
+  })
+
+  ## reasons for rejection:
+  ## too fast      1% (P1 < 180s;  P2 < 60s)
+  ## took too long 1% (P1 > 2400s; P2 > 1800s)
+  ## finished      FALSE, TRUE
+  ## cheated       1%
+  ## no consent    1%
+  ## repeater      1%
+
+  duration_range_1 = c(180, 2400)
+  duration_range_all = c(60, 1800)
+
+  p1_mean = (duration_range_1[2] - duration_range_1[1]) / 2 +
+    duration_range_1[1]
+  p1_sd = (duration_range_1[2] - duration_range_1[1]) /
+    (2 * qnorm(.99))
+
+  all_mean = (duration_range_all[2] - duration_range_all[1]) / 2 +
+    duration_range_all[1]
+  all_sd = (duration_range_all[2] - duration_range_1[1]) /
+    (2 * qnorm(.99))
+
+  dur_p1 <- as.integer(rnorm(nsubj, p1_mean, p1_sd))
+  dur_p1 <- dplyr::if_else(dur_p1 < 0, 0L, dur_p1)
+
+  dur_all <- replicate(3, {
+    .ff <- as.integer(rnorm(nsubj, all_mean, all_sd))
+    dplyr::if_else(.ff < 0, 0L, .ff)
+  })
+
+  ## generate participant info
+  pids <- tibble::tibble(
+		    subj_id = factor(seq_len(nsubj)),
+		    PID = PIDs,
+		    dur_1 = dur_p1,
+		    dur_2 = dur_all[, 1],
+		    dur_3 = dur_all[, 2],
+		    dur_4 = dur_all[, 3],
+		    Finished = sample(c(TRUE, FALSE), nsubj, TRUE,
+				      c(.99, .01)),
+		    cheat = sample(c(
+		      "No, I didn't look any answers up",
+		      "Yes, I looked up answer(s)"), nsubj, TRUE, c(.99, .01)),
+		    ConsentAll = sample(c(
+		      "Yes, I confirm",
+		      "No, I don't"), nsubj, TRUE, c(.99, .01)),
+		    Consent = sample(c(
+		      "Yes, I confirm",
+		      "No, I don't"), nsubj, TRUE, c(.99, .01)),
+		    repeater = sample(c(TRUE, FALSE), nsubj, TRUE, c(.01, .99)),
+		    nativelang = sample(c("English", "something else"),
+					nsubj, TRUE, c(.99, .01)))
+
+  tpres <-
+    presentation_lists[presentation_lists[["task"]] == "truth",
+		       c("phase_id", "list_id", "stim_id",
+			 "task_id", "order")]
+
+  dat <- gen_data(nsubj) %>%
+    dplyr::inner_join(pids, "subj_id")
+  dat[["trating"]] <- as.character(dat[["trating"]])
+  dat[["trating"]] <- if_else(dat[["trating"]] == "1",
+			      "1 Definitely false", dat[["trating"]])
+  dat[["trating"]] <- if_else(dat[["trating"]] == "7",
+			      "7 Definitely true", dat[["trating"]])
+
+  df1 <- dplyr::inner_join(dat, tpres,
+			   c("list_id", "stim_id")) %>%
+    dplyr::arrange(list_id, subj_id, phase_id, order) %>%
+    dplyr::select(list_id, subj_id, phase_id, task_id, trating) %>%
+    split(list(.[["list_id"]], .[["phase_id"]]))
+
+  ## make interest rating data
+  irate <- dat[dat[["repetition"]] == "repeated",
+	       c("subj_id", "list_id", "stim_id", "trating")]
+  irate[["task"]] <- sprintf("IN%03d", irate[["stim_id"]])
+
+  ilists <-
+    split(irate[, c("subj_id", "task", "trating")], list(irate[["list_id"]])) %>%
+    map(~ tidyr::pivot_wider(.x,
+			     names_from = "task",
+			     values_from = "trating"))
+
+  res <- map2(df1, names(df1), make_prolific_file, pids, ilists, "prolific_files")
 #+end_src
+
