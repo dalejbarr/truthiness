@@ -1,6 +1,6 @@
 globalVariables(c("clmm_maximal", "NE_exp1", "NE_items",
                 "presentation_lists", "stimulus_conditions",
-                "stimulus_materials"))
+                "stimulus_materials", "prolific_headers"))
 
 #' Data from Nadarevic & Erdfelder (2014), Experiment 1
 #'
@@ -78,6 +78,8 @@ globalVariables(c("clmm_maximal", "NE_exp1", "NE_items",
 #'   \item{list_id}{Unique identifier of stimulus presentation list.}
 #' 
 #'   \item{stim_id}{Unique identifier of the stimulus.}
+#'
+#'   \item{actual_truth}{Actual truth or falsity of the statement.}
 #' 
 #'   \item{repetition}{Whether the statement was repeated or novel.}
 #' 

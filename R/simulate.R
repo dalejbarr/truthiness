@@ -1,3 +1,7 @@
+#' @importFrom stats qnorm
+#' @importFrom stats rnorm
+NULL
+
 #' Simulate truth rating data
 #'
 #' @param nsubj Number of subjects. Because of counterbalancing, must

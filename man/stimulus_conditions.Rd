@@ -11,6 +11,8 @@
 
   \item{stim_id}{Unique identifier of the stimulus.}
 
+  \item{actual_truth}{Actual truth or falsity of the statement.}
+
   \item{repetition}{Whether the statement was repeated or novel.}
 
   \item{interval}{Interval (phase) in which the truth-rating was
