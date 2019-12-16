@@ -164,7 +164,7 @@ gen_data <- function(nsubj,
   if (length(thresh) != 6L)
     stop("'thresh' must be a six-element vector")
 
-  nitem <- stimulus_conditions %>%
+  nitem <- truthiness::stimulus_conditions %>%
     dplyr::count(list_id) %>% dplyr::pull(n) %>% unique()
   stopifnot(length(nitem) == 1L)
 
@@ -195,7 +195,8 @@ gen_data <- function(nsubj,
   subj <- tibble::tibble(subj_id = factor(seq_len(nsubj)),
                          list_id = factor(rep(1:8, nsubj / 8L)))
 
-  trials <- dplyr::inner_join(subj, stimulus_conditions, "list_id") %>%
+  trials <- dplyr::inner_join(subj, truthiness::stimulus_conditions,
+                              "list_id") %>%
     dplyr::inner_join(sfx, "subj_id") %>%
     dplyr::inner_join(ifx, "stim_id", suffix = c(".s", ".i")) %>%
     dplyr::mutate(
