@@ -61,7 +61,10 @@ power_sim <- function(model,
   if (!(target_effect %in% c("main", "interaction")))
     stop("'effect' must be either 'main' or 'interaction'")
 
-  message("Running ", nruns, " simulations of '", version, "' version.")
+  message("Running ", nruns, " simulations with effect profile of ",
+          sprintf("%0.2f %0.2f %0.2f %0.2f.",
+                  phase_eff[1], phase_eff[2],
+                  phase_eff[3], phase_eff[4]))
   message("Testing ", target_effect, " effect, ",
           "model type ", model, "...")
   
