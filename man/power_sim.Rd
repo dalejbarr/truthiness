@@ -10,7 +10,7 @@ power_sim(
   target_effect,
   nsubj,
   nruns,
-  outfile = sprintf("\%s_\%s_\%s_\%04d_128_\%05d_\%0.2f_\%s_\%d.rds", model,
+  outfile = sprintf("\%s_\%s_\%s_\%04d_128_\%05d_\%s_\%d.rds", model,
     sprintf("\%0.2f~\%0.2f~\%0.2f~\%0.2f", phase_eff[1], phase_eff[2], phase_eff[3],
     phase_eff[4]), target_effect, nsubj, nruns, Sys.info()[["nodename"]], Sys.getpid())
 )
