@@ -4,18 +4,14 @@
 #'   mixed-effects model, 'clmm' for cumulative logit mixed-effects
 #'   model.
 #'
-#' @param version Which assumption to make about the form of the
-#'   repetition-by-interval interaction; 'asymptote' for the
-#'   asymptotic version, 'single' for the effect-at-a-single-phase
-#'   version (see \code{\link{gen_data}}).
+#' @param phase_eff A four-element vector, each element of which
+#'   specifies the illusory truth effect at the corresponding phase,
+#'   on the log odds scale (see \code{\link{gen_data}}).
 #'
-#' @param effect Which effect to test, the main effect (\code{'main'})
-#'   or the interaction effect (\code{'interaction'}).
+#' @param target_effect Which effect to test, the main effect
+#'   (\code{'main'}) or the interaction effect (\code{'interaction'}).
 #' 
 #' @param nsubj Number of subjects.
-#'
-#' @param raw_eff Size of the illusory-truth effect, in raw logit
-#'   units.
 #'
 #' @param nruns How many simulations to run.
 #'
@@ -28,23 +24,26 @@
 #'
 #' @examples
 #' set.seed(62)
-#' power_sim("lmem", "asymptote", "main", 40, .14, 1, NULL)
+#' power_sim("lmem", c(0, .14, .14, .14), "main", 40, 1, NULL)
 #' \dontrun{
-#' power_sim("clmm", "asymptote", "main", 24, .14, 1, NULL) # takes ~10 minutes
+#' power_sim("clmm", c(0, .14, .14, .14), "main", 24, 1, NULL) # takes ~10 minutes
 #' }
 #' @export
 power_sim <- function(model,
-                      version,
-                      effect,
+                      phase_eff,
+                      target_effect,
                       nsubj,
-                      raw_eff,
                       nruns,
-                      outfile = sprintf("%s_%s_%s_%04d_128_%05d_%0.2f_%s_%d.rds",
-                                        model, version, effect,
-                                        nsubj, nruns,
-                                        raw_eff,
-                                        Sys.info()[["nodename"]],
-                                        Sys.getpid())) {
+                      outfile =
+                        sprintf("%s_%s_%s_%04d_128_%05d_%0.2f_%s_%d.rds",
+                                model,
+                                sprintf("%0.2f~%0.2f~%0.2f~%0.2f",
+                                        phase_eff[1], phase_eff[2],
+                                        phase_eff[3], phase_eff[4]),
+                                target_effect,
+                                nsubj, nruns,
+                                Sys.info()[["nodename"]],
+                                Sys.getpid())) {
   ## make sure the current directory is writeable
   if (!is.null(outfile)) {
     writeLines("test", ".zzzxyztest")
@@ -59,18 +58,15 @@ power_sim <- function(model,
   if (!(model %in% c("lmem", "clmm")))
     stop("'model' must be either 'lmem' or 'clmm'")
 
-  if (!(version %in% c("asymptote", "single")))
-    stop("'version' must be either 'asymptote' or 'single'")
-
-  if (!(effect %in% c("main", "interaction")))
+  if (!(target_effect %in% c("main", "interaction")))
     stop("'effect' must be either 'main' or 'interaction'")
 
   message("Running ", nruns, " simulations of '", version, "' version.")
-  message("Testing ", effect, " effect, ",
+  message("Testing ", target_effect, " effect, ",
           "model type ", model, "...")
   
   stime <- system.time(results <- replicate(nruns, {
-    dat <- gen_data(nsubj, raw_eff = raw_eff, version = version)
+    dat <- gen_data(nsubj, phase_eff = phase_eff)
     do.call(paste0("fit_", model), list(dat))
   }))
 
@@ -78,7 +74,9 @@ power_sim <- function(model,
           round(stime[[3]]), " seconds")
 
   power <- sum(results["p_RI", ] < .05) / nruns
-  message("power for raw effect of ", raw_eff,
+  message("power for effect profile ",
+          sprintf("%0.2f %0.2f %0.2f %0.2f", phase_eff[1],
+                  phase_eff[2], phase_eff[3], phase_eff[4]),
           ": ", power)  
   
   if (is.null(outfile)) {

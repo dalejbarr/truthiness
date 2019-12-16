@@ -1,6 +1,6 @@
 Package: truthiness
 Title: Simulation and Analysis of Illusory-Truth Data
-Version: 0.2.0.9000
+Version: 0.3.0.9000
 Date: 2019-12-04
 Authors@R: 
     person(given = "Dale",
@@ -25,3 +25,5 @@ Imports:
     readr,
     purrr
 RoxygenNote: 7.0.2
+Suggests: 
+    testthat (>= 2.1.0)

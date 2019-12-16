@@ -6,13 +6,13 @@
 \usage{
 power_sim(
   model,
-  version,
-  effect,
+  phase_eff,
+  target_effect,
   nsubj,
-  raw_eff,
   nruns,
-  outfile = sprintf("\%s_\%s_\%s_\%04d_128_\%05d_\%0.2f_\%s_\%d.rds", model, version,
-    effect, nsubj, nruns, raw_eff, Sys.info()[["nodename"]], Sys.getpid())
+  outfile = sprintf("\%s_\%s_\%s_\%04d_128_\%05d_\%0.2f_\%s_\%d.rds", model,
+    sprintf("\%0.2f~\%0.2f~\%0.2f~\%0.2f", phase_eff[1], phase_eff[2], phase_eff[3],
+    phase_eff[4]), target_effect, nsubj, nruns, Sys.info()[["nodename"]], Sys.getpid())
 )
 }
 \arguments{
@@ -20,18 +20,14 @@ power_sim(
 mixed-effects model, 'clmm' for cumulative logit mixed-effects
 model.}
 
-\item{version}{Which assumption to make about the form of the
-repetition-by-interval interaction; 'asymptote' for the
-asymptotic version, 'single' for the effect-at-a-single-phase
-version (see \code{\link{gen_data}}).}
+\item{phase_eff}{A four-element vector, each element of which
+specifies the illusory truth effect at the corresponding phase,
+on the log odds scale (see \code{\link{gen_data}}).}
 
-\item{effect}{Which effect to test, the main effect (\code{'main'})
-or the interaction effect (\code{'interaction'}).}
+\item{target_effect}{Which effect to test, the main effect
+(\code{'main'}) or the interaction effect (\code{'interaction'}).}
 
 \item{nsubj}{Number of subjects.}
-
-\item{raw_eff}{Size of the illusory-truth effect, in raw logit
-units.}
 
 \item{nruns}{How many simulations to run.}
 
@@ -48,8 +44,8 @@ Run power simulations
 }
 \examples{
 set.seed(62)
-power_sim("lmem", "asymptote", "main", 40, .14, 1, NULL)
+power_sim("lmem", c(0, .14, .14, .14), "main", 40, 1, NULL)
 \dontrun{
-power_sim("clmm", "asymptote", "main", 24, .14, 1, NULL) # takes ~10 minutes
+power_sim("clmm", c(0, .14, .14, .14), "main", 24, 1, NULL) # takes ~10 minutes
 }
 }

@@ -2,15 +2,49 @@
 #' @importFrom stats rnorm
 NULL
 
+#' Derive fixed effects parameters from phase-by-phase effects
+#'
+#' @param phase_eff A four-element vector specifying the illusory
+#'   truth effect at each of the four testing phases (in log odds
+#'   units).
+#'
+#' @return Vector with eight elements containing the fixed effects
+#'   coefficients for deviation-coded predictors.
+#' 
+#' @export
+derive_fixed <- function(phase_eff) {
+  if (length(phase_eff) != 4L)
+    stop("'phase_eff' must be a vector of length 4.")
+
+  a <- phase_eff[1]
+  b <- phase_eff[2]
+  c <- phase_eff[3]
+  d <- phase_eff[4]
+
+  c(`(Intercept)` = (a + b + c + d) / 8,
+    R             = (a + b + c + d) / 4,
+    I1            = (b - a) / 2,
+    I2            = (c - a) / 2,
+    I3            = (d - a) / 2,
+    `R:I1`        = (b - a),
+    `R:I2`        = (c - a),
+    `R:I3`        = (d - a))
+}
+
 #' Simulate truth rating data
 #'
 #' @param nsubj Number of subjects. Because of counterbalancing, must
 #'   be a multiple of 8.
+#' 
+#' @param phase_eff A four-element vector giving the size of the
+#'   illusory truth effect at each of the four phases (on the log odds
+#'   scale). Use \code{rep(0, 4)} for testing Type I error rate. A
+#'   value of .14 gives an effect of approximately 1/10 of a scale
+#'   point.
+#'
 #' @param thresh Cut-points (thresholds) for the seven point scale
 #'   (must be a six-element vector).
-#' @param raw_eff Raw effect size for the interaction term of the
-#'   model. Use 0 for testing Type I error rate, and .14 for an effect
-#'   of approximately 1/10 of a scale point.
+#' 
 #' @param subj_rfx A 4x4 covariance matrix with by-subject variance
 #'   components for the intercept, main effect of repetition, main
 #'   effect of interval, and repetition-by-interval interaction. Only
@@ -32,11 +66,6 @@ NULL
 #'   remaining participants dropping out after 1 week and before 1
 #'   month. For example, the default values of .05, .1, and 1 encode
 #'   dropout rates of 5\%, 10\%, and 10\%.
-#' @param version Determine how the effect evolves over time; must be
-#'   one of the following two strings: "asymptote" (default) or
-#'   "single". For the asymptote version, the effect appears at phase
-#'   2 and remains constant over phases 3 and 4. For the "single"
-#'   version, the effect only appears at phase 4.
 #' 
 #' @details By default, the thresholds and parameter estimates for
 #'   variance components used in the simulation are from the
@@ -116,12 +145,13 @@ NULL
 #' @seealso \code{\link{clmm_maximal}}, \code{\link{NE_exp1}}
 #' @export
 gen_data <- function(nsubj,
+                     phase_eff = rep(0, 4),
                      thresh = alpha_6_to_7(truthiness::clmm_maximal$alpha),
-                     raw_eff = 0,
-                     subj_rfx = ordinal::VarCorr(truthiness::clmm_maximal)$subj_id,
-                     item_rfx = ordinal::VarCorr(truthiness::clmm_maximal)$item_id,
-                     dropout = c(.05, .1, .1),
-                     version = "asymptote") {
+                     subj_rfx =
+                       ordinal::VarCorr(truthiness::clmm_maximal)$subj_id,
+                     item_rfx =
+                       ordinal::VarCorr(truthiness::clmm_maximal)$item_id,
+                     dropout = c(.05, .1, .1)) {
   list_id <- n <- repetition <- interval <- NULL
   `(Intercept).s` <- `(Intercept).i` <- R.s <- R.i <- R <- NULL
   I1.s <- I1.i <- I1 <- I2.s <- I2.i <- I2 <- I3.s <- I3.i <- I3 <- NULL
@@ -138,39 +168,21 @@ gen_data <- function(nsubj,
     dplyr::count(list_id) %>% dplyr::pull(n) %>% unique()
   stopifnot(length(nitem) == 1L)
 
-  if (!version %in% c("asymptote", "single"))
-    stop("'version' must be one of 'asymptote', 'single'")
-  
-  effnames <- c(
-    "(Intercept)",
-    "R", "I1", "I2", "I3",
-    "R:I1", "R:I2", "R:I3")
-
-  if (version == "asymptote") {
-    ## fixed effects (betas)
-    betas <- c((3 * raw_eff) / 4,
-               rep((raw_eff) / 2, 3),
-               rep(raw_eff, 3))
-  } else {
-    betas <- c(raw_eff / 4,
-               0, 0, raw_eff / 2,
-               0, 0, raw_eff)
-  }
-  names(betas) <- effnames[-1]
+  betas <- derive_fixed(phase_eff)
 
   ## variance-covariance matrices
   ## covariances set to zero
   subj_mx <- matrix(0, nrow = 8, ncol = 8,
-                    dimnames = list(effnames, effnames))
+                    dimnames = list(names(betas), names(betas)))
   diag(subj_mx) <- rep(diag(subj_rfx), c(1, 1, 3, 3))
 
   item_mx <- matrix(0, nrow = 8, ncol = 8,
-                    dimnames = list(effnames, effnames))
+                    dimnames = list(names(betas), names(betas)))
   diag(item_mx) <- rep(diag(item_rfx), c(1, 1, 3, 3))
 
   ## generate random effects for subjects
-  mus <- rep(0, length(effnames))
-  names(mus) <- effnames
+  mus <- rep(0, length(names(betas)))
+  names(mus) <- names(betas)
   sfx <- MASS::mvrnorm(nsubj, mus, subj_mx) %>%
     tibble::as_tibble() %>%
     dplyr::mutate(subj_id = factor(dplyr::row_number()))
@@ -200,7 +212,7 @@ gen_data <- function(nsubj,
                (`R:I1.s` + `R:I1.i` + betas["R:I1"]) * R * I1 +
                (`R:I2.s` + `R:I2.i` + betas["R:I2"]) * R * I2 +
                (`R:I3.s` + `R:I3.i` + betas["R:I3"]) * R * I3,
-             trating = factor(eta2resp(eta, thresh),
+             trating = factor(eta2resp(eta, thresh + betas["(Intercept)"]),
                               levels = 1:7,
                               ordered = TRUE)) %>%
     dplyr::select(subj_id, list_id, stim_id, repetition, interval, eta,

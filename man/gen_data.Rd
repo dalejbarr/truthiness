@@ -6,24 +6,25 @@
 \usage{
 gen_data(
   nsubj,
+  phase_eff = rep(0, 4),
   thresh = alpha_6_to_7(truthiness::clmm_maximal$alpha),
-  raw_eff = 0,
   subj_rfx = ordinal::VarCorr(truthiness::clmm_maximal)$subj_id,
   item_rfx = ordinal::VarCorr(truthiness::clmm_maximal)$item_id,
-  dropout = c(0.05, 0.1, 0.1),
-  version = "asymptote"
+  dropout = c(0.05, 0.1, 0.1)
 )
 }
 \arguments{
 \item{nsubj}{Number of subjects. Because of counterbalancing, must
 be a multiple of 8.}
 
+\item{phase_eff}{A four-element vector giving the size of the
+illusory truth effect at each of the four phases (on the log odds
+scale). Use \code{rep(0, 4)} for testing Type I error rate. A
+value of .14 gives an effect of approximately 1/10 of a scale
+point.}
+
 \item{thresh}{Cut-points (thresholds) for the seven point scale
 (must be a six-element vector).}
-
-\item{raw_eff}{Raw effect size for the interaction term of the
-model. Use 0 for testing Type I error rate, and .14 for an effect
-of approximately 1/10 of a scale point.}
 
 \item{subj_rfx}{A 4x4 covariance matrix with by-subject variance
 components for the intercept, main effect of repetition, main
@@ -48,12 +49,6 @@ week. The third and final element represents the proportion of
 remaining participants dropping out after 1 week and before 1
 month. For example, the default values of .05, .1, and 1 encode
 dropout rates of 5\%, 10\%, and 10\%.}
-
-\item{version}{Determine how the effect evolves over time; must be
-one of the following two strings: "asymptote" (default) or
-"single". For the asymptote version, the effect appears at phase
-2 and remains constant over phases 3 and 4. For the "single"
-version, the effect only appears at phase 4.}
 }
 \value{
 A data frame, with \code{nsubj * 128} rows and 11 variables, where:
