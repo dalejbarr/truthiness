@@ -70,7 +70,8 @@ power_sim <- function(model,
   
   stime <- system.time(results <- replicate(nruns, {
     dat <- gen_data(nsubj, phase_eff = phase_eff)
-    do.call(paste0("fit_", model), list(dat))
+    do.call(paste0("fit_", model),
+            list(dat, main_effect = (target_effect == "main")))
   }))
 
   message(nruns, " simulations completed in ",
