@@ -17,6 +17,141 @@ tryFit <- function(tf.formula, tf.data, ...) {
        converged=converged)
 }
 
+#' Fit generalized additive mixed model to ratings data
+#'
+#' @param .data Data frame, with the format as resulting from a call
+#'   to \code{\link{gen_data}}.
+#'
+#' @param main_effect Whether to test the main effect of repetition
+#'   (TRUE) or the repetition-by-interval interaction (FALSE; the
+#'   default).
+#'
+#' @details Fits a generalized additive mixed model to the data and
+#'   tests the specified effect (interaction or main effect) using a
+#'   likelihood-ratio test using \code{mgcv::bam()}. If the
+#'   interaction is to be tested, the following two models are
+#'   compared.
+#'
+#' \code{trating ~ R * (I1 + I2 + I3) +
+#'    s(subj_id, bs = "re") +
+#'    s(subj_id, R, I1, bs = "re") +
+#'    s(subj_id, R, I2, bs = "re") +
+#'    s(subj_id, R, I3, bs = "re") +
+#'    s(stim_id, bs = "re") +
+#'    s(stim_id, R, I1, bs = "re") +
+#'    s(stim_id, R, I2, bs = "re") +
+#'    s(stim_id, R, I3, bs = "re")}
+#'
+#' \code{trating ~ R + I1 + I2 + I3 +
+#'    s(subj_id, bs = "re") +
+#'    s(subj_id, R, I1, bs = "re") +
+#'    s(subj_id, R, I2, bs = "re") +
+#'    s(subj_id, R, I3, bs = "re") +
+#'    s(stim_id, bs = "re") +
+#'    s(stim_id, R, I1, bs = "re") +
+#'    s(stim_id, R, I2, bs = "re") +
+#'    s(stim_id, R, I3, bs = "re")}
+#' 
+#' If the main effect is to be tested, then the following two models
+#' are compared.
+#'
+#' \code{trating ~ R * (I1 + I2 + I3) +
+#'    s(subj_id, bs = "re") +
+#'    s(subj_id, R, bs = "re") +
+#'    s(stim_id, bs = "re") +
+#'    s(stim_id, R, bs = "re")}
+#'
+#' \code{trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
+#'    s(subj_id, bs = "re") +
+#'    s(subj_id, R, bs = "re") +
+#'    s(stim_id, bs = "re") +
+#'    s(stim_id, R, bs = "re")}
+#' 
+#' @return A vector, with the following elements.
+#'
+#' \describe{
+#'   \item{\code{R}}{Fixed-effects estimate of the main effect of repetition.}
+#'   \item{\code{I1}}{Fixed-effects estimate of the main effect of interval (1).}
+#'   \item{\code{I2}}{Fixed-effects estimate of the main effect of interval (2).}
+#'   \item{\code{I3}}{Fixed-effects estimate of the main effect of interval (3).}
+#'   \item{\code{R:I1}}{Fixed-effects estimate of the interaction (1).}
+#'   \item{\code{R:I2}}{Fixed-effects estimate of the interaction (2).}
+#'   \item{\code{R:I3}}{Fixed-effects estimate of the interaction (3).}
+#'   \item{dev1}{Deviance for the model including the effect(s) of interest.}
+#'   \item{dev2}{Deviance for the model excluding the effect(s) of interest.}
+#'   \item{chisq_RI}{Chi-square value for the likelihood ratio test.}
+#'   \item{p_RI}{Associated p-value.}
+#'   \item{thresh.1|2}{First cut-point (threshold).}
+#'   \item{thresh.2|3}{Second cut-point.}
+#'   \item{thresh.3|4}{Third cut-point.}
+#'   \item{thresh.4|5}{Fourth cut-point.}
+#'   \item{thresh.5|6}{Fifth cut-point.}
+#'   \item{thresh.6|7}{Sixth cut-point.}
+#' }
+#'
+#' @seealso \code{\link{gen_data}}
+#' @examples
+#' set.seed(62)
+#' dat <- gen_data(40) 
+#' fit_gamm(dat, TRUE) # test main effect
+#' 
+#' @export
+fit_gamm <- function(.data, main_effect = FALSE) {
+  form <- form2 <- NULL
+
+  .data[["trating"]] <- as.integer(.data[["trating"]])
+
+  if (main_effect) {
+    form <- trating ~ R * (I1 + I2 + I3) +
+      s(subj_id, bs = "re") +
+      s(subj_id, R, bs = "re") +
+      s(stim_id, bs = "re") +
+      s(stim_id, R, bs = "re")
+
+    form2 <- trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
+      s(subj_id, bs = "re") +
+      s(subj_id, R, bs = "re") +
+      s(stim_id, bs = "re") +
+      s(stim_id, R, bs = "re")    
+  } else {
+    form <- trating ~ R * (I1 + I2 + I3) +
+      s(subj_id, bs = "re") +
+      s(subj_id, R, I1, bs = "re") +
+      s(subj_id, R, I2, bs = "re") +
+      s(subj_id, R, I3, bs = "re") +
+      s(stim_id, bs = "re") +
+      s(stim_id, R, I1, bs = "re") +
+      s(stim_id, R, I2, bs = "re") +
+      s(stim_id, R, I3, bs = "re")
+
+    form2 <- trating ~ R + I1 + I2 + I3 +
+      s(subj_id, bs = "re") +
+      s(subj_id, R, I1, bs = "re") +
+      s(subj_id, R, I2, bs = "re") +
+      s(subj_id, R, I3, bs = "re") +
+      s(stim_id, bs = "re") +
+      s(stim_id, R, I1, bs = "re") +
+      s(stim_id, R, I2, bs = "re") +
+      s(stim_id, R, I3, bs = "re")
+  }
+
+  ## fit the model and print the results
+  el1 <- suppressWarnings(mgcv::bam(form, family = mgcv::ocat(R = 7), .data))
+  el2 <- suppressWarnings(mgcv::bam(form2, family = mgcv::ocat(R = 7), .data))
+
+  fef <- coefficients(el1)[1:8]
+
+  mychisq1 <- deviance(el2) - deviance(el1)
+  pval1 <- pchisq(abs(mychisq1), 3, lower.tail = FALSE)
+
+  thetas <- el1$family$getTheta(TRUE)
+  names(thetas) <- paste0("thresh.", 1:6, "|", 2:7)
+  
+  c(fef, dev1 = deviance(el1), dev2 = deviance(el2), 
+    chisq_RI = mychisq1, p_RI = pval1,
+    thetas)
+}
+
 #' Fit linear mixed-effects model to ratings data
 #'
 #' @param .data Data frame, with the format as resulting from a call

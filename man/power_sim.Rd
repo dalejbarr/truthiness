@@ -18,7 +18,7 @@ power_sim(
 \arguments{
 \item{model}{Which type of model to fit: use 'lmem' for linear
 mixed-effects model, 'clmm' for cumulative logit mixed-effects
-model.}
+model, and 'gamm' for generalized additive mixed model.}
 
 \item{phase_eff}{A four-element vector, each element of which
 specifies the illusory truth effect at the corresponding phase,
