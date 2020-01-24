@@ -67,8 +67,8 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
                                    levels = 1:7, ordered = TRUE)
   }
 
-  tt <- truthiness::respfile_headers[["head_cols"]]
-  zz <- truthiness::respfile_headers[["tail_cols"]]
+  tt <- respfile_headers[["head_cols"]]
+  zz <- respfile_headers[["tail_cols"]]
   if (id[["P"]] == 1L) {
     cc <- which(tt == "Consent")
     ee <- which(zz == "comments")
