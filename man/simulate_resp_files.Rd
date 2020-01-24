@@ -66,3 +66,10 @@ A character vector with the names of the data files.
 \description{
 Simulate response data files from the rating study
 }
+\details{
+Simulates response data and writes a set of CSV files out
+  to \code{path} in Qualtrics format. The file names are of the
+  format \code{PXLY.csv}, where X is the phase number (1-4) and Y
+  is the list number (1-8). So P2L6.csv is the file for phase 2 of
+  list 6.
+}

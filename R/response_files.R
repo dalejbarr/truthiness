@@ -90,10 +90,7 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
   }
 
   odata <- ftbl[, c(cols_left, cols_mid, cols_right)]
-  pname <- file.path(path, sprintf("phase%d", id[["P"]]))
-  if (!dir.exists(pname))
-    dir.create(pname, FALSE, recursive=TRUE)
-  fname <- file.path(pname, sprintf("P%dL%d.csv", id[["P"]], id[["L"]]))
+  fname <- file.path(path, sprintf("P%dL%d.csv", id[["P"]], id[["L"]]))
 
   ## now create the header lines of the file
   xx <- as.matrix(respfile_headers$left_chunk)
@@ -179,6 +176,12 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
 #'
 #' @param duration_range_all Two-element vector giving the range of
 #'   acceptable task durations for Phases 2, 3, and 4.
+#'
+#' @details Simulates response data and writes a set of CSV files out
+#'   to \code{path} in Qualtrics format. The file names are of the
+#'   format \code{PXLY.csv}, where X is the phase number (1-4) and Y
+#'   is the list number (1-8). So P2L6.csv is the file for phase 2 of
+#'   list 6.
 #' 
 #' @return A character vector with the names of the data files.
 simulate_resp_files <- function(nsubj,
@@ -200,8 +203,9 @@ simulate_resp_files <- function(nsubj,
   if (dir.exists(path)) {
     if (!overwrite)
       stop("subdirectory '", path, "' already exists and overwrite = FALSE")
-    unlink("path", TRUE)
+    unlink("path", TRUE, TRUE)
   }
+  dir.create(path, FALSE)
 
   PIDs <- replicate(nsubj, {
     paste0(sample(c(LETTERS, letters), 24L),
