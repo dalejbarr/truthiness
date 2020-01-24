@@ -5,7 +5,7 @@
 \title{Simulate response data files from the rating study}
 \usage{
 simulate_resp_files(
-  data,
+  nsubj,
   path,
   overwrite = FALSE,
   p_too_fast = 0.01,
@@ -21,7 +21,7 @@ simulate_resp_files(
 )
 }
 \arguments{
-\item{data}{Simulated data resulting from a call to \code{\link{gen_data}}.}
+\item{nsubj}{Number of subjects; must be a multiple of 8.}
 
 \item{path}{Path to subdirectory where files should be stored.}
 
