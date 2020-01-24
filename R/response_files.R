@@ -184,6 +184,7 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
 #'   list 6.
 #' 
 #' @return A character vector with the names of the data files.
+#' @export
 simulate_resp_files <- function(nsubj,
                                 path,
                                 overwrite = FALSE,
