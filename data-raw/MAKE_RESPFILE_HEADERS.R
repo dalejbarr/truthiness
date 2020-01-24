@@ -1,4 +1,5 @@
-library("truthiness")
+## run within the root 'truthiness' directory
+devtools::load_all()
 library("tidyverse")
 
 colschema <- cols(.default = col_character(),
@@ -6,7 +7,7 @@ colschema <- cols(.default = col_character(),
                   Finished = col_logical(),
                   age = col_integer())
 
-colnames <- readLines("mock_prolific_file_anon.csv", 2L)[2] %>%
+colnames <- readLines("data-raw/mock_prolific_file_anon.csv", 2L)[2] %>%
   strsplit(",") %>%
   pluck(1)
 
@@ -14,10 +15,10 @@ rating_cols <- grep("^[0-9]{1,3}_.*", colnames)
 head_cols <- colnames[seq_len(min(rating_cols) - 1L)]
 tail_cols <- colnames[(max(rating_cols) + 1L):length(colnames)]
 
-head_rows <- read_csv("mock_prolific_file_anon.csv",
+head_rows <- read_csv("data-raw/mock_prolific_file_anon.csv",
                       col_names = FALSE,
                       col_types = cols(.default = col_character())) %>%
-  slice(1:4) %>%
+  slice(2:4) %>%
   select(-(rating_cols))
 
 left_chunk <- head_rows %>%
@@ -26,11 +27,11 @@ left_chunk <- head_rows %>%
 right_chunk <- head_rows %>%
   select(rating_cols[1]:ncol(head_rows))
 
-prolific_headers <- list(
+respfile_headers <- list(
   head_cols = head_cols,
   tail_cols = tail_cols,
   left_chunk = left_chunk,
   right_chunk = right_chunk)
 
-usethis::use_data(prolific_headers, internal = TRUE,
+usethis::use_data(respfile_headers, internal = TRUE,
                   overwrite = TRUE)
