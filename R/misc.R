@@ -53,3 +53,4 @@ alpha_6_to_7 <- function(thresh = truthiness::clmm_maximal$alpha) {
   newthresh[4] <- newthresh[5] - (thresh[4] - thresh[3]) * .8
   newthresh
 }
+
