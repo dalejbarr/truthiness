@@ -4,7 +4,12 @@
 \alias{reproduce_analysis}
 \title{Reproduce the Master Data Analysis}
 \usage{
-reproduce_analysis(path, inferential = FALSE, outfile = "my_analysis.html")
+reproduce_analysis(
+  path,
+  inferential = FALSE,
+  outfile = "my_analysis.html",
+  instructions = FALSE
+)
 }
 \arguments{
 \item{path}{Path to the anonymized data files.}
@@ -12,6 +17,8 @@ reproduce_analysis(path, inferential = FALSE, outfile = "my_analysis.html")
 \item{inferential}{Whether to run inferential statistics.}
 
 \item{outfile}{Path to the HTML output file.}
+
+\item{instructions}{Include instructions on how to reproduce the analysis.}
 }
 \description{
 Reproduce the Master Data Analysis
