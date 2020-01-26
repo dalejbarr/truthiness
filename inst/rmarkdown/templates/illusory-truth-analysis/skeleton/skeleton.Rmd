@@ -1,0 +1,197 @@
+---
+title: "The Truth Trajectory: Analysis"
+author: Dale J. Barr and Emma Henderson
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: 
+  html_document:
+    code_folding: hide
+params:
+  inferential: FALSE
+  subdir: NULL
+---
+
+```{r setup, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Instructions for reproducing these analyses
+
+The [R Markdown](https://rmarkdown.rstudio.com/index.html) source document used to create this file is included with the [truthiness](https://github.com/dalejbarr/truthiness) package that accompanies this project.
+
+To access and edit a copy of this file, after installing truthiness 
+(`devtools::install_github("dalejbarr/truthiness")`)
+use one of the two methods below.
+
+If you are using RStudio, simply go to the pull down menu 
+`File -> New... -> R Markdown` and choose "Illusory Truth Analysis" from the list of available templates.
+
+Another option that does not depend on RStudio is to type the following command in the RStudio console.
+
+
+```{r rmarkdown-file, eval=FALSE}
+rmarkdown::draft("my_analysis.Rmd", "illusory-truth-analysis", "truthiness")
+```
+
+This command will create the file `my_analysis.Rmd` in the working directory, which can then be edited and compiled.
+
+
+## Import and preprocess
+
+
+```{r packages, message = FALSE}
+## Load in the required add-on packages.
+
+## library("truthiness")
+devtools::load_all("../../truthiness")
+library("tidyverse")
+
+## shortcut for pretty printing for integers
+.pi <- function(x) prettyNum(x, big.mark=',')
+```
+
+```{r subdir, echo = FALSE}
+subdir <-
+  if (is.null(params$subdir)) {
+    dirs <- grep("^anon-[0-9]{4}-[0-9]{2}-[0-9]{2}",
+                 list.dirs(".", FALSE, recursive = FALSE), value = TRUE)
+    if (length(dirs) == 0L) {
+      stop("No data subdirectories found and params$subdir was NULL.\n",
+           "       If you wish to create sample data, use:\n",
+           "       truthiness::simulate_resp_files() and then\n",
+           "       truthiness::preprocess().")
+    }
+    dirs[length(dirs)]
+  } else {
+    params$subdir
+  }
+```
+
+Importing data from files in subdirectory ``r subdir``.
+
+```{r import}
+sess <- read_csv(file.path(subdir, "ANON_sessions.csv"),
+		 col_types = "cill")
+
+phase <- read_csv(file.path(subdir, "ANON_phases.csv"),
+		  col_types = "ciill")
+
+interest <- read_csv(file.path(subdir, "ANON_interest.csv"),
+		     col_types = "ccii")
+
+ratings <- read_csv(file.path(subdir, "ANON_ratings.csv"),
+                    col_types = "cicii")
+
+n_item <- ratings %>% distinct(stim_id) %>% nrow()
+```
+
+## Pre-registered Exclusions
+
+The anonymized files contain `r .pi(nrow(ratings))` truth ratings of
+`r .pi(n_item)` statements for `r .pi(nrow(sess))` participants. Any
+participants who did not provide consent for the entire study will
+already have had their data removed during the pre-processing
+stage. Also any phases of the study where a participant withheld
+consent (despite consenting overall) will also have already been
+removed before this stage.
+
+### Participant-level exclusions
+
+There were two main exclusion criteria for removing participants:
+
+1. Not being a (self-reported) native speaker of English;
+2. Reporting having looked up answers in at least one phase of the study.
+
+```{r remove-nonnative}
+sess_native <- sess %>%
+  filter(chk_native)
+
+n_nonnative <- nrow(sess) - nrow(sess_native)
+
+sess_keep <- sess_native %>%
+  filter(chk_nocheat)
+
+n_noncomply <- nrow(sess_native) - nrow(sess_keep)
+```
+
+Applying these two criteria resulted in the removal of 
+`r .pi(n_nonnative)`
+non-native English speaking participants and
+`r if (n_nonnative > 0L) {"an additional"}`
+`r .pi(n_noncomply)` participants who reported looking up answers.
+
+```{r exclude}
+## remove truth ratings from excluded participants
+ratings2 <- ratings %>%
+  semi_join(sess_keep, "ID")
+
+## remove interest ratings while we're at it
+interest2 <- interest %>%
+  semi_join(sess_keep, "ID")
+```
+
+Removing data from these 
+`r .pi(n_nonnative + n_noncomply)`
+participants resulted in the removal of 
+`r .pi(nrow(ratings) - nrow(ratings2))` truth ratings.
+
+### Phase-level exclusions
+
+There were two main exclusion criteria applying to the data from each
+phase of the study:
+
+1. Whether the participant completed all of the ratings in the phase;
+2. Whether the participant completed the phase in a reasonable time, namely:
+	* Between 3 and 40 minutes for Phase 1, and
+	* Between 1 and 30 minutes for Phase 2, 3, and 4.
+
+```{r phase-finished}
+## criterion 1
+phase_finished <- phase %>%
+  filter(chk_finished)
+
+n_incomplete <- nrow(phase) - nrow(phase_finished)
+
+## criterion 2
+phase_keep <- phase_finished %>%
+  filter(chk_dur)
+
+n_duration <- nrow(phase_finished) - nrow(phase_keep)
+
+## now remove the truth ratings
+ratings_keep <- ratings2 %>%
+  semi_join(phase_keep, c("ID", "phase_id"))
+
+## also remove the interest ratings
+interest_keep <- interest2 %>%
+  semi_join(phase_keep %>% filter(phase_id == "1"), "ID")
+```
+
+Applying these criteria resulted in the removal of 
+`r .pi(n_incomplete)` incomplete phases and
+`r .pi(n_duration)` additional phases that were not completed 
+in a reasonable amount of time,
+leading to the removal of 
+`r .pi(nrow(ratings2) - nrow(ratings_keep))` truth ratings
+associated with these phases.
+
+## Descriptive statistics
+
+### Dropouts
+
+## Inferential statistics
+
+```{r inferential, results='asis', echo = FALSE}
+if (!params$inferential) {
+  cat("**NOTE**: Because the statistical procedures can take a long time, ",
+      "they are disabled by default. ",
+      "To enable them, knit the source file ",
+      "with the parameter `inferential` set to `TRUE`.\n", sep = "")
+}
+```
+
+## Session information
+
+```{r exit}
+## before exiting, print out session info
+sessionInfo()
+```
