@@ -4,7 +4,9 @@ author: Dale J. Barr and Emma Henderson
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: 
   html_document:
+    toc: true
     code_folding: hide
+    df_print: paged
 params:
   inferential: FALSE
   subdir: NULL
@@ -14,26 +16,117 @@ params:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Instructions for reproducing these analyses
+# Instructions for reproducing these analyses
 
-The [R Markdown](https://rmarkdown.rstudio.com/index.html) source document used to create this file is included with the [truthiness](https://github.com/dalejbarr/truthiness) package that accompanies this project.
+Note that to re-run this analysis you'll need to have an anonymized copy of the data available in a subdirectory of the working directory. If you don't have the data you can create simulated data, as described in the sections below.
 
-To access and edit a copy of this file, after installing truthiness 
-(`devtools::install_github("dalejbarr/truthiness")`)
-use one of the two methods below.
+You can re-run the analysis either with or without a software container that encapsulates all the software used in the project. Using the software container is the only method guaranteed to exactly match the results obtained by the authors. Instructions are provided below for both methods.
+
+## Reproducing the analysis with the singularity software container
+
+Make sure you have installed [Singularity version 3.5](https://sylabs.io/guides/3.5/user-guide/) and are at a command prompt in a directory containing the subdirectory with the anonymous data.
+
+If you don't have a copy of the anonymized data available and want to test it out on a simulated version of data, the following command will make a dataset with 576 participants in the directory `fake_data`. 
+
+```
+singularity exec library://dalejbarr/talklab/illusory-truth \
+    make fake_data
+```
+
+To re-run the full analysis, including the inferential statistics:
+
+```
+singularity exec library://dalejbarr/talklab/illusory-truth \ 
+    make analysis SUBDIR=path-to-anonymized-data
+```
+
+where `path-to-anonymized-data` is replaced with the name of the subdirectory with the anonymous data (e.g., the `fake_data` directory you created above).
+
+The inferential statistics can take *very long* to run. To re-run the analysis without the inferential statistics:
+
+```
+singularity exec library://dalejbarr/talklab/illusory-truth \ 
+    make analysis_noinf SUBDIR=path-to-anonymized-data
+```
+
+If you want to access the master R Markdown script because, for instance, you want to edit or expand on it, the following command copies the script to the file `my_analysis.Rmd` in the working directory.
+
+```
+singularity exec library://dalejbarr/talklab/illusory-truth \
+    make draft OUT=my_analysis.Rmd
+```
+
+You can then render the script using the container as follows:
+
+```
+singularity exec library://dalejbarr/talklab/illusory-truth \
+    Rscript -e 'rmarkdown::render("my_analysis.Rmd", params = list(subdir = "path-to-anonymized-data", inferential = FALSE))'
+```
+
+altering `path-to-anonymized-data` and `inferential = FALSE` as required.
+
+## Reproducing the analysis without the singularity software container
+
+The [R Markdown](https://rmarkdown.rstudio.com/index.html) source document used to create this file is included with the [truthiness](https://github.com/dalejbarr/truthiness) package (`devtools::install_github("dalejbarr/truthiness")`) that accompanies this project.  The software versions required are shown at the end of this document. If any of your software does not match these versions, you are not guaranteed to get the exact same results as the authors.
+
+If your only interest is in re-running the analysis, simply issue the following command within the R console.
+
+```
+truthiness::reproduce_analysis(path = "path-to-anonymized-data")
+```
+
+Replace `path-to-anonymized-data` with the name of the subdirectory containing the data. Inferential stats are not performed by default due to the long processing time required. To turn on the inferential stats, add the argument `inferential = TRUE`.
+
+If you don't have a copy of the anonymized data available and want to test it out on a simulated version of data, install the [truthiness](https://github.com/dalejbarr/truthiness) package and use the following sequence of commands.
+
+```
+truthiness::simulate_resp_files(576, "fake_raw_data")
+truthiness::preprocess("fake_raw_data", "fake_data")
+```
+
+This will create a directory `fake_data` with simulated data. See the package documentation (`?truthiness::simulate_resp_files`) for additional options.
+
+### Accessing the master R Markdown script through RStudio
 
 If you are using RStudio, simply go to the pull down menu 
-`File -> New... -> R Markdown` and choose "Illusory Truth Analysis" from the list of available templates.
+`File -> New File... -> R Markdown...`, choose "From Template" in the left-hand options box and then choose "Illusory Truth Analysis" from the list of available templates.
 
-Another option that does not depend on RStudio is to type the following command in the RStudio console.
+Compile the R Markdown document to HTML using the 'Knit' button in RStudio. 
 
+You can control where the process looks for the anonymized data by setting the value of `subdir` in the YAML header. You can also turn on inferential stats in the same manner. See the example of YAML values below.
 
-```{r rmarkdown-file, eval=FALSE}
+```
+params:
+  inferential: TRUE
+  subdir: "fake_preprocessed_data"
+
+```
+
+### Accessing the master R Markdown script Without RStudio
+
+The following command accesses the R Markdown script without RStudio.
+
+```
 rmarkdown::draft("my_analysis.Rmd", "illusory-truth-analysis", "truthiness")
 ```
 
 This command will create the file `my_analysis.Rmd` in the working directory, which can then be edited and compiled.
 
+Render to HTML using the following command:
+
+```
+rmarkdown::render("my_analysis.Rmd")
+```
+
+You can control the location of the subdirectory with the data files as well as turn on inferential stats by editing the YAML as shown in the above section, or alternatively through the `params` argument, as in the below example.
+
+```
+rmarkdown::render("my_analysis.Rmd", 
+                  params = list(subdir = "path-to-anonymized-data",
+				                inferential = TRUE))
+```
+
+# Main analysis
 
 ## Import and preprocess
 
@@ -70,16 +163,24 @@ Importing data from files in subdirectory ``r subdir``.
 
 ```{r import}
 sess <- read_csv(file.path(subdir, "ANON_sessions.csv"),
-		 col_types = "cill")
+                 col_types = "cfll") %>%
+  mutate(list_id = fct_relevel(list_id,
+                               levels(stimulus_conditions[["list_id"]])))
 
 phase <- read_csv(file.path(subdir, "ANON_phases.csv"),
-		  col_types = "ciill")
+                  col_types = "cfill") %>%
+  mutate(phase_id = fct_relevel(phase_id, as.character(1:4)))
 
 interest <- read_csv(file.path(subdir, "ANON_interest.csv"),
-		     col_types = "ccii")
+                     col_types = "cfii") %>%
+  mutate(stim_id = fct_relevel(stim_id,
+                               levels(stimulus_conditions[["stim_id"]])))
 
 ratings <- read_csv(file.path(subdir, "ANON_ratings.csv"),
-                    col_types = "cicii")
+                    col_types = "cffii") %>%
+  mutate(phase_id = fct_relevel(phase_id, as.character(1:4)),
+         stim_id = fct_relevel(stim_id,
+                               levels(stimulus_conditions[["stim_id"]])))
 
 n_item <- ratings %>% distinct(stim_id) %>% nrow()
 ```
@@ -87,7 +188,7 @@ n_item <- ratings %>% distinct(stim_id) %>% nrow()
 ## Pre-registered Exclusions
 
 The anonymized files contain `r .pi(nrow(ratings))` truth ratings of
-`r .pi(n_item)` statements for `r .pi(nrow(sess))` participants. Any
+`r .pi(n_item)` statements from `r .pi(nrow(sess))` participants. Any
 participants who did not provide consent for the entire study will
 already have had their data removed during the pre-processing
 stage. Also any phases of the study where a participant withheld
@@ -107,10 +208,10 @@ sess_native <- sess %>%
 
 n_nonnative <- nrow(sess) - nrow(sess_native)
 
-sess_keep <- sess_native %>%
+sess_keep0 <- sess_native %>%
   filter(chk_nocheat)
 
-n_noncomply <- nrow(sess_native) - nrow(sess_keep)
+n_noncomply <- nrow(sess_native) - nrow(sess_keep0)
 ```
 
 Applying these two criteria resulted in the removal of 
@@ -122,11 +223,11 @@ non-native English speaking participants and
 ```{r exclude}
 ## remove truth ratings from excluded participants
 ratings2 <- ratings %>%
-  semi_join(sess_keep, "ID")
+  semi_join(sess_keep0, "ID")
 
 ## remove interest ratings while we're at it
 interest2 <- interest %>%
-  semi_join(sess_keep, "ID")
+  semi_join(sess_keep0, "ID")
 ```
 
 Removing data from these 
@@ -153,13 +254,13 @@ n_incomplete <- nrow(phase) - nrow(phase_finished)
 
 ## criterion 2
 phase_keep <- phase_finished %>%
-  filter(chk_dur)
+  filter(chk_dur) 
 
 n_duration <- nrow(phase_finished) - nrow(phase_keep)
 
 ## now remove the truth ratings
 ratings_keep <- ratings2 %>%
-  semi_join(phase_keep, c("ID", "phase_id"))
+  semi_join(phase_keep, c("ID", "phase_id")) 
 
 ## also remove the interest ratings
 interest_keep <- interest2 %>%
@@ -176,7 +277,74 @@ associated with these phases.
 
 ## Descriptive statistics
 
+```{r kill-orphans}
+## make sure there are no entries in sess_keep0 for subjects
+## who have lost all of their phase data.
+sess_keep <- semi_join(sess_keep0, ratings, "ID")
+
+n_orphaned <- nrow(sess_keep0) - nrow(sess_keep)
+```
+
+```{r orph-txt, echo = FALSE, results = "asis"}
+if (n_orphaned) {
+  cat("The phase exclusions above combined with dropouts meant ",
+      "that an additional ",
+      n_orphaned,
+      " participants were left with no ratings data.", sep = "")
+}
+```
+
+After all dropouts and exclusion criteria, there were 
+`r .pi(nrow(sess_keep))` participants remaining for analysis, who
+contributed a total of `r .pi(nrow(ratings_keep))` ratings.
+
 ### Dropouts
+
+Below is a table of the number of subjects who completed each phase.
+
+```{r dropouts}
+## we need this quick lookup table
+plookup <- stimulus_conditions %>%
+  distinct(interval) %>%
+  mutate(phase_id = factor(1:4))
+
+phase_keep %>%
+  inner_join(plookup, "phase_id") %>%
+  distinct(ID, interval) %>%
+  count(interval)
+```
+
+### Means and standard deviations
+
+```{r assign-cond}
+## lookup which condition each rating belongs to
+ratecond <- ratings %>%
+  inner_join(sess_keep %>% select(ID, list_id), "ID") %>%
+  inner_join(stimulus_conditions, c("list_id", "stim_id"))
+```
+
+First, let's collapse over interval and look at the means and SDs for repetition.
+
+```{r rep-means-sd}
+ratecond %>%
+  group_by(repetition) %>%
+  summarise(mean = round(mean(trating), 2),
+            `standard deviation` = round(sd(trating), 2))
+```
+
+Now let's look at the repetition effects for each interval.
+
+```{r cell-means-sd}
+ratecond %>%
+  group_by(repetition, interval) %>%
+  summarise(mean = round(mean(trating), 2),
+            sd = round(sd(trating), 2)) %>%
+  ungroup() %>%
+  pivot_wider(names_from = c(repetition),
+              values_from = c(mean, sd)) %>%
+  mutate(diff = round(mean_repeated - mean_novel, 2)) %>%
+  select(interval, mean_repeated, mean_novel, diff, sd_repeated, sd_novel)
+```
 
 ## Inferential statistics
 
@@ -187,6 +355,14 @@ if (!params$inferential) {
       "To enable them, knit the source file ",
       "with the parameter `inferential` set to `TRUE`.\n", sep = "")
 }
+```
+
+```{r inf-main, results='asis', echo = FALSE}
+if (params$inferential) {cat("### Main effect\n* TODO\n")}
+```
+
+```{r inf-int, results='asis', echo = FALSE}
+if (params$inferential) {cat("### Interaction\n* TODO\n")}
 ```
 
 ## Session information
