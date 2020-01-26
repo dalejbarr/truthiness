@@ -28,8 +28,9 @@ reproduce_analysis <- function(path,
     idoc <- readLines(system.file("repr_instr.Rmd", package = "truthiness"))
     writeLines(c(rdoc[1:(ix - 1L)], idoc, rdoc[(ix + 1L):length(rdoc)]), doc)
   }
-  ofile <- rmarkdown::render(doc, output_file = outfile,
+  ofile <- rmarkdown::render(doc, output_file = basename(outfile),
                              knit_root_dir = getwd(),
+                             output_dir = dirname(outfile),
                              params = list(subdir = path,
                                            inferential = inferential))
   invisible(ofile)
