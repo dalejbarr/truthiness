@@ -14,6 +14,9 @@ params:
 
 ```{r setup, echo = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+## shortcut for pretty printing for integers
+.pi <- function(x) prettyNum(x, big.mark=',')
 ```
 
 <!-- insert instructions here if desired -->
@@ -24,12 +27,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r packages, message = FALSE}
 ## Load in the required add-on packages.
 
-## library("truthiness")
-devtools::load_all("../../truthiness")
+library("truthiness")
 library("tidyverse")
-
-## shortcut for pretty printing for integers
-.pi <- function(x) prettyNum(x, big.mark=',')
 ```
 
 ```{r subdir, echo = FALSE}
