@@ -24,7 +24,7 @@ singularity exec library://dalejbarr/talklab/illusory-truth \
 
 where `path-to-anonymized-data` is replaced with the name of the subdirectory with the anonymous data (e.g., the `fake_data` directory you created above).
 
-The inferential statistics can take *very long* to run. To re-run the analysis without the inferential statistics:
+The inferential statistics can take *very long* (more than 24 hours) to run. To re-run the analysis without the inferential statistics:
 
 ```
 singularity exec library://dalejbarr/talklab/illusory-truth \ 
@@ -42,7 +42,7 @@ You can then render the script using the container as follows:
 
 ```
 singularity exec library://dalejbarr/talklab/illusory-truth \
-    Rscript -e 'rmarkdown::render("my_analysis.Rmd", params = list(subdir = "path-to-anonymized-data", inferential = FALSE))'
+    Rscript -e 'rmarkdown::render("my_analysis.Rmd", params = list(subdir = "path-to-anonymized-data", simulated = FALSE, inferential = FALSE))'
 ```
 
 altering `path-to-anonymized-data` and `inferential = FALSE` as required.
@@ -81,6 +81,7 @@ You can control where the process looks for the anonymized data by setting the v
 params:
   inferential: TRUE
   subdir: "fake_preprocessed_data"
+  simulated: FALSE
 
 ```
 
@@ -100,12 +101,13 @@ Render to HTML using the following command:
 rmarkdown::render("my_analysis.Rmd")
 ```
 
-You can control the location of the subdirectory with the data files as well as turn on inferential stats by editing the YAML as shown in the above section, or alternatively through the `params` argument, as in the below example.
+You can control the location of the subdirectory with the data files as well as turn on inferential stats by editing the YAML as shown in the above section, or alternatively through the `params` argument, as in the below example. The `simulated` parameter controls whether you are running the analysis on simulated (TRUE), in which case warnings about the use of fake data will be printed.
 
 ```
 rmarkdown::render("my_analysis.Rmd", 
                   params = list(subdir = "path-to-anonymized-data",
-				                inferential = TRUE))
+				                inferential = TRUE,
+								simulated = FALSE))
 ```
 
 # Main analysis
