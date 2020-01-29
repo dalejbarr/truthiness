@@ -15,6 +15,7 @@ codebook <- function(show_stim = TRUE, browse = TRUE) {
   res <- rmarkdown::render(system.file("codebook.Rmd", package = "truthiness"),
                            output_file = basename(tmp),
                            output_dir = dirname(tmp),
+                           knit_root_dir = dirname(tmp),
                            params = list(show_stim = show_stim),
                            quiet = TRUE)
   if (browse) {
