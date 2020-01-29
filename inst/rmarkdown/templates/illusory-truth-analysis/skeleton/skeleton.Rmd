@@ -1,6 +1,6 @@
 ---
-title: "The Truth Trajectory: Analysis"
-author: Dale J. Barr and Emma Henderson
+title: "The Truth Trajectory: Main Analysis"
+author: "Emma L. Henderson, Daniel J. Simons, and Dale J. Barr"
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: 
   html_document:
@@ -10,19 +10,43 @@ output:
 params:
   inferential: FALSE
   subdir: NULL
+  simulated: FALSE
 ---
+
+<style>
+div.warn { background-color:#ff8888; border-radius: 5px; padding: 20px; }
+div.note { background-color:#e6f0ff; border-radius: 5px; padding: 20px; }
+</style>
 
 ```{r setup, echo = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 ## shortcut for pretty printing for integers
 .pi <- function(x) prettyNum(x, big.mark=',')
+
+## function to check whether we are working with real or simulated data
+## and spit out a warning box
+simulated <-
+  if (is.null(params$simulated)) {
+    warning("document parameter `simulated` undefined; assuming simulated data")
+    TRUE
+  } else {
+    params$simulated
+  }
+
+warn <- function() {
+  if (simulated) {
+    paste("\n<div class=\"warn\">",
+          "*WARNING! Results in this document are based on **simulated** data*.",
+          "This document will be re-compiled and results will be updated after data collection.",
+          "</div>\n", sep = "\n")
+  }
+}
 ```
 
 <!-- insert instructions here if desired -->
 
 ## Import and preprocess
-
 
 ```{r packages, message = FALSE}
 ## Load in the required add-on packages.
@@ -32,6 +56,8 @@ library("tidyverse")
 ```
 
 ```{r subdir, echo = FALSE}
+## if no subdirectory provided, use the most recent one with name in
+## the format anon-YYYY-MM-DD
 subdir <-
   if (is.null(params$subdir)) {
     dirs <- grep("^anon-[0-9]{4}-[0-9]{2}-[0-9]{2}",
@@ -50,23 +76,30 @@ subdir <-
 
 Importing data from files in subdirectory ``r subdir``.
 
+For information about the structure of the anonymized data files and stimulus materials, either run `truthiness::codebook()` in the R console, or download and view the file [codebook.html](https://osf.io/2gmds/) in the OSF repository for this project.
+
+`r warn()`
+
 ```{r import}
 sess <- read_csv(file.path(subdir, "ANON_sessions.csv"),
-                 col_types = "cfll") %>%
+                 col_types = "cfccccllll") %>%
   mutate(list_id = fct_relevel(list_id,
-                               levels(stimulus_conditions[["list_id"]])))
+                               levels(stimulus_conditions[["list_id"]])),
+         gender = fct_relevel(gender,
+                              c("Female", "Male",
+                                "Gender Variant", "Not Reported")))
 
 phase <- read_csv(file.path(subdir, "ANON_phases.csv"),
                   col_types = "cfill") %>%
   mutate(phase_id = fct_relevel(phase_id, as.character(1:4)))
 
 interest <- read_csv(file.path(subdir, "ANON_interest.csv"),
-                     col_types = "cfii") %>%
+                     col_types = "cfi") %>%
   mutate(stim_id = fct_relevel(stim_id,
                                levels(stimulus_conditions[["stim_id"]])))
 
 ratings <- read_csv(file.path(subdir, "ANON_ratings.csv"),
-                    col_types = "cffii") %>%
+                    col_types = "cffi") %>%
   mutate(phase_id = fct_relevel(phase_id, as.character(1:4)),
          stim_id = fct_relevel(stim_id,
                                levels(stimulus_conditions[["stim_id"]])))
@@ -86,10 +119,12 @@ removed before this stage.
 
 ### Participant-level exclusions
 
-There were two main exclusion criteria for removing participants:
+There were four main exclusion criteria for removing participants, applied in the following order:
 
 1. Not being a (self-reported) native speaker of English;
-2. Reporting having looked up answers in at least one phase of the study.
+2. Reporting having looked up answers in at least one phase of the study;
+3. Flat lining; i.e., using only one response category across an entire phase of the study;
+4. Failing to complete all phases in a reasonable amount of time (for Phase 1, between 3 and 40 minutes; for all other phases, between 1 and 30 minutes).
 
 ```{r remove-nonnative}
 sess_native <- sess %>%
@@ -97,17 +132,33 @@ sess_native <- sess %>%
 
 n_nonnative <- nrow(sess) - nrow(sess_native)
 
-sess_keep0 <- sess_native %>%
+sess_nocheat <- sess_native %>%
   filter(chk_nocheat)
 
-n_noncomply <- nrow(sess_native) - nrow(sess_keep0)
+n_cheat <- nrow(sess_native) - nrow(sess_nocheat)
+
+sess_noflat <- sess_nocheat %>%
+  filter(chk_flatline)
+
+n_flatline <- nrow(sess_nocheat) - nrow(sess_noflat)
+
+sess_keep0 <- sess_noflat %>%
+  filter(chk_dur_all)
+
+n_dur_out_range <- nrow(sess_noflat) - nrow(sess_keep0)
+
+n_total <- n_nonnative + n_cheat + n_flatline + n_dur_out_range
 ```
 
-Applying these two criteria resulted in the removal of 
-`r .pi(n_nonnative)`
-non-native English speaking participants and
-`r if (n_nonnative > 0L) {"an additional"}`
-`r .pi(n_noncomply)` participants who reported looking up answers.
+Applying these criteria resulted in the removal of:
+
+* `r .pi(n_nonnative)` non-native English speaking participants;
+* `r .pi(n_cheat)` participants who reported looking up answers;
+* `r .pi(n_flatline)` participants who flat-lined in at least one phase; and
+* `r .pi(n_dur_out_range)` participants who had at least one phase with completion times outside the acceptable range.
+
+In total, the exclusion criteria resulted in the removal of 
+`r .pi(n_total)` participants.
 
 ```{r exclude}
 ## remove truth ratings from excluded participants
@@ -120,32 +171,22 @@ interest2 <- interest %>%
 ```
 
 Removing data from these 
-`r .pi(n_nonnative + n_noncomply)`
+`r .pi(n_total)`
 participants resulted in the removal of 
 `r .pi(nrow(ratings) - nrow(ratings2))` truth ratings.
 
 ### Phase-level exclusions
 
-There were two main exclusion criteria applying to the data from each
-phase of the study:
-
-1. Whether the participant completed all of the ratings in the phase;
-2. Whether the participant completed the phase in a reasonable time, namely:
-	* Between 3 and 40 minutes for Phase 1, and
-	* Between 1 and 30 minutes for Phase 2, 3, and 4.
+There was one exclusion criterion applying at the phase-level: namely, whether the participant completed all of the ratings in the phase.
 
 ```{r phase-finished}
-## criterion 1
-phase_finished <- phase %>%
+phase_trim <- phase %>%
+  semi_join(sess_keep0, "ID")
+
+phase_keep <- phase_trim %>%
   filter(chk_finished)
 
-n_incomplete <- nrow(phase) - nrow(phase_finished)
-
-## criterion 2
-phase_keep <- phase_finished %>%
-  filter(chk_dur) 
-
-n_duration <- nrow(phase_finished) - nrow(phase_keep)
+n_incomplete <- nrow(phase_trim) - nrow(phase_keep)
 
 ## now remove the truth ratings
 ratings_keep <- ratings2 %>%
@@ -156,15 +197,13 @@ interest_keep <- interest2 %>%
   semi_join(phase_keep %>% filter(phase_id == "1"), "ID")
 ```
 
-Applying these criteria resulted in the removal of 
-`r .pi(n_incomplete)` incomplete phases and
-`r .pi(n_duration)` additional phases that were not completed 
-in a reasonable amount of time,
-leading to the removal of 
-`r .pi(nrow(ratings2) - nrow(ratings_keep))` truth ratings
-associated with these phases.
+This criterion resulted in the removal of 
+`r .pi(n_incomplete)` phases
+(`r .pi(nrow(ratings2) - nrow(ratings_keep))` truth ratings).
 
 ## Descriptive statistics
+
+`r warn()`
 
 ```{r kill-orphans}
 ## make sure there are no entries in sess_keep0 for subjects
@@ -183,24 +222,31 @@ if (n_orphaned) {
 }
 ```
 
-After all dropouts and exclusion criteria, there were 
+Dropouts and the application of exclusion criteria left
 `r .pi(nrow(sess_keep))` participants remaining for analysis, who
 contributed a total of `r .pi(nrow(ratings_keep))` ratings.
 
-### Dropouts
+### Exclusions by Phase and Gender
 
-Below is a table of the number of subjects who completed each phase.
+```{r gender-tbl}
+included <- phase_keep %>%
+  inner_join(sess_keep %>%
+             select(ID, gender), "ID") %>%
+  count(phase_id, gender, .drop = FALSE) %>%
+  rename(n_analysed = n)
 
-```{r dropouts}
-## we need this quick lookup table
-plookup <- stimulus_conditions %>%
-  distinct(interval) %>%
-  mutate(phase_id = factor(1:4))
+excluded <- anti_join(phase,
+                      phase_keep, c("ID", "phase_id")) %>%
+  inner_join(sess %>%
+             select(ID, gender), "ID") %>%
+  count(phase_id, gender, .drop = FALSE) %>%
+  rename(n_excluded = n)
 
-phase_keep %>%
-  inner_join(plookup, "phase_id") %>%
-  distinct(ID, interval) %>%
-  count(interval)
+inner_join(excluded, included, c("phase_id", "gender")) %>%
+  mutate(n_recruited = n_excluded + n_analysed) %>%
+  select(phase_id, gender,
+         n_recruited, n_excluded, n_analysed) %>%
+  knitr::kable(caption = "Participants Recruited, Excluded, and Analysed, Separated by Experimental Phase and Gender")
 ```
 
 ### Means and standard deviations
@@ -231,27 +277,30 @@ ratecond %>%
   ungroup() %>%
   pivot_wider(names_from = c(repetition),
               values_from = c(mean, sd)) %>%
-  mutate(diff = round(mean_repeated - mean_novel, 2)) %>%
-  select(interval, mean_repeated, mean_novel, diff, sd_repeated, sd_novel)
+  mutate(diff = round(mean_repeated - mean_new, 2)) %>%
+  select(interval, mean_repeated, mean_new, diff, sd_repeated, sd_new)
 ```
+
+**TODO**: make a figure showing subject and stimulus means
 
 ## Inferential statistics
 
-```{r inferential, results='asis', echo = FALSE}
-if (!params$inferential) {
-  cat("**NOTE**: Because the statistical procedures can take a long time, ",
-      "they are disabled by default. ",
-      "To enable them, knit the source file ",
-      "with the parameter `inferential` set to `TRUE`.\n", sep = "")
-}
+```{r inferential, results='asis', echo = FALSE, eval = (!params$inferential)}
+cat("**NOTE**: Because the estimation of the cumulative logit mixed model ",
+    " can take a long time (more than 24 hours) ",
+    "inferential statistics are disabled by default. ",
+    "To enable them, knit the source file ",
+    "with the parameter `inferential` set to `TRUE`.\n", sep = "")
 ```
 
-```{r inf-main, results='asis', echo = FALSE}
-if (params$inferential) {cat("### Main effect\n* TODO\n")}
+```{r inf-main, results='asis', echo = FALSE, eval = (params$inferential)}
+cat(warn(), "\n", sep = "")
+
+cat("### Main effect\n* TODO\n")
 ```
 
-```{r inf-int, results='asis', echo = FALSE}
-if (params$inferential) {cat("### Interaction\n* TODO\n")}
+```{r inf-int, results='asis', echo = FALSE, eval = (params$inferential)}
+cat("### Interaction\n* TODO\n")
 ```
 
 ## Session information

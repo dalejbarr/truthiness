@@ -1,4 +1,0 @@
-fit.R:#' @importFrom stats deviance
-fit.R:#' @importFrom stats logLik
-fit.R:#' @importFrom stats pchisq
-utils-pipe.R:#' @importFrom magrittr %>%

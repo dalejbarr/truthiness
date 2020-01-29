@@ -6,17 +6,23 @@
 \usage{
 reproduce_analysis(
   path,
-  inferential = FALSE,
   outfile = "my_analysis.html",
+  inferential = FALSE,
+  simulated = FALSE,
   instructions = FALSE
 )
 }
 \arguments{
 \item{path}{Path to the anonymized data files.}
 
+\item{outfile}{Path to the HTML output file.}
+
 \item{inferential}{Whether to run inferential statistics.}
 
-\item{outfile}{Path to the HTML output file.}
+\item{simulated}{Whether the analysis is performed on simulated
+data (TRUE) or real data (FALSE). In the case of simulated data,
+the compiled document will contain warnings that the data are not
+real.}
 
 \item{instructions}{Include instructions on how to reproduce the analysis.}
 }

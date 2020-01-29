@@ -4,7 +4,7 @@ library("tidyverse")
 set.seed(62)
 
 stimcond <- stim_lists(
-  list(ivs = list(repetition = c("repeated", "novel"),
+  list(ivs = list(repetition = c("repeated", "new"),
 		  interval = c("immediate", "1 day",
 			       "1 week", "1 month"),
 		  actual_truth = c(FALSE, TRUE)),
@@ -101,3 +101,18 @@ walk(todo,
        fname <- sprintf("qualtrics_files/P%dL%d.csv", x$phase_id[1], x$list_id[1])
        x %>% select(-phase_id, -list_id) %>% write_csv(fname)
      })
+
+stimulus_conditions <- read_csv("stimulus_conditions.csv",
+                                col_types = "iilcc") %>%
+  mutate(list_id = factor(list_id, levels = 1:8),
+         stim_id = factor(stim_id),
+         repetition = factor(repetition, c("repeated", "new")),
+         interval = factor(interval, c("immediate", "1 day",
+                                       "1 week", "1 month")))
+
+usethis::use_data(stimulus_conditions, overwrite = TRUE)
+
+stimulus_materials <- statements %>%
+  mutate(stim_id = factor(stim_id))
+
+usethis::use_data(stimulus_materials, overwrite = TRUE)

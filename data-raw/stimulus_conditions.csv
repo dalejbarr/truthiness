@@ -31,38 +31,38 @@ list_id,stim_id,actual_truth,repetition,interval
 1,30,FALSE,repeated,1 month
 1,31,FALSE,repeated,1 month
 1,32,FALSE,repeated,1 month
-1,33,FALSE,novel,immediate
-1,34,FALSE,novel,immediate
-1,35,FALSE,novel,immediate
-1,36,FALSE,novel,immediate
-1,37,FALSE,novel,immediate
-1,38,FALSE,novel,immediate
-1,39,FALSE,novel,immediate
-1,40,FALSE,novel,immediate
-1,41,FALSE,novel,1 day
-1,42,FALSE,novel,1 day
-1,43,FALSE,novel,1 day
-1,44,FALSE,novel,1 day
-1,45,FALSE,novel,1 day
-1,46,FALSE,novel,1 day
-1,47,FALSE,novel,1 day
-1,48,FALSE,novel,1 day
-1,49,FALSE,novel,1 week
-1,50,FALSE,novel,1 week
-1,51,FALSE,novel,1 week
-1,52,FALSE,novel,1 week
-1,53,FALSE,novel,1 week
-1,54,FALSE,novel,1 week
-1,55,FALSE,novel,1 week
-1,56,FALSE,novel,1 week
-1,57,FALSE,novel,1 month
-1,58,FALSE,novel,1 month
-1,59,FALSE,novel,1 month
-1,60,FALSE,novel,1 month
-1,61,FALSE,novel,1 month
-1,62,FALSE,novel,1 month
-1,63,FALSE,novel,1 month
-1,64,FALSE,novel,1 month
+1,33,FALSE,new,immediate
+1,34,FALSE,new,immediate
+1,35,FALSE,new,immediate
+1,36,FALSE,new,immediate
+1,37,FALSE,new,immediate
+1,38,FALSE,new,immediate
+1,39,FALSE,new,immediate
+1,40,FALSE,new,immediate
+1,41,FALSE,new,1 day
+1,42,FALSE,new,1 day
+1,43,FALSE,new,1 day
+1,44,FALSE,new,1 day
+1,45,FALSE,new,1 day
+1,46,FALSE,new,1 day
+1,47,FALSE,new,1 day
+1,48,FALSE,new,1 day
+1,49,FALSE,new,1 week
+1,50,FALSE,new,1 week
+1,51,FALSE,new,1 week
+1,52,FALSE,new,1 week
+1,53,FALSE,new,1 week
+1,54,FALSE,new,1 week
+1,55,FALSE,new,1 week
+1,56,FALSE,new,1 week
+1,57,FALSE,new,1 month
+1,58,FALSE,new,1 month
+1,59,FALSE,new,1 month
+1,60,FALSE,new,1 month
+1,61,FALSE,new,1 month
+1,62,FALSE,new,1 month
+1,63,FALSE,new,1 month
+1,64,FALSE,new,1 month
 1,65,TRUE,repeated,immediate
 1,66,TRUE,repeated,immediate
 1,67,TRUE,repeated,immediate
@@ -95,38 +95,38 @@ list_id,stim_id,actual_truth,repetition,interval
 1,94,TRUE,repeated,1 month
 1,95,TRUE,repeated,1 month
 1,96,TRUE,repeated,1 month
-1,97,TRUE,novel,immediate
-1,98,TRUE,novel,immediate
-1,99,TRUE,novel,immediate
-1,100,TRUE,novel,immediate
-1,101,TRUE,novel,immediate
-1,102,TRUE,novel,immediate
-1,103,TRUE,novel,immediate
-1,104,TRUE,novel,immediate
-1,105,TRUE,novel,1 day
-1,106,TRUE,novel,1 day
-1,107,TRUE,novel,1 day
-1,108,TRUE,novel,1 day
-1,109,TRUE,novel,1 day
-1,110,TRUE,novel,1 day
-1,111,TRUE,novel,1 day
-1,112,TRUE,novel,1 day
-1,113,TRUE,novel,1 week
-1,114,TRUE,novel,1 week
-1,115,TRUE,novel,1 week
-1,116,TRUE,novel,1 week
-1,117,TRUE,novel,1 week
-1,118,TRUE,novel,1 week
-1,119,TRUE,novel,1 week
-1,120,TRUE,novel,1 week
-1,121,TRUE,novel,1 month
-1,122,TRUE,novel,1 month
-1,123,TRUE,novel,1 month
-1,124,TRUE,novel,1 month
-1,125,TRUE,novel,1 month
-1,126,TRUE,novel,1 month
-1,127,TRUE,novel,1 month
-1,128,TRUE,novel,1 month
+1,97,TRUE,new,immediate
+1,98,TRUE,new,immediate
+1,99,TRUE,new,immediate
+1,100,TRUE,new,immediate
+1,101,TRUE,new,immediate
+1,102,TRUE,new,immediate
+1,103,TRUE,new,immediate
+1,104,TRUE,new,immediate
+1,105,TRUE,new,1 day
+1,106,TRUE,new,1 day
+1,107,TRUE,new,1 day
+1,108,TRUE,new,1 day
+1,109,TRUE,new,1 day
+1,110,TRUE,new,1 day
+1,111,TRUE,new,1 day
+1,112,TRUE,new,1 day
+1,113,TRUE,new,1 week
+1,114,TRUE,new,1 week
+1,115,TRUE,new,1 week
+1,116,TRUE,new,1 week
+1,117,TRUE,new,1 week
+1,118,TRUE,new,1 week
+1,119,TRUE,new,1 week
+1,120,TRUE,new,1 week
+1,121,TRUE,new,1 month
+1,122,TRUE,new,1 month
+1,123,TRUE,new,1 month
+1,124,TRUE,new,1 month
+1,125,TRUE,new,1 month
+1,126,TRUE,new,1 month
+1,127,TRUE,new,1 month
+1,128,TRUE,new,1 month
 2,1,FALSE,repeated,1 day
 2,2,FALSE,repeated,1 day
 2,3,FALSE,repeated,1 day
@@ -151,38 +151,38 @@ list_id,stim_id,actual_truth,repetition,interval
 2,22,FALSE,repeated,1 month
 2,23,FALSE,repeated,1 month
 2,24,FALSE,repeated,1 month
-2,25,FALSE,novel,immediate
-2,26,FALSE,novel,immediate
-2,27,FALSE,novel,immediate
-2,28,FALSE,novel,immediate
-2,29,FALSE,novel,immediate
-2,30,FALSE,novel,immediate
-2,31,FALSE,novel,immediate
-2,32,FALSE,novel,immediate
-2,33,FALSE,novel,1 day
-2,34,FALSE,novel,1 day
-2,35,FALSE,novel,1 day
-2,36,FALSE,novel,1 day
-2,37,FALSE,novel,1 day
-2,38,FALSE,novel,1 day
-2,39,FALSE,novel,1 day
-2,40,FALSE,novel,1 day
-2,41,FALSE,novel,1 week
-2,42,FALSE,novel,1 week
-2,43,FALSE,novel,1 week
-2,44,FALSE,novel,1 week
-2,45,FALSE,novel,1 week
-2,46,FALSE,novel,1 week
-2,47,FALSE,novel,1 week
-2,48,FALSE,novel,1 week
-2,49,FALSE,novel,1 month
-2,50,FALSE,novel,1 month
-2,51,FALSE,novel,1 month
-2,52,FALSE,novel,1 month
-2,53,FALSE,novel,1 month
-2,54,FALSE,novel,1 month
-2,55,FALSE,novel,1 month
-2,56,FALSE,novel,1 month
+2,25,FALSE,new,immediate
+2,26,FALSE,new,immediate
+2,27,FALSE,new,immediate
+2,28,FALSE,new,immediate
+2,29,FALSE,new,immediate
+2,30,FALSE,new,immediate
+2,31,FALSE,new,immediate
+2,32,FALSE,new,immediate
+2,33,FALSE,new,1 day
+2,34,FALSE,new,1 day
+2,35,FALSE,new,1 day
+2,36,FALSE,new,1 day
+2,37,FALSE,new,1 day
+2,38,FALSE,new,1 day
+2,39,FALSE,new,1 day
+2,40,FALSE,new,1 day
+2,41,FALSE,new,1 week
+2,42,FALSE,new,1 week
+2,43,FALSE,new,1 week
+2,44,FALSE,new,1 week
+2,45,FALSE,new,1 week
+2,46,FALSE,new,1 week
+2,47,FALSE,new,1 week
+2,48,FALSE,new,1 week
+2,49,FALSE,new,1 month
+2,50,FALSE,new,1 month
+2,51,FALSE,new,1 month
+2,52,FALSE,new,1 month
+2,53,FALSE,new,1 month
+2,54,FALSE,new,1 month
+2,55,FALSE,new,1 month
+2,56,FALSE,new,1 month
 2,57,FALSE,repeated,immediate
 2,58,FALSE,repeated,immediate
 2,59,FALSE,repeated,immediate
@@ -215,38 +215,38 @@ list_id,stim_id,actual_truth,repetition,interval
 2,86,TRUE,repeated,1 month
 2,87,TRUE,repeated,1 month
 2,88,TRUE,repeated,1 month
-2,89,TRUE,novel,immediate
-2,90,TRUE,novel,immediate
-2,91,TRUE,novel,immediate
-2,92,TRUE,novel,immediate
-2,93,TRUE,novel,immediate
-2,94,TRUE,novel,immediate
-2,95,TRUE,novel,immediate
-2,96,TRUE,novel,immediate
-2,97,TRUE,novel,1 day
-2,98,TRUE,novel,1 day
-2,99,TRUE,novel,1 day
-2,100,TRUE,novel,1 day
-2,101,TRUE,novel,1 day
-2,102,TRUE,novel,1 day
-2,103,TRUE,novel,1 day
-2,104,TRUE,novel,1 day
-2,105,TRUE,novel,1 week
-2,106,TRUE,novel,1 week
-2,107,TRUE,novel,1 week
-2,108,TRUE,novel,1 week
-2,109,TRUE,novel,1 week
-2,110,TRUE,novel,1 week
-2,111,TRUE,novel,1 week
-2,112,TRUE,novel,1 week
-2,113,TRUE,novel,1 month
-2,114,TRUE,novel,1 month
-2,115,TRUE,novel,1 month
-2,116,TRUE,novel,1 month
-2,117,TRUE,novel,1 month
-2,118,TRUE,novel,1 month
-2,119,TRUE,novel,1 month
-2,120,TRUE,novel,1 month
+2,89,TRUE,new,immediate
+2,90,TRUE,new,immediate
+2,91,TRUE,new,immediate
+2,92,TRUE,new,immediate
+2,93,TRUE,new,immediate
+2,94,TRUE,new,immediate
+2,95,TRUE,new,immediate
+2,96,TRUE,new,immediate
+2,97,TRUE,new,1 day
+2,98,TRUE,new,1 day
+2,99,TRUE,new,1 day
+2,100,TRUE,new,1 day
+2,101,TRUE,new,1 day
+2,102,TRUE,new,1 day
+2,103,TRUE,new,1 day
+2,104,TRUE,new,1 day
+2,105,TRUE,new,1 week
+2,106,TRUE,new,1 week
+2,107,TRUE,new,1 week
+2,108,TRUE,new,1 week
+2,109,TRUE,new,1 week
+2,110,TRUE,new,1 week
+2,111,TRUE,new,1 week
+2,112,TRUE,new,1 week
+2,113,TRUE,new,1 month
+2,114,TRUE,new,1 month
+2,115,TRUE,new,1 month
+2,116,TRUE,new,1 month
+2,117,TRUE,new,1 month
+2,118,TRUE,new,1 month
+2,119,TRUE,new,1 month
+2,120,TRUE,new,1 month
 2,121,TRUE,repeated,immediate
 2,122,TRUE,repeated,immediate
 2,123,TRUE,repeated,immediate
@@ -271,38 +271,38 @@ list_id,stim_id,actual_truth,repetition,interval
 3,14,FALSE,repeated,1 month
 3,15,FALSE,repeated,1 month
 3,16,FALSE,repeated,1 month
-3,17,FALSE,novel,immediate
-3,18,FALSE,novel,immediate
-3,19,FALSE,novel,immediate
-3,20,FALSE,novel,immediate
-3,21,FALSE,novel,immediate
-3,22,FALSE,novel,immediate
-3,23,FALSE,novel,immediate
-3,24,FALSE,novel,immediate
-3,25,FALSE,novel,1 day
-3,26,FALSE,novel,1 day
-3,27,FALSE,novel,1 day
-3,28,FALSE,novel,1 day
-3,29,FALSE,novel,1 day
-3,30,FALSE,novel,1 day
-3,31,FALSE,novel,1 day
-3,32,FALSE,novel,1 day
-3,33,FALSE,novel,1 week
-3,34,FALSE,novel,1 week
-3,35,FALSE,novel,1 week
-3,36,FALSE,novel,1 week
-3,37,FALSE,novel,1 week
-3,38,FALSE,novel,1 week
-3,39,FALSE,novel,1 week
-3,40,FALSE,novel,1 week
-3,41,FALSE,novel,1 month
-3,42,FALSE,novel,1 month
-3,43,FALSE,novel,1 month
-3,44,FALSE,novel,1 month
-3,45,FALSE,novel,1 month
-3,46,FALSE,novel,1 month
-3,47,FALSE,novel,1 month
-3,48,FALSE,novel,1 month
+3,17,FALSE,new,immediate
+3,18,FALSE,new,immediate
+3,19,FALSE,new,immediate
+3,20,FALSE,new,immediate
+3,21,FALSE,new,immediate
+3,22,FALSE,new,immediate
+3,23,FALSE,new,immediate
+3,24,FALSE,new,immediate
+3,25,FALSE,new,1 day
+3,26,FALSE,new,1 day
+3,27,FALSE,new,1 day
+3,28,FALSE,new,1 day
+3,29,FALSE,new,1 day
+3,30,FALSE,new,1 day
+3,31,FALSE,new,1 day
+3,32,FALSE,new,1 day
+3,33,FALSE,new,1 week
+3,34,FALSE,new,1 week
+3,35,FALSE,new,1 week
+3,36,FALSE,new,1 week
+3,37,FALSE,new,1 week
+3,38,FALSE,new,1 week
+3,39,FALSE,new,1 week
+3,40,FALSE,new,1 week
+3,41,FALSE,new,1 month
+3,42,FALSE,new,1 month
+3,43,FALSE,new,1 month
+3,44,FALSE,new,1 month
+3,45,FALSE,new,1 month
+3,46,FALSE,new,1 month
+3,47,FALSE,new,1 month
+3,48,FALSE,new,1 month
 3,49,FALSE,repeated,immediate
 3,50,FALSE,repeated,immediate
 3,51,FALSE,repeated,immediate
@@ -335,38 +335,38 @@ list_id,stim_id,actual_truth,repetition,interval
 3,78,TRUE,repeated,1 month
 3,79,TRUE,repeated,1 month
 3,80,TRUE,repeated,1 month
-3,81,TRUE,novel,immediate
-3,82,TRUE,novel,immediate
-3,83,TRUE,novel,immediate
-3,84,TRUE,novel,immediate
-3,85,TRUE,novel,immediate
-3,86,TRUE,novel,immediate
-3,87,TRUE,novel,immediate
-3,88,TRUE,novel,immediate
-3,89,TRUE,novel,1 day
-3,90,TRUE,novel,1 day
-3,91,TRUE,novel,1 day
-3,92,TRUE,novel,1 day
-3,93,TRUE,novel,1 day
-3,94,TRUE,novel,1 day
-3,95,TRUE,novel,1 day
-3,96,TRUE,novel,1 day
-3,97,TRUE,novel,1 week
-3,98,TRUE,novel,1 week
-3,99,TRUE,novel,1 week
-3,100,TRUE,novel,1 week
-3,101,TRUE,novel,1 week
-3,102,TRUE,novel,1 week
-3,103,TRUE,novel,1 week
-3,104,TRUE,novel,1 week
-3,105,TRUE,novel,1 month
-3,106,TRUE,novel,1 month
-3,107,TRUE,novel,1 month
-3,108,TRUE,novel,1 month
-3,109,TRUE,novel,1 month
-3,110,TRUE,novel,1 month
-3,111,TRUE,novel,1 month
-3,112,TRUE,novel,1 month
+3,81,TRUE,new,immediate
+3,82,TRUE,new,immediate
+3,83,TRUE,new,immediate
+3,84,TRUE,new,immediate
+3,85,TRUE,new,immediate
+3,86,TRUE,new,immediate
+3,87,TRUE,new,immediate
+3,88,TRUE,new,immediate
+3,89,TRUE,new,1 day
+3,90,TRUE,new,1 day
+3,91,TRUE,new,1 day
+3,92,TRUE,new,1 day
+3,93,TRUE,new,1 day
+3,94,TRUE,new,1 day
+3,95,TRUE,new,1 day
+3,96,TRUE,new,1 day
+3,97,TRUE,new,1 week
+3,98,TRUE,new,1 week
+3,99,TRUE,new,1 week
+3,100,TRUE,new,1 week
+3,101,TRUE,new,1 week
+3,102,TRUE,new,1 week
+3,103,TRUE,new,1 week
+3,104,TRUE,new,1 week
+3,105,TRUE,new,1 month
+3,106,TRUE,new,1 month
+3,107,TRUE,new,1 month
+3,108,TRUE,new,1 month
+3,109,TRUE,new,1 month
+3,110,TRUE,new,1 month
+3,111,TRUE,new,1 month
+3,112,TRUE,new,1 month
 3,113,TRUE,repeated,immediate
 3,114,TRUE,repeated,immediate
 3,115,TRUE,repeated,immediate
@@ -391,38 +391,38 @@ list_id,stim_id,actual_truth,repetition,interval
 4,6,FALSE,repeated,1 month
 4,7,FALSE,repeated,1 month
 4,8,FALSE,repeated,1 month
-4,9,FALSE,novel,immediate
-4,10,FALSE,novel,immediate
-4,11,FALSE,novel,immediate
-4,12,FALSE,novel,immediate
-4,13,FALSE,novel,immediate
-4,14,FALSE,novel,immediate
-4,15,FALSE,novel,immediate
-4,16,FALSE,novel,immediate
-4,17,FALSE,novel,1 day
-4,18,FALSE,novel,1 day
-4,19,FALSE,novel,1 day
-4,20,FALSE,novel,1 day
-4,21,FALSE,novel,1 day
-4,22,FALSE,novel,1 day
-4,23,FALSE,novel,1 day
-4,24,FALSE,novel,1 day
-4,25,FALSE,novel,1 week
-4,26,FALSE,novel,1 week
-4,27,FALSE,novel,1 week
-4,28,FALSE,novel,1 week
-4,29,FALSE,novel,1 week
-4,30,FALSE,novel,1 week
-4,31,FALSE,novel,1 week
-4,32,FALSE,novel,1 week
-4,33,FALSE,novel,1 month
-4,34,FALSE,novel,1 month
-4,35,FALSE,novel,1 month
-4,36,FALSE,novel,1 month
-4,37,FALSE,novel,1 month
-4,38,FALSE,novel,1 month
-4,39,FALSE,novel,1 month
-4,40,FALSE,novel,1 month
+4,9,FALSE,new,immediate
+4,10,FALSE,new,immediate
+4,11,FALSE,new,immediate
+4,12,FALSE,new,immediate
+4,13,FALSE,new,immediate
+4,14,FALSE,new,immediate
+4,15,FALSE,new,immediate
+4,16,FALSE,new,immediate
+4,17,FALSE,new,1 day
+4,18,FALSE,new,1 day
+4,19,FALSE,new,1 day
+4,20,FALSE,new,1 day
+4,21,FALSE,new,1 day
+4,22,FALSE,new,1 day
+4,23,FALSE,new,1 day
+4,24,FALSE,new,1 day
+4,25,FALSE,new,1 week
+4,26,FALSE,new,1 week
+4,27,FALSE,new,1 week
+4,28,FALSE,new,1 week
+4,29,FALSE,new,1 week
+4,30,FALSE,new,1 week
+4,31,FALSE,new,1 week
+4,32,FALSE,new,1 week
+4,33,FALSE,new,1 month
+4,34,FALSE,new,1 month
+4,35,FALSE,new,1 month
+4,36,FALSE,new,1 month
+4,37,FALSE,new,1 month
+4,38,FALSE,new,1 month
+4,39,FALSE,new,1 month
+4,40,FALSE,new,1 month
 4,41,FALSE,repeated,immediate
 4,42,FALSE,repeated,immediate
 4,43,FALSE,repeated,immediate
@@ -455,38 +455,38 @@ list_id,stim_id,actual_truth,repetition,interval
 4,70,TRUE,repeated,1 month
 4,71,TRUE,repeated,1 month
 4,72,TRUE,repeated,1 month
-4,73,TRUE,novel,immediate
-4,74,TRUE,novel,immediate
-4,75,TRUE,novel,immediate
-4,76,TRUE,novel,immediate
-4,77,TRUE,novel,immediate
-4,78,TRUE,novel,immediate
-4,79,TRUE,novel,immediate
-4,80,TRUE,novel,immediate
-4,81,TRUE,novel,1 day
-4,82,TRUE,novel,1 day
-4,83,TRUE,novel,1 day
-4,84,TRUE,novel,1 day
-4,85,TRUE,novel,1 day
-4,86,TRUE,novel,1 day
-4,87,TRUE,novel,1 day
-4,88,TRUE,novel,1 day
-4,89,TRUE,novel,1 week
-4,90,TRUE,novel,1 week
-4,91,TRUE,novel,1 week
-4,92,TRUE,novel,1 week
-4,93,TRUE,novel,1 week
-4,94,TRUE,novel,1 week
-4,95,TRUE,novel,1 week
-4,96,TRUE,novel,1 week
-4,97,TRUE,novel,1 month
-4,98,TRUE,novel,1 month
-4,99,TRUE,novel,1 month
-4,100,TRUE,novel,1 month
-4,101,TRUE,novel,1 month
-4,102,TRUE,novel,1 month
-4,103,TRUE,novel,1 month
-4,104,TRUE,novel,1 month
+4,73,TRUE,new,immediate
+4,74,TRUE,new,immediate
+4,75,TRUE,new,immediate
+4,76,TRUE,new,immediate
+4,77,TRUE,new,immediate
+4,78,TRUE,new,immediate
+4,79,TRUE,new,immediate
+4,80,TRUE,new,immediate
+4,81,TRUE,new,1 day
+4,82,TRUE,new,1 day
+4,83,TRUE,new,1 day
+4,84,TRUE,new,1 day
+4,85,TRUE,new,1 day
+4,86,TRUE,new,1 day
+4,87,TRUE,new,1 day
+4,88,TRUE,new,1 day
+4,89,TRUE,new,1 week
+4,90,TRUE,new,1 week
+4,91,TRUE,new,1 week
+4,92,TRUE,new,1 week
+4,93,TRUE,new,1 week
+4,94,TRUE,new,1 week
+4,95,TRUE,new,1 week
+4,96,TRUE,new,1 week
+4,97,TRUE,new,1 month
+4,98,TRUE,new,1 month
+4,99,TRUE,new,1 month
+4,100,TRUE,new,1 month
+4,101,TRUE,new,1 month
+4,102,TRUE,new,1 month
+4,103,TRUE,new,1 month
+4,104,TRUE,new,1 month
 4,105,TRUE,repeated,immediate
 4,106,TRUE,repeated,immediate
 4,107,TRUE,repeated,immediate
@@ -511,38 +511,38 @@ list_id,stim_id,actual_truth,repetition,interval
 4,126,TRUE,repeated,1 week
 4,127,TRUE,repeated,1 week
 4,128,TRUE,repeated,1 week
-5,1,FALSE,novel,immediate
-5,2,FALSE,novel,immediate
-5,3,FALSE,novel,immediate
-5,4,FALSE,novel,immediate
-5,5,FALSE,novel,immediate
-5,6,FALSE,novel,immediate
-5,7,FALSE,novel,immediate
-5,8,FALSE,novel,immediate
-5,9,FALSE,novel,1 day
-5,10,FALSE,novel,1 day
-5,11,FALSE,novel,1 day
-5,12,FALSE,novel,1 day
-5,13,FALSE,novel,1 day
-5,14,FALSE,novel,1 day
-5,15,FALSE,novel,1 day
-5,16,FALSE,novel,1 day
-5,17,FALSE,novel,1 week
-5,18,FALSE,novel,1 week
-5,19,FALSE,novel,1 week
-5,20,FALSE,novel,1 week
-5,21,FALSE,novel,1 week
-5,22,FALSE,novel,1 week
-5,23,FALSE,novel,1 week
-5,24,FALSE,novel,1 week
-5,25,FALSE,novel,1 month
-5,26,FALSE,novel,1 month
-5,27,FALSE,novel,1 month
-5,28,FALSE,novel,1 month
-5,29,FALSE,novel,1 month
-5,30,FALSE,novel,1 month
-5,31,FALSE,novel,1 month
-5,32,FALSE,novel,1 month
+5,1,FALSE,new,immediate
+5,2,FALSE,new,immediate
+5,3,FALSE,new,immediate
+5,4,FALSE,new,immediate
+5,5,FALSE,new,immediate
+5,6,FALSE,new,immediate
+5,7,FALSE,new,immediate
+5,8,FALSE,new,immediate
+5,9,FALSE,new,1 day
+5,10,FALSE,new,1 day
+5,11,FALSE,new,1 day
+5,12,FALSE,new,1 day
+5,13,FALSE,new,1 day
+5,14,FALSE,new,1 day
+5,15,FALSE,new,1 day
+5,16,FALSE,new,1 day
+5,17,FALSE,new,1 week
+5,18,FALSE,new,1 week
+5,19,FALSE,new,1 week
+5,20,FALSE,new,1 week
+5,21,FALSE,new,1 week
+5,22,FALSE,new,1 week
+5,23,FALSE,new,1 week
+5,24,FALSE,new,1 week
+5,25,FALSE,new,1 month
+5,26,FALSE,new,1 month
+5,27,FALSE,new,1 month
+5,28,FALSE,new,1 month
+5,29,FALSE,new,1 month
+5,30,FALSE,new,1 month
+5,31,FALSE,new,1 month
+5,32,FALSE,new,1 month
 5,33,FALSE,repeated,immediate
 5,34,FALSE,repeated,immediate
 5,35,FALSE,repeated,immediate
@@ -575,38 +575,38 @@ list_id,stim_id,actual_truth,repetition,interval
 5,62,FALSE,repeated,1 month
 5,63,FALSE,repeated,1 month
 5,64,FALSE,repeated,1 month
-5,65,TRUE,novel,immediate
-5,66,TRUE,novel,immediate
-5,67,TRUE,novel,immediate
-5,68,TRUE,novel,immediate
-5,69,TRUE,novel,immediate
-5,70,TRUE,novel,immediate
-5,71,TRUE,novel,immediate
-5,72,TRUE,novel,immediate
-5,73,TRUE,novel,1 day
-5,74,TRUE,novel,1 day
-5,75,TRUE,novel,1 day
-5,76,TRUE,novel,1 day
-5,77,TRUE,novel,1 day
-5,78,TRUE,novel,1 day
-5,79,TRUE,novel,1 day
-5,80,TRUE,novel,1 day
-5,81,TRUE,novel,1 week
-5,82,TRUE,novel,1 week
-5,83,TRUE,novel,1 week
-5,84,TRUE,novel,1 week
-5,85,TRUE,novel,1 week
-5,86,TRUE,novel,1 week
-5,87,TRUE,novel,1 week
-5,88,TRUE,novel,1 week
-5,89,TRUE,novel,1 month
-5,90,TRUE,novel,1 month
-5,91,TRUE,novel,1 month
-5,92,TRUE,novel,1 month
-5,93,TRUE,novel,1 month
-5,94,TRUE,novel,1 month
-5,95,TRUE,novel,1 month
-5,96,TRUE,novel,1 month
+5,65,TRUE,new,immediate
+5,66,TRUE,new,immediate
+5,67,TRUE,new,immediate
+5,68,TRUE,new,immediate
+5,69,TRUE,new,immediate
+5,70,TRUE,new,immediate
+5,71,TRUE,new,immediate
+5,72,TRUE,new,immediate
+5,73,TRUE,new,1 day
+5,74,TRUE,new,1 day
+5,75,TRUE,new,1 day
+5,76,TRUE,new,1 day
+5,77,TRUE,new,1 day
+5,78,TRUE,new,1 day
+5,79,TRUE,new,1 day
+5,80,TRUE,new,1 day
+5,81,TRUE,new,1 week
+5,82,TRUE,new,1 week
+5,83,TRUE,new,1 week
+5,84,TRUE,new,1 week
+5,85,TRUE,new,1 week
+5,86,TRUE,new,1 week
+5,87,TRUE,new,1 week
+5,88,TRUE,new,1 week
+5,89,TRUE,new,1 month
+5,90,TRUE,new,1 month
+5,91,TRUE,new,1 month
+5,92,TRUE,new,1 month
+5,93,TRUE,new,1 month
+5,94,TRUE,new,1 month
+5,95,TRUE,new,1 month
+5,96,TRUE,new,1 month
 5,97,TRUE,repeated,immediate
 5,98,TRUE,repeated,immediate
 5,99,TRUE,repeated,immediate
@@ -639,30 +639,30 @@ list_id,stim_id,actual_truth,repetition,interval
 5,126,TRUE,repeated,1 month
 5,127,TRUE,repeated,1 month
 5,128,TRUE,repeated,1 month
-6,1,FALSE,novel,1 day
-6,2,FALSE,novel,1 day
-6,3,FALSE,novel,1 day
-6,4,FALSE,novel,1 day
-6,5,FALSE,novel,1 day
-6,6,FALSE,novel,1 day
-6,7,FALSE,novel,1 day
-6,8,FALSE,novel,1 day
-6,9,FALSE,novel,1 week
-6,10,FALSE,novel,1 week
-6,11,FALSE,novel,1 week
-6,12,FALSE,novel,1 week
-6,13,FALSE,novel,1 week
-6,14,FALSE,novel,1 week
-6,15,FALSE,novel,1 week
-6,16,FALSE,novel,1 week
-6,17,FALSE,novel,1 month
-6,18,FALSE,novel,1 month
-6,19,FALSE,novel,1 month
-6,20,FALSE,novel,1 month
-6,21,FALSE,novel,1 month
-6,22,FALSE,novel,1 month
-6,23,FALSE,novel,1 month
-6,24,FALSE,novel,1 month
+6,1,FALSE,new,1 day
+6,2,FALSE,new,1 day
+6,3,FALSE,new,1 day
+6,4,FALSE,new,1 day
+6,5,FALSE,new,1 day
+6,6,FALSE,new,1 day
+6,7,FALSE,new,1 day
+6,8,FALSE,new,1 day
+6,9,FALSE,new,1 week
+6,10,FALSE,new,1 week
+6,11,FALSE,new,1 week
+6,12,FALSE,new,1 week
+6,13,FALSE,new,1 week
+6,14,FALSE,new,1 week
+6,15,FALSE,new,1 week
+6,16,FALSE,new,1 week
+6,17,FALSE,new,1 month
+6,18,FALSE,new,1 month
+6,19,FALSE,new,1 month
+6,20,FALSE,new,1 month
+6,21,FALSE,new,1 month
+6,22,FALSE,new,1 month
+6,23,FALSE,new,1 month
+6,24,FALSE,new,1 month
 6,25,FALSE,repeated,immediate
 6,26,FALSE,repeated,immediate
 6,27,FALSE,repeated,immediate
@@ -695,38 +695,38 @@ list_id,stim_id,actual_truth,repetition,interval
 6,54,FALSE,repeated,1 month
 6,55,FALSE,repeated,1 month
 6,56,FALSE,repeated,1 month
-6,57,FALSE,novel,immediate
-6,58,FALSE,novel,immediate
-6,59,FALSE,novel,immediate
-6,60,FALSE,novel,immediate
-6,61,FALSE,novel,immediate
-6,62,FALSE,novel,immediate
-6,63,FALSE,novel,immediate
-6,64,FALSE,novel,immediate
-6,65,TRUE,novel,1 day
-6,66,TRUE,novel,1 day
-6,67,TRUE,novel,1 day
-6,68,TRUE,novel,1 day
-6,69,TRUE,novel,1 day
-6,70,TRUE,novel,1 day
-6,71,TRUE,novel,1 day
-6,72,TRUE,novel,1 day
-6,73,TRUE,novel,1 week
-6,74,TRUE,novel,1 week
-6,75,TRUE,novel,1 week
-6,76,TRUE,novel,1 week
-6,77,TRUE,novel,1 week
-6,78,TRUE,novel,1 week
-6,79,TRUE,novel,1 week
-6,80,TRUE,novel,1 week
-6,81,TRUE,novel,1 month
-6,82,TRUE,novel,1 month
-6,83,TRUE,novel,1 month
-6,84,TRUE,novel,1 month
-6,85,TRUE,novel,1 month
-6,86,TRUE,novel,1 month
-6,87,TRUE,novel,1 month
-6,88,TRUE,novel,1 month
+6,57,FALSE,new,immediate
+6,58,FALSE,new,immediate
+6,59,FALSE,new,immediate
+6,60,FALSE,new,immediate
+6,61,FALSE,new,immediate
+6,62,FALSE,new,immediate
+6,63,FALSE,new,immediate
+6,64,FALSE,new,immediate
+6,65,TRUE,new,1 day
+6,66,TRUE,new,1 day
+6,67,TRUE,new,1 day
+6,68,TRUE,new,1 day
+6,69,TRUE,new,1 day
+6,70,TRUE,new,1 day
+6,71,TRUE,new,1 day
+6,72,TRUE,new,1 day
+6,73,TRUE,new,1 week
+6,74,TRUE,new,1 week
+6,75,TRUE,new,1 week
+6,76,TRUE,new,1 week
+6,77,TRUE,new,1 week
+6,78,TRUE,new,1 week
+6,79,TRUE,new,1 week
+6,80,TRUE,new,1 week
+6,81,TRUE,new,1 month
+6,82,TRUE,new,1 month
+6,83,TRUE,new,1 month
+6,84,TRUE,new,1 month
+6,85,TRUE,new,1 month
+6,86,TRUE,new,1 month
+6,87,TRUE,new,1 month
+6,88,TRUE,new,1 month
 6,89,TRUE,repeated,immediate
 6,90,TRUE,repeated,immediate
 6,91,TRUE,repeated,immediate
@@ -759,30 +759,30 @@ list_id,stim_id,actual_truth,repetition,interval
 6,118,TRUE,repeated,1 month
 6,119,TRUE,repeated,1 month
 6,120,TRUE,repeated,1 month
-6,121,TRUE,novel,immediate
-6,122,TRUE,novel,immediate
-6,123,TRUE,novel,immediate
-6,124,TRUE,novel,immediate
-6,125,TRUE,novel,immediate
-6,126,TRUE,novel,immediate
-6,127,TRUE,novel,immediate
-6,128,TRUE,novel,immediate
-7,1,FALSE,novel,1 week
-7,2,FALSE,novel,1 week
-7,3,FALSE,novel,1 week
-7,4,FALSE,novel,1 week
-7,5,FALSE,novel,1 week
-7,6,FALSE,novel,1 week
-7,7,FALSE,novel,1 week
-7,8,FALSE,novel,1 week
-7,9,FALSE,novel,1 month
-7,10,FALSE,novel,1 month
-7,11,FALSE,novel,1 month
-7,12,FALSE,novel,1 month
-7,13,FALSE,novel,1 month
-7,14,FALSE,novel,1 month
-7,15,FALSE,novel,1 month
-7,16,FALSE,novel,1 month
+6,121,TRUE,new,immediate
+6,122,TRUE,new,immediate
+6,123,TRUE,new,immediate
+6,124,TRUE,new,immediate
+6,125,TRUE,new,immediate
+6,126,TRUE,new,immediate
+6,127,TRUE,new,immediate
+6,128,TRUE,new,immediate
+7,1,FALSE,new,1 week
+7,2,FALSE,new,1 week
+7,3,FALSE,new,1 week
+7,4,FALSE,new,1 week
+7,5,FALSE,new,1 week
+7,6,FALSE,new,1 week
+7,7,FALSE,new,1 week
+7,8,FALSE,new,1 week
+7,9,FALSE,new,1 month
+7,10,FALSE,new,1 month
+7,11,FALSE,new,1 month
+7,12,FALSE,new,1 month
+7,13,FALSE,new,1 month
+7,14,FALSE,new,1 month
+7,15,FALSE,new,1 month
+7,16,FALSE,new,1 month
 7,17,FALSE,repeated,immediate
 7,18,FALSE,repeated,immediate
 7,19,FALSE,repeated,immediate
@@ -815,38 +815,38 @@ list_id,stim_id,actual_truth,repetition,interval
 7,46,FALSE,repeated,1 month
 7,47,FALSE,repeated,1 month
 7,48,FALSE,repeated,1 month
-7,49,FALSE,novel,immediate
-7,50,FALSE,novel,immediate
-7,51,FALSE,novel,immediate
-7,52,FALSE,novel,immediate
-7,53,FALSE,novel,immediate
-7,54,FALSE,novel,immediate
-7,55,FALSE,novel,immediate
-7,56,FALSE,novel,immediate
-7,57,FALSE,novel,1 day
-7,58,FALSE,novel,1 day
-7,59,FALSE,novel,1 day
-7,60,FALSE,novel,1 day
-7,61,FALSE,novel,1 day
-7,62,FALSE,novel,1 day
-7,63,FALSE,novel,1 day
-7,64,FALSE,novel,1 day
-7,65,TRUE,novel,1 week
-7,66,TRUE,novel,1 week
-7,67,TRUE,novel,1 week
-7,68,TRUE,novel,1 week
-7,69,TRUE,novel,1 week
-7,70,TRUE,novel,1 week
-7,71,TRUE,novel,1 week
-7,72,TRUE,novel,1 week
-7,73,TRUE,novel,1 month
-7,74,TRUE,novel,1 month
-7,75,TRUE,novel,1 month
-7,76,TRUE,novel,1 month
-7,77,TRUE,novel,1 month
-7,78,TRUE,novel,1 month
-7,79,TRUE,novel,1 month
-7,80,TRUE,novel,1 month
+7,49,FALSE,new,immediate
+7,50,FALSE,new,immediate
+7,51,FALSE,new,immediate
+7,52,FALSE,new,immediate
+7,53,FALSE,new,immediate
+7,54,FALSE,new,immediate
+7,55,FALSE,new,immediate
+7,56,FALSE,new,immediate
+7,57,FALSE,new,1 day
+7,58,FALSE,new,1 day
+7,59,FALSE,new,1 day
+7,60,FALSE,new,1 day
+7,61,FALSE,new,1 day
+7,62,FALSE,new,1 day
+7,63,FALSE,new,1 day
+7,64,FALSE,new,1 day
+7,65,TRUE,new,1 week
+7,66,TRUE,new,1 week
+7,67,TRUE,new,1 week
+7,68,TRUE,new,1 week
+7,69,TRUE,new,1 week
+7,70,TRUE,new,1 week
+7,71,TRUE,new,1 week
+7,72,TRUE,new,1 week
+7,73,TRUE,new,1 month
+7,74,TRUE,new,1 month
+7,75,TRUE,new,1 month
+7,76,TRUE,new,1 month
+7,77,TRUE,new,1 month
+7,78,TRUE,new,1 month
+7,79,TRUE,new,1 month
+7,80,TRUE,new,1 month
 7,81,TRUE,repeated,immediate
 7,82,TRUE,repeated,immediate
 7,83,TRUE,repeated,immediate
@@ -879,30 +879,30 @@ list_id,stim_id,actual_truth,repetition,interval
 7,110,TRUE,repeated,1 month
 7,111,TRUE,repeated,1 month
 7,112,TRUE,repeated,1 month
-7,113,TRUE,novel,immediate
-7,114,TRUE,novel,immediate
-7,115,TRUE,novel,immediate
-7,116,TRUE,novel,immediate
-7,117,TRUE,novel,immediate
-7,118,TRUE,novel,immediate
-7,119,TRUE,novel,immediate
-7,120,TRUE,novel,immediate
-7,121,TRUE,novel,1 day
-7,122,TRUE,novel,1 day
-7,123,TRUE,novel,1 day
-7,124,TRUE,novel,1 day
-7,125,TRUE,novel,1 day
-7,126,TRUE,novel,1 day
-7,127,TRUE,novel,1 day
-7,128,TRUE,novel,1 day
-8,1,FALSE,novel,1 month
-8,2,FALSE,novel,1 month
-8,3,FALSE,novel,1 month
-8,4,FALSE,novel,1 month
-8,5,FALSE,novel,1 month
-8,6,FALSE,novel,1 month
-8,7,FALSE,novel,1 month
-8,8,FALSE,novel,1 month
+7,113,TRUE,new,immediate
+7,114,TRUE,new,immediate
+7,115,TRUE,new,immediate
+7,116,TRUE,new,immediate
+7,117,TRUE,new,immediate
+7,118,TRUE,new,immediate
+7,119,TRUE,new,immediate
+7,120,TRUE,new,immediate
+7,121,TRUE,new,1 day
+7,122,TRUE,new,1 day
+7,123,TRUE,new,1 day
+7,124,TRUE,new,1 day
+7,125,TRUE,new,1 day
+7,126,TRUE,new,1 day
+7,127,TRUE,new,1 day
+7,128,TRUE,new,1 day
+8,1,FALSE,new,1 month
+8,2,FALSE,new,1 month
+8,3,FALSE,new,1 month
+8,4,FALSE,new,1 month
+8,5,FALSE,new,1 month
+8,6,FALSE,new,1 month
+8,7,FALSE,new,1 month
+8,8,FALSE,new,1 month
 8,9,FALSE,repeated,immediate
 8,10,FALSE,repeated,immediate
 8,11,FALSE,repeated,immediate
@@ -935,38 +935,38 @@ list_id,stim_id,actual_truth,repetition,interval
 8,38,FALSE,repeated,1 month
 8,39,FALSE,repeated,1 month
 8,40,FALSE,repeated,1 month
-8,41,FALSE,novel,immediate
-8,42,FALSE,novel,immediate
-8,43,FALSE,novel,immediate
-8,44,FALSE,novel,immediate
-8,45,FALSE,novel,immediate
-8,46,FALSE,novel,immediate
-8,47,FALSE,novel,immediate
-8,48,FALSE,novel,immediate
-8,49,FALSE,novel,1 day
-8,50,FALSE,novel,1 day
-8,51,FALSE,novel,1 day
-8,52,FALSE,novel,1 day
-8,53,FALSE,novel,1 day
-8,54,FALSE,novel,1 day
-8,55,FALSE,novel,1 day
-8,56,FALSE,novel,1 day
-8,57,FALSE,novel,1 week
-8,58,FALSE,novel,1 week
-8,59,FALSE,novel,1 week
-8,60,FALSE,novel,1 week
-8,61,FALSE,novel,1 week
-8,62,FALSE,novel,1 week
-8,63,FALSE,novel,1 week
-8,64,FALSE,novel,1 week
-8,65,TRUE,novel,1 month
-8,66,TRUE,novel,1 month
-8,67,TRUE,novel,1 month
-8,68,TRUE,novel,1 month
-8,69,TRUE,novel,1 month
-8,70,TRUE,novel,1 month
-8,71,TRUE,novel,1 month
-8,72,TRUE,novel,1 month
+8,41,FALSE,new,immediate
+8,42,FALSE,new,immediate
+8,43,FALSE,new,immediate
+8,44,FALSE,new,immediate
+8,45,FALSE,new,immediate
+8,46,FALSE,new,immediate
+8,47,FALSE,new,immediate
+8,48,FALSE,new,immediate
+8,49,FALSE,new,1 day
+8,50,FALSE,new,1 day
+8,51,FALSE,new,1 day
+8,52,FALSE,new,1 day
+8,53,FALSE,new,1 day
+8,54,FALSE,new,1 day
+8,55,FALSE,new,1 day
+8,56,FALSE,new,1 day
+8,57,FALSE,new,1 week
+8,58,FALSE,new,1 week
+8,59,FALSE,new,1 week
+8,60,FALSE,new,1 week
+8,61,FALSE,new,1 week
+8,62,FALSE,new,1 week
+8,63,FALSE,new,1 week
+8,64,FALSE,new,1 week
+8,65,TRUE,new,1 month
+8,66,TRUE,new,1 month
+8,67,TRUE,new,1 month
+8,68,TRUE,new,1 month
+8,69,TRUE,new,1 month
+8,70,TRUE,new,1 month
+8,71,TRUE,new,1 month
+8,72,TRUE,new,1 month
 8,73,TRUE,repeated,immediate
 8,74,TRUE,repeated,immediate
 8,75,TRUE,repeated,immediate
@@ -999,27 +999,27 @@ list_id,stim_id,actual_truth,repetition,interval
 8,102,TRUE,repeated,1 month
 8,103,TRUE,repeated,1 month
 8,104,TRUE,repeated,1 month
-8,105,TRUE,novel,immediate
-8,106,TRUE,novel,immediate
-8,107,TRUE,novel,immediate
-8,108,TRUE,novel,immediate
-8,109,TRUE,novel,immediate
-8,110,TRUE,novel,immediate
-8,111,TRUE,novel,immediate
-8,112,TRUE,novel,immediate
-8,113,TRUE,novel,1 day
-8,114,TRUE,novel,1 day
-8,115,TRUE,novel,1 day
-8,116,TRUE,novel,1 day
-8,117,TRUE,novel,1 day
-8,118,TRUE,novel,1 day
-8,119,TRUE,novel,1 day
-8,120,TRUE,novel,1 day
-8,121,TRUE,novel,1 week
-8,122,TRUE,novel,1 week
-8,123,TRUE,novel,1 week
-8,124,TRUE,novel,1 week
-8,125,TRUE,novel,1 week
-8,126,TRUE,novel,1 week
-8,127,TRUE,novel,1 week
-8,128,TRUE,novel,1 week
+8,105,TRUE,new,immediate
+8,106,TRUE,new,immediate
+8,107,TRUE,new,immediate
+8,108,TRUE,new,immediate
+8,109,TRUE,new,immediate
+8,110,TRUE,new,immediate
+8,111,TRUE,new,immediate
+8,112,TRUE,new,immediate
+8,113,TRUE,new,1 day
+8,114,TRUE,new,1 day
+8,115,TRUE,new,1 day
+8,116,TRUE,new,1 day
+8,117,TRUE,new,1 day
+8,118,TRUE,new,1 day
+8,119,TRUE,new,1 day
+8,120,TRUE,new,1 day
+8,121,TRUE,new,1 week
+8,122,TRUE,new,1 week
+8,123,TRUE,new,1 week
+8,124,TRUE,new,1 week
+8,125,TRUE,new,1 week
+8,126,TRUE,new,1 week
+8,127,TRUE,new,1 week
+8,128,TRUE,new,1 week

@@ -19,11 +19,15 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
 
   rtib <- wide_data[, "subj_id"]
   rtib[["age"]] <-
-    rtib[["gender"]] <-
+    ## rtib[["gender"]] <-
     rtib[["nationality"]] <-
     rtib[["comments"]] <-
     pad_string
 
+  rtib[["gender"]] <- sample(c("Female", "Male",
+                               "Gender Variant", "Not Reported"),
+                             nrow(wide_data), TRUE, prob = c(.45, .45, .08, .02))
+  
   extra <- 
     dplyr::inner_join(
              wide_data[, "subj_id"],

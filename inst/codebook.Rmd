@@ -1,0 +1,79 @@
+---
+title: "The Truth Trajectory: Codebook and Stimulus Materials"
+author: "Emma L. Henderson, Daniel J. Simons, and Dale J. Barr"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: 
+  html_document:
+    df_print: kable
+params:
+  show_stim: FALSE
+---
+
+# Codebook
+
+Below is information about the structure of the anonymized data
+files. These files are:
+
+* **`ANON_sess.csv`** : Information about the experimental sessions
+* **`ANON_phases.csv`** : Information about the individual phases of data collection.
+* **`ANON_ratings.csv`** : Truth ratings.
+* **`ANON_interest.csv`** : Interest ratings.
+
+## Session information (`ANON_sess.csv`)
+
+```{r sess, echo = FALSE}
+library("tibble")
+library("truthiness")
+
+tribble(~Variable, ~Description,
+        "`ID`", "Unique participant identifier",
+        "`list_id`", "Which presentation list the participant received (1-8).",
+        "`age`", "Participant age (years)",
+        "`gender`", "Participant gender (Female, Male, Gender Variant, or Not Reported)",
+        "`nationality`", "Participant nationality",
+        "`nativelang`", "Participant native language",
+        "`chk_native`", "Whether participant self-identified as a native English speaker",
+        "`chk_nocheat`", "Whether participant did not report looking up answer during any phase",
+        "`chk_dur_all`", "Whether participant completed all phases within reasonable limits",
+        "`chk_flatline`", "Whether participant did not produce any 'flatline' responses for a single phase (e.g., all ratings of the same response category)")
+```
+
+## Phase information (`ANON_phases.csv`)
+
+```{r phase, echo = FALSE}
+tribble(~Variable, ~Description,
+        "`ID`", "Unique participant identifier",
+        "`phase_id`", "Which phase (1 = immediate, 2 = 1 day, 3 = 1 week, 4 = 1 month)",
+        "`duration_secs`", "Total duration of the phase for specific participant/phase combination",
+        "`chk_finished`", "Whether all responses were filled in",
+        "`chk_dur_phase`", "Whether the phase was completed within reasonable time limits.")
+```
+
+## Truth ratings (`ANON_truth.csv`)
+
+```{r truth, echo = FALSE}
+tribble(~Variable, ~Description,
+        "`ID`", "Unique participant identifier",
+        "`phase_id`", "Which phase (1 = immediate, 2 = 1 day, 3 = 1 week, 4 = 1 month)",
+        "`stim_id`", "Unique stimulus identifier",
+        "`trating`", "Truth rating (1-7), 1 = Definitely false, 7 = Definitely true"
+        )
+```
+
+## Interest ratings (`ANON_interest.csv`)
+
+```{r interest, echo = FALSE}
+tribble(~Variable, ~Description,
+        "`ID`", "Unique participant identifier",
+        "`stim_id`", "Unique stimulus identifier",
+        "`irating`", "Interest rating (0-10), 0 = Not at all interesting, 10 = Completely interesting"
+        )
+```
+
+# Stimulus Materials
+
+`r if (!params$show_stim) {"Stimuli have been withheld from the repository until the completion of data collection. This has been done to avoid the possibility that potential participants will find them online. You can access them using the truthiness::codebook() function in R."}`
+
+```{r stim, echo = FALSE, eval = params$show_stim}
+  stimulus_materials
+```

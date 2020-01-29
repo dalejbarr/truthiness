@@ -2,6 +2,7 @@
 
 export("%>%")
 export(alpha_6_to_7)
+export(codebook)
 export(derive_fixed)
 export(eta2resp)
 export(fit_gamm)

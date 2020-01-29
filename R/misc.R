@@ -1,3 +1,30 @@
+#' Compile and Display Codebook and Materials
+#'
+#' Compile and display the codebook for anonymized data and stimulus
+#' materials.
+#'
+#' @param show_stim Whether to include the stimulus materials.
+#'
+#' @param browse Whether to open the codebook in a browser. Otherwise, it just prints the filename.
+#'
+#' @return Path to the codebook file.
+#'
+#' @export
+codebook <- function(show_stim = TRUE, browse = TRUE) {
+  tmp <- tempfile(fileext = ".html")
+  res <- rmarkdown::render(system.file("codebook.Rmd", package = "truthiness"),
+                           output_file = basename(tmp),
+                           output_dir = dirname(tmp),
+                           params = list(show_stim = show_stim),
+                           quiet = TRUE)
+  if (browse) {
+    browseURL(res)
+  } else {
+    message("Compiled codebook to '", res, "'.")
+  }
+  invisible(res)
+}
+
 #' Simulate ordinal responses choices from log odds
 #'
 #' @param eta Predicted response tendency or tendencies on log odds scale.

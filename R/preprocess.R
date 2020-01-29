@@ -254,13 +254,21 @@ import_phase_info <- function(path) {
 #'   following structure.
 #'
 #' \code{ANON_sessions.csv}: A table with one row for each participant
-#' and four columns:
+#' and ten columns:
 #' 
 #' \describe{
 #'   \item{ID}{Unique participant identifier.}
 #'   \item{list_id}{Identifier of stimulus list.}
+#'   \item{age}{Age of the participant in years.}
+#'   \item{gender}{Gender of the participant.}
+#'   \item{nationality}{Nationality of the participant.}
+#'   \item{nativelang}{Native language of the participant.}
 #'   \item{chk_native}{Whether the participant was a native English speaker.}
 #'   \item{chk_nocheat}{Whether the participant did not look up answers.}
+#'   \item{chk_dur_all}{Whether the participant completed all phases
+#'   within a reasonable time-frame.}
+#'   \item{chk_flatline}{Whether the participant did not produce
+#'   'flatline' responses during any phase of the study.}
 #' }
 #'
 #' \code{ANON_phases.csv}: A table with one row for each participant
@@ -271,27 +279,25 @@ import_phase_info <- function(path) {
 #'   \item{phase_id}{Identifier of phase (1-4).}
 #'   \item{duration_secs}{Duration of phase in seconds.}
 #'   \item{chk_finished}{Whether the participant completed the phase.}
-#'   \item{chk_dur}{Whether the phase was completed within a reasonable duration.}
+#'   \item{chk_dur_phase}{Whether the phase was completed within a reasonable duration.}
 #' }
 #'
 #' \code{ANON_interest.csv}: A table with one row for each interest
-#' rating and four columns:
+#' rating and three columns:
 #'
 #' \describe{
 #'   \item{ID}{Unique participant identifier.}
 #'   \item{stim_id}{Unique stimulus identifier.}
-#'   \item{order}{Order of presentation.}
 #'   \item{irating}{Interest rating (0-10).}
 #' }
 #'
 #' \code{ANON_ratings.csv}: A table with one row for each truth rating
-#' and five columns.
+#' and four columns.
 #'
 #' \describe{
 #'   \item{ID}{Unique participant indentifier.}
 #'   \item{phase_id}{Identifier of phase (1-4).}
 #'   \item{stim_id}{Unique stimulus identifier.}
-#'   \item{order}{Order of presentation.}
 #'   \item{trating}{Truth rating (1-7).}
 #' }
 #' 
@@ -322,7 +328,6 @@ preprocess <- function(inpath,
   interest <- import_iratings(inpath)
 
   ## destroy data from non-consenting participants
-
   sess_consent <- sess %>%
     dplyr::filter(grepl("^Yes", ConsentAll, ignore.case = TRUE))
 
@@ -345,18 +350,20 @@ preprocess <- function(inpath,
 
   ## remove non-native speakers
   sess_native <- sess_consent %>%
-    dplyr::mutate(chk_native = grepl("English", nativelang, ignore.case = TRUE))
+    dplyr::mutate(chk_native = grepl("English", nativelang,
+                                     ignore.case = TRUE))
 
+  ## phase-level exclusion: was the phase completed?
   phase_finished <- phase_consent %>%
     dplyr::mutate(chk_finished = Finished == "TRUE")
 
-  ## find anyone who looked up answers; remove them from all phases
+  ## identify anyone who looked up answers; remove them from all phases
   cheaters <- phase_finished %>%
     dplyr::filter(grepl("^Yes", cheat, ignore.case = TRUE)) %>%
     dplyr::distinct(PID) %>%
     dplyr::mutate(chk_nocheat = FALSE)
 
-  sess_keep <- sess_native %>%
+  sess_cheat <- sess_native %>%
     dplyr::left_join(cheaters, "PID") %>%
     tidyr::replace_na(list(chk_nocheat = TRUE))
 
@@ -365,25 +372,58 @@ preprocess <- function(inpath,
               phase_id = factor(1:4, levels = 1:4),
               min_dur = c(3L * 60L, rep(1L * 60L, 3)),
               max_dur = c(40L * 60L, rep(30L * 60L, 3)))
-
+  
+  ## identify participants who were too fast or too slow on *any* phase
   phase_keep <- phase_finished %>%
     dplyr::inner_join(dur_cutoffs, "phase_id") %>%
-    dplyr::mutate(chk_dur = (as.integer(`Duration (in seconds)`) >= min_dur) &
-             (as.integer(`Duration (in seconds)`) <= max_dur)) %>%
+    dplyr::mutate(chk_dur_phase =
+                    (as.integer(`Duration (in seconds)`) >= min_dur) &
+                    (as.integer(`Duration (in seconds)`) <= max_dur)) %>%
     dplyr::select(-min_dur, -max_dur)
 
+  sess_dur <- sess_cheat %>%
+    dplyr::left_join(phase_keep %>%
+                     dplyr::filter(!chk_dur_phase) %>%
+                     dplyr::distinct(PID) %>%
+                     dplyr::mutate(chk_dur_all = FALSE), "PID") %>%
+    tidyr::replace_na(list(chk_dur_all = TRUE))
+
+  ## now find any flatliners
+  ## interest scores
+  ispt <- split(interest[["irating"]], interest[["PID"]])
+  res <- sapply(ispt, function(.x) {length(unique(.x)) == 1L})
+  flat_interest <- names(res)[res]
+    
+  ## truth ratings
+  tspt <- split(ratings[["trating"]],
+                list(ratings[["PID"]], ratings[["phase_id"]]), sep = ",")
+  res <- sapply(tspt, function(.x) {length(unique(.x)) == 1L})
+  flat_truth <- unique(sapply(names(res)[res],
+                              function(.x) {strsplit(.x, ",")[[1]][1]},
+                              USE.NAMES = FALSE))
+  flatliners <- union(flat_interest, flat_truth)
+
+  sess_keep <- sess_dur %>%
+    dplyr::mutate(chk_flatline = !(PID %in% flatliners))
+
+  ## done with participant level + phase level exclusions
+  
   ## use phase_keep and sess_keep
 
   ## now anonymize
   sess_keep[["ID"]] <- sprintf("S%04d", sample(seq_len(nrow(sess_consent))))
-  share_cols <- c("list_id", "chk_native", "chk_nocheat")
+  share_cols <- c("list_id",
+                  "age", "gender", "nationality", "nativelang",
+                  "chk_native", "chk_nocheat", "chk_dur_all", "chk_flatline")
   sess_private <- sess_keep[, c("PID", "ID",
                                 setdiff(names(sess_keep),
-                                        c("PID", "ID", "ConsentAll", share_cols)))]
+                                        c("PID", "ID", "ConsentAll",
+                                          share_cols)))]
   sess_share <- sess_keep[, c("ID", share_cols)] %>%
     dplyr::arrange(ID)
 
-  pshare_cols <- c("phase_id", "Duration (in seconds)", "chk_finished", "chk_dur")
+  pshare_cols <- c("phase_id", "Duration (in seconds)", "chk_finished",
+                   "chk_dur_phase")
   pkeep <- phase_keep %>%
     dplyr::inner_join(sess_private[, c("ID", "PID")], "PID")
 
@@ -400,7 +440,6 @@ preprocess <- function(inpath,
 
   ratings2 <- ratings %>%
     dplyr::group_by(PID, phase_id) %>%
-    dplyr::mutate(order = dplyr::row_number()) %>%
     dplyr::ungroup() %>%
     dplyr::semi_join(sess_consent, "PID") %>%
     dplyr::semi_join(phase_consent, c("PID", "phase_id")) %>%
@@ -408,19 +447,19 @@ preprocess <- function(inpath,
                c("PID", "phase_id"))
 
   ratings_share <-
-    ratings2[, c("ID", "phase_id", "stim_id", "order", "trating")] %>%
+    ratings2[, c("ID", "phase_id", "stim_id", "trating")] %>%
     dplyr::arrange(ID, phase_id, stim_id)
 
   interest2 <- interest %>%
     dplyr::group_by(PID) %>%
-    dplyr::mutate(order = dplyr::row_number()) %>%
     dplyr::ungroup() %>%
     dplyr::semi_join(sess_consent, "PID") %>%
-    dplyr::semi_join(phase_consent %>% dplyr::filter(phase_id == 1L), "PID") %>%
+    dplyr::semi_join(phase_consent %>%
+                     dplyr::filter(phase_id == 1L), "PID") %>%
     dplyr::inner_join(phase_private %>% dplyr::filter(phase_id == 1L) %>%
                       dplyr::select("PID", "ID"), "PID")
 
-  interest_share <- interest2[, c("ID", "stim_id", "order", "irating")] %>%
+  interest_share <- interest2[, c("ID", "stim_id", "irating")] %>%
     dplyr::arrange(ID, stim_id)
 
   saveRDS(sess_private, private_sess_fname)

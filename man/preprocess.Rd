@@ -27,13 +27,21 @@ Loads in the data from the raw response files and writes
   following structure.
 
 \code{ANON_sessions.csv}: A table with one row for each participant
-and four columns:
+and ten columns:
 
 \describe{
   \item{ID}{Unique participant identifier.}
   \item{list_id}{Identifier of stimulus list.}
+  \item{age}{Age of the participant in years.}
+  \item{gender}{Gender of the participant.}
+  \item{nationality}{Nationality of the participant.}
+  \item{nativelang}{Native language of the participant.}
   \item{chk_native}{Whether the participant was a native English speaker.}
   \item{chk_nocheat}{Whether the participant did not look up answers.}
+  \item{chk_dur_all}{Whether the participant completed all phases
+  within a reasonable time-frame.}
+  \item{chk_flatline}{Whether the participant did not produce
+  'flatline' responses during any phase of the study.}
 }
 
 \code{ANON_phases.csv}: A table with one row for each participant
@@ -44,27 +52,25 @@ and five columns:
   \item{phase_id}{Identifier of phase (1-4).}
   \item{duration_secs}{Duration of phase in seconds.}
   \item{chk_finished}{Whether the participant completed the phase.}
-  \item{chk_dur}{Whether the phase was completed within a reasonable duration.}
+  \item{chk_dur_phase}{Whether the phase was completed within a reasonable duration.}
 }
 
 \code{ANON_interest.csv}: A table with one row for each interest
-rating and four columns:
+rating and three columns:
 
 \describe{
   \item{ID}{Unique participant identifier.}
   \item{stim_id}{Unique stimulus identifier.}
-  \item{order}{Order of presentation.}
   \item{irating}{Interest rating (0-10).}
 }
 
 \code{ANON_ratings.csv}: A table with one row for each truth rating
-and five columns.
+and four columns.
 
 \describe{
   \item{ID}{Unique participant indentifier.}
   \item{phase_id}{Identifier of phase (1-4).}
   \item{stim_id}{Unique stimulus identifier.}
-  \item{order}{Order of presentation.}
   \item{trating}{Truth rating (1-7).}
 }
 }
