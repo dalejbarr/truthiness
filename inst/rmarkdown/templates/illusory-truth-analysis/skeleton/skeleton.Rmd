@@ -52,7 +52,6 @@ warn <- function() {
 
 ```{r reproduction-recipe, echo = FALSE, eval = params$recipe, results = 'asis'}
 cat(readLines(system.file("repr_instr.Rmd", package = "truthiness")), sep = "\n")
-}
 ```
 
 ## Import and preprocess
