@@ -41,7 +41,7 @@ if (dir.exists(params$subdir)) {
 ## function to check whether we are working with real or simulated data
 ## and spit out a warning box
 warn <- function() {
-  if (truthiness::checkfake()) {
+  if (truthiness::check_fake()) {
     paste("\n<div class=\"warn\">",
           "*WARNING! Results in this document are based on **simulated** data*.",
           "This document will be re-compiled and results will be updated after data collection.\n",
