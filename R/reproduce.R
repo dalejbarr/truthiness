@@ -30,11 +30,11 @@ reproduce_analysis <- function(path,
   if (is.null(infile)) {
     tf <- tempfile(fileext = ".Rmd")
     infile <- rmarkdown::draft(tf, "illusory-truth-analysis", "truthiness",
-                               FALSE, FALSE)    
+                               FALSE, FALSE)
   }
 
   ofile <- rmarkdown::render(infile, output_file = basename(outfile),
-                             knit_root_dir = dirname(path),
+                             knit_root_dir = getwd(),
                              output_dir = dirname(outfile),
                              params = list(subdir = path,
                                            inferential = inferential,
