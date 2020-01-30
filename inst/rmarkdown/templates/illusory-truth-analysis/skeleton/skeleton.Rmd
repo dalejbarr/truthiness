@@ -177,7 +177,7 @@ participants resulted in the removal of
 
 ### Phase-level exclusions
 
-There was one exclusion criterion applying at the phase-level: namely, whether the participant completed all of the ratings in the phase.
+The only exclusion criterion applied at the phase-level was failure to complete all of the ratings in the phase.
 
 ```{r phase-finished}
 phase_trim <- phase %>%
