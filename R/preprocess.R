@@ -308,7 +308,7 @@ preprocess <- function(inpath,
 
   private_sess_fname <- "NOT_ANONYMIZED_sessions.rds"
   private_phase_fname <- "NOT_ANONYMIZED_phases.rds"
-  outpath <- sub("/$", "", outpath) # no trailing slash
+  outpath <- normalize_path(outpath) # no trailing slash
   if (dir.exists(outpath)) {
     if (overwrite) {
       unlink(outpath, TRUE, TRUE)
@@ -317,6 +317,7 @@ preprocess <- function(inpath,
     }
   }
   dir.create(outpath)
+  if (check_fake(inpath)) {flag_fake(outpath)}
   if (file.exists(private_sess_fname) && !overwrite)
     stop("File '", private_sess_fname, "' exists and overwrite = FALSE")
   if (file.exists(private_phase_fname) && !overwrite)

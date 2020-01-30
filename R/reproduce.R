@@ -6,11 +6,6 @@
 #'
 #' @param inferential Whether to run inferential statistics.
 #'
-#' @param simulated Whether the analysis is performed on simulated
-#'   data (TRUE) or real data (FALSE). In the case of simulated data,
-#'   the compiled document will contain warnings that the data are not
-#'   real.
-#'
 #' @param instructions Include instructions on how to reproduce the analysis.
 #'
 #' @details Runs the R Markdown script on the data in the provided
@@ -21,10 +16,12 @@
 #'                        "illusory-truth-analysis", "truthiness")}
 #' @export
 reproduce_analysis <- function(path,
-                               outfile = "my_analysis.html",
+                               outfile = "analysis.html",
                                inferential = FALSE,
-                               simulated = FALSE,
                                instructions = FALSE) {
+  if (!dir.exists(path)) {stop("directory '", path, "' does not exist")}
+  path <- sub("/$", "", path)
+  simulated <- file.exists(file.path(path, ".fake"))
   tf <- tempfile(fileext = ".Rmd")
   doc <- rmarkdown::draft(tf, "illusory-truth-analysis", "truthiness", FALSE, FALSE)
   if (instructions) {

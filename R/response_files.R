@@ -1,3 +1,16 @@
+normalize_path <- function(path) {
+  sub("/$", "", path)
+}
+
+flag_fake <- function(path) {
+  writeLines(" ",
+             file.path(normalize_path(path), ".fake"))
+}
+
+check_fake <- function(path) {
+  file.exists(file.path(normalize_path(path), ".fake"))
+}
+
 make_response_file <- function(data, segment_id, subj_data, idata, path) {
   id <- as.integer(strsplit(segment_id, "\\.")[[1]])
   names(id) <- c("L", "P")
@@ -204,13 +217,19 @@ simulate_resp_files <- function(nsubj,
                                 duration_range_all = c(60, 1800)) {
 
   list_id <- subj_id <- phase_id <- task_id <- trating <- NULL
+
+  path <- normalize_path(path)
   
   if (dir.exists(path)) {
     if (!overwrite)
       stop("subdirectory '", path, "' already exists and overwrite = FALSE")
-    unlink("path", TRUE, TRUE)
+    unlink(path, TRUE, TRUE)
   }
   dir.create(path, FALSE)
+  flag_fake(path)
+  
+  ## create a file '.fake' to flag that the data are simulated
+  writeLines(" ", file.path(path, ".fake"))
 
   PIDs <- replicate(nsubj, {
     paste0(sample(c(LETTERS, letters), 24L),
