@@ -26,9 +26,6 @@ reproduce_analysis <- function(path,
                                infile = NULL) {
 
   message("Processing '", infile, "' against data in '", path, "'")
-  wd <- dirname(path)
-  message("Working directory: ", wd)
-  message(paste(dir(wd), collapse = ", "))
   path <- normalize_path(path)
   if (!dir.exists(path)) {stop("directory '", path, "' does not exist")}
   if (is.null(infile)) {
@@ -38,7 +35,7 @@ reproduce_analysis <- function(path,
   }
 
   ofile <- rmarkdown::render(infile, output_file = basename(outfile),
-                             knit_root_dir = dirname(path),
+                             knit_root_dir = getwd(),
                              output_dir = dirname(outfile),
                              params = list(subdir = path,
                                            inferential = inferential,
