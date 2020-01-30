@@ -34,7 +34,7 @@ if (is.null(params$subdir)) {
   stop("you need to specify the subdirectory containing the anonymized data")
 }
 
-if (dir.exists(params$subdir)) {
+if (!dir.exists(params$subdir)) {
   stop("subdirectory '", params$subdir, "' does not exist")
 }
 
