@@ -7,6 +7,13 @@ flag_fake <- function(path) {
              file.path(normalize_path(path), ".fake"))
 }
 
+#' Is Data Flagged As Simulated?
+#'
+#' Check whether the data in the subdirectory is flagged as simulated.
+#'
+#' @param path Name of the subdirectory.
+#'
+#' @export
 check_fake <- function(path) {
   file.exists(file.path(normalize_path(path), ".fake"))
 }

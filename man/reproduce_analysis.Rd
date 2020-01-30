@@ -6,10 +6,10 @@
 \usage{
 reproduce_analysis(
   path,
-  outfile = "my_analysis.html",
+  outfile = "analysis.html",
   inferential = FALSE,
-  simulated = FALSE,
-  instructions = FALSE
+  recipe = FALSE,
+  infile = NULL
 )
 }
 \arguments{
@@ -19,18 +19,16 @@ reproduce_analysis(
 
 \item{inferential}{Whether to run inferential statistics.}
 
-\item{simulated}{Whether the analysis is performed on simulated
-data (TRUE) or real data (FALSE). In the case of simulated data,
-the compiled document will contain warnings that the data are not
-real.}
+\item{recipe}{Include instructions on how to reproduce the analysis.}
 
-\item{instructions}{Include instructions on how to reproduce the analysis.}
+\item{infile}{Path to the R Markdown script; \code{NULL} to use the
+built-in script.}
 }
 \description{
 Reproduce the Master Data Analysis
 }
 \details{
-Runs the R Markdown script on the data in the provided
+Runs R Markdown script on the data in the provided
   subdirectory and renders the HTML report to \code{outfile}. The
   master R Markdown script can be accessed using:
 

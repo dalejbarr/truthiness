@@ -2,50 +2,62 @@
 
 Note that to re-run this analysis you'll need to have an anonymized copy of the data available in a subdirectory of the working directory. If you don't have the data you can create simulated data, as described in the sections below.
 
-You can re-run the analysis either with or without a software container that encapsulates all the software used in the project. Using the software container is the only method guaranteed to exactly match the results obtained by the authors. Instructions are provided below for both methods.
+You can re-run the analysis either with or without a software container that encapsulates all the software needed for analysis. Using the software container is the only method guaranteed to exactly match the results obtained by the authors. Instructions are provided below for both methods.
 
 ## Reproducing the analysis with the singularity software container
 
 Make sure you have installed [Singularity version 3.5](https://sylabs.io/guides/3.5/user-guide/) and are at a command prompt in a directory containing the subdirectory with the anonymous data.
 
-If you don't have a copy of the anonymized data available and want to test it out on a simulated version of data, the following command will make a dataset with 576 participants in the directory `fake_data`. 
+To re-run the full analysis, including the inferential statistics, use the `makeit analysis` command.  The command accepts the following options:
 
-```
-singularity exec library://dalejbarr/talklab/illusory-truth \
-    make fake_data
-```
+* `SUBDIR` (required): name of subdirectory containing the anonymized files
+* `INFERENCE` (optional, default TRUE): whether or not to run the inferential stats (TRUE for yes, FALSE for no)
+* `RECIPE` (optional, default FALSE): whether or not to print the replication recipe (these instructions) along with the results.
 
-To re-run the full analysis, including the inferential statistics:
+The command below is the main command to reproduce the analysis.
 
 ```
 singularity exec library://dalejbarr/talklab/illusory-truth \ 
-    make analysis SUBDIR=path-to-anonymized-data
+    makeit analysis SUBDIR=path-to-anonymized-data
 ```
 
 where `path-to-anonymized-data` is replaced with the name of the subdirectory with the anonymous data (e.g., the `fake_data` directory you created above).
 
-The inferential statistics can take *very long* (more than 24 hours) to run. To re-run the analysis without the inferential statistics:
+The inferential statistics can take *very long* (more than 24 hours) to run. Because of this, they are turned off by default. To re-run the analysis with the inferential statistics, use the `INFERENCE=TRUE` option.
 
 ```
 singularity exec library://dalejbarr/talklab/illusory-truth \ 
-    make analysis_noinf SUBDIR=path-to-anonymized-data
+    makeit analysis SUBDIR=path-to-anonymized-data INFERENCE=TRUE
 ```
 
-If you want to access the master R Markdown script because, for instance, you want to edit or expand on it, the following command copies the script to the file `my_analysis.Rmd` in the working directory.
+### Simulating data
 
-```
-singularity exec library://dalejbarr/talklab/illusory-truth \
-    make draft OUT=my_analysis.Rmd
-```
-
-You can then render the script using the container as follows:
+If you don't have a copy of the anonymized data available and want to test it out on a simulated version of data, the following command will make a dataset with 576 participants in the directory `fake_data`. 
 
 ```
 singularity exec library://dalejbarr/talklab/illusory-truth \
-    Rscript -e 'rmarkdown::render("my_analysis.Rmd", params = list(subdir = "path-to-anonymized-data", simulated = FALSE, inferential = FALSE))'
+    makeit fake_data
 ```
 
-altering `path-to-anonymized-data` and `inferential = FALSE` as required.
+Then you can run the commands described above, setting `SUBDIR=fake_data`.
+
+### Copying and editing the master R Markdown script
+
+If you want to edit the master R Markdown script, the following command copies the script from the package into the file `my_analysis.Rmd` in the current working directory.
+
+```
+singularity exec library://dalejbarr/talklab/illusory-truth \
+    makeit draft OUT=my_analysis.Rmd
+```
+
+You can then render the script via the container as follows:
+
+```
+singularity exec library://dalejbarr/talklab/illusory-truth \
+    makeit render INFILE=my_analysis.Rmd
+```
+
+altering `path-to-anonymized-data` (and setting `INFERENCE=TRUE`) as required.
 
 ## Reproducing the analysis without the singularity software container
 
@@ -80,9 +92,7 @@ You can control where the process looks for the anonymized data by setting the v
 ```
 params:
   inferential: TRUE
-  subdir: "fake_preprocessed_data"
-  simulated: FALSE
-
+  subdir: "path-to-anonymized-data"
 ```
 
 ### Accessing the master R Markdown script Without RStudio
@@ -95,19 +105,12 @@ rmarkdown::draft("my_analysis.Rmd", "illusory-truth-analysis", "truthiness")
 
 This command will create the file `my_analysis.Rmd` in the working directory, which can then be edited and compiled.
 
-Render to HTML using the following command:
+Render to HTML using the following command from *`truthiness`*:
 
 ```
-rmarkdown::render("my_analysis.Rmd")
+reproduce_analysis("path-to-anonymized-data", infile = "my_analysis.Rmd")
 ```
 
-You can control the location of the subdirectory with the data files as well as turn on inferential stats by editing the YAML as shown in the above section, or alternatively through the `params` argument, as in the below example. The `simulated` parameter controls whether you are running the analysis on simulated (TRUE), in which case warnings about the use of fake data will be printed.
-
-```
-rmarkdown::render("my_analysis.Rmd", 
-                  params = list(subdir = "path-to-anonymized-data",
-				                inferential = TRUE,
-								simulated = FALSE))
-```
+See `?truthiness::reproduce_analysis` for further options.
 
 # Main analysis

@@ -8,9 +8,9 @@ output:
     code_folding: hide
     df_print: paged
 params:
-  inferential: FALSE
   subdir: NULL
-  simulated: FALSE
+  inferential: FALSE
+  recipe: FALSE
 ---
 
 <style>
@@ -24,27 +24,38 @@ knitr::opts_chunk$set(echo = TRUE)
 ## shortcut for pretty printing for integers
 .pi <- function(x) prettyNum(x, big.mark=',')
 
+## make sure truthiness is installed
+if (!requireNamespace("truthiness")) {
+  stop("You must install the 'truthiness' package to run this analysis. \n",
+       "devtools::install_github('dalejbarr/truthiness')")
+}
+
+if (is.null(params$subdir)) {
+  stop("you need to specify the subdirectory containing the anonymized data")
+}
+
+if (dir.exists(params$subdir)) {
+  stop("subdirectory '", params$subdir, "' does not exist")
+}
+
 ## function to check whether we are working with real or simulated data
 ## and spit out a warning box
-simulated <-
-  if (is.null(params$simulated)) {
-    warning("document parameter `simulated` undefined; assuming simulated data")
-    TRUE
-  } else {
-    params$simulated
-  }
-
 warn <- function() {
-  if (simulated) {
+  if (truthiness::checkfake()) {
     paste("\n<div class=\"warn\">",
           "*WARNING! Results in this document are based on **simulated** data*.",
-          "This document will be re-compiled and results will be updated after data collection.",
+          "This document will be re-compiled and results will be updated after data collection.\n",
           "</div>\n", sep = "\n")
   }
 }
 ```
 
-<!-- insert instructions here if desired -->
+```{r reproduction-recipe, echo = FALSE, results = 'asis'}
+if (params$recipe) {
+  cat(readLines(system.file("repr_instr.Rmd", package = "truthiness",
+                            mustwork = TRUE)), sep = "\n")
+}
+```
 
 ## Import and preprocess
 
@@ -55,33 +66,14 @@ library("truthiness")
 library("tidyverse")
 ```
 
-```{r subdir, echo = FALSE}
-## if no subdirectory provided, use the most recent one with name in
-## the format anon-YYYY-MM-DD
-subdir <-
-  if (is.null(params$subdir)) {
-    dirs <- grep("^anon-[0-9]{4}-[0-9]{2}-[0-9]{2}",
-                 list.dirs(".", FALSE, recursive = FALSE), value = TRUE)
-    if (length(dirs) == 0L) {
-      stop("No data subdirectories found and params$subdir was NULL.\n",
-           "       If you wish to create sample data, use:\n",
-           "       truthiness::simulate_resp_files() and then\n",
-           "       truthiness::preprocess().")
-    }
-    dirs[length(dirs)]
-  } else {
-    params$subdir
-  }
-```
-
-Importing data from files in subdirectory ``r subdir``.
+Importing data from files in subdirectory ``r params$subdir``.
 
 For information about the structure of the anonymized data files and stimulus materials, either run `truthiness::codebook()` in the R console, or download and view the file [codebook.html](https://osf.io/2gmds/) in the OSF repository for this project.
 
 `r warn()`
 
 ```{r import}
-sess <- read_csv(file.path(subdir, "ANON_sessions.csv"),
+sess <- read_csv(file.path(params$subdir, "ANON_sessions.csv"),
                  col_types = "cfccccllll") %>%
   mutate(list_id = fct_relevel(list_id,
                                levels(stimulus_conditions[["list_id"]])),
@@ -89,16 +81,16 @@ sess <- read_csv(file.path(subdir, "ANON_sessions.csv"),
                               c("Female", "Male",
                                 "Gender Variant", "Not Reported")))
 
-phase <- read_csv(file.path(subdir, "ANON_phases.csv"),
+phase <- read_csv(file.path(params$subdir, "ANON_phases.csv"),
                   col_types = "cfill") %>%
   mutate(phase_id = fct_relevel(phase_id, as.character(1:4)))
 
-interest <- read_csv(file.path(subdir, "ANON_interest.csv"),
+interest <- read_csv(file.path(params$subdir, "ANON_interest.csv"),
                      col_types = "cfi") %>%
   mutate(stim_id = fct_relevel(stim_id,
                                levels(stimulus_conditions[["stim_id"]])))
 
-ratings <- read_csv(file.path(subdir, "ANON_ratings.csv"),
+ratings <- read_csv(file.path(params$subdir, "ANON_ratings.csv"),
                     col_types = "cffi") %>%
   mutate(phase_id = fct_relevel(phase_id, as.character(1:4)),
          stim_id = fct_relevel(stim_id,
@@ -286,11 +278,13 @@ ratecond %>%
 ## Inferential statistics
 
 ```{r inferential, results='asis', echo = FALSE, eval = (!params$inferential)}
-cat("**NOTE**: Because the estimation of the cumulative logit mixed model ",
+cat("<div class=\"note\">\n",
+    "**NOTE**: Because the estimation of the cumulative logit mixed model ",
     " can take a long time (more than 24 hours) ",
     "inferential statistics are disabled by default. ",
     "To enable them, knit the source file ",
-    "with the parameter `inferential` set to `TRUE`.\n", sep = "")
+    "with the parameter `inferential` set to `TRUE`.\n",
+    "</div>\n", sep = "")
 ```
 
 ```{r inf-main, results='asis', echo = FALSE, eval = (params$inferential)}
