@@ -11,7 +11,7 @@ Make sure you have installed [Singularity version 3.5](https://sylabs.io/guides/
 To re-run the full analysis, including the inferential statistics, use the `makeit analysis` command.  The command accepts the following options:
 
 * `SUBDIR` (required): name of subdirectory containing the anonymized files
-* `INFERENCE` (optional, default TRUE): whether or not to run the inferential stats (TRUE for yes, FALSE for no)
+* `INFERENCE` (optional, default FALSE): whether or not to run the inferential stats (TRUE for yes, FALSE for no)
 * `RECIPE` (optional, default FALSE): whether or not to print the replication recipe (these instructions) along with the results.
 
 The command below is the main command to reproduce the analysis.
@@ -54,7 +54,7 @@ You can then render the script via the container as follows:
 
 ```
 singularity exec library://dalejbarr/talklab/illusory-truth \
-    makeit render INFILE=my_analysis.Rmd
+    makeit render INFILE=my_analysis.Rmd SUBDIR=path-to-anonymized-data
 ```
 
 altering `path-to-anonymized-data` (and setting `INFERENCE=TRUE`) as required.
@@ -91,8 +91,9 @@ You can control where the process looks for the anonymized data by setting the v
 
 ```
 params:
-  inferential: TRUE
   subdir: "path-to-anonymized-data"
+  inferential: TRUE
+  recipe: FALSE
 ```
 
 ### Accessing the master R Markdown script Without RStudio
