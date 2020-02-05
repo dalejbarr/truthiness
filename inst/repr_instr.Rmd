@@ -2,7 +2,7 @@
 
 Note that to re-run this analysis you'll need an anonymized copy of the data available in a subdirectory of the working directory. 
 
-If you don't have the data you can use simulated data available in the OSF repository for this project. Make sure that the subdirectories `all_null`, `main_effect` and/or `interaction` are subdirectories of the working directory.
+If you don't have the data you can use simulated data available in the [OSF repository](https://osf.io/7xhye/) for this project. Make sure that the subdirectories `all_null`, `main_effect` and/or `interaction` are subdirectories of the working directory.
 
 You can re-run the analysis either with or without a software container that encapsulates all the software needed for analysis. Using the software container is the only method guaranteed to exactly match the results obtained by the authors. Instructions are provided below for both methods.
 
