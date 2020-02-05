@@ -89,9 +89,15 @@ cache_dir <- paste0(basename(params$subdir), "/cache/")
 ## and spit out a warning box
 warn <- function() {
   if (truthiness::check_fake(params$subdir)) {
+    extra_text <-
+      case_when(basename(params$subdir) == "all_null" ~ "**This document demonstrates a null main effect and null interaction.**",
+                basename(params$subdir) == "main_effect" ~ "**This document demonstrates a significant main effect and null interaction.**",
+                basename(params$subdir) == "interaction" ~ "**This document demonstrates a significant main effect and significant interaction.**",
+                TRUE ~ "")
     paste("\n<div class=\"warn\">",
           "*WARNING! Results in this document are based on **simulated** data*.",
           "This document will be re-compiled and results will be updated after data collection.\n",
+          extra_text,
           "</div>\n", sep = "\n")
   }
 }
