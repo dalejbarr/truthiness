@@ -4,8 +4,6 @@
 #'
 #' @param outfile Path to the HTML output file.
 #'
-#' @param inferential Whether to run inferential statistics.
-#'
 #' @param recipe Include instructions on how to reproduce the analysis.
 #'
 #' @param infile Path to the R Markdown script; \code{NULL} to use the
@@ -21,7 +19,6 @@
 #' @export
 reproduce_analysis <- function(path,
                                outfile = "analysis.html",
-                               inferential = FALSE,
                                recipe = FALSE,
                                infile = NULL) {
 
@@ -39,7 +36,6 @@ reproduce_analysis <- function(path,
                              knit_root_dir = getwd(),
                              output_dir = dirname(outfile),
                              params = list(subdir = path,
-                                           inferential = inferential,
                                            recipe = recipe))
   invisible(ofile)
 }
