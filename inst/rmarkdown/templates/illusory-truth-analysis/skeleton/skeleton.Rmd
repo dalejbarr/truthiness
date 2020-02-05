@@ -571,6 +571,10 @@ if (p_i < .05) {
 ## sort p-values in ascending order
 mod_emm <- emmeans(mods[["ix2"]], pairwise ~ Rep | Int, data = moddata2)
 
+mod_cont <- mod_emm$contrasts %>%
+  as.data.frame() %>%
+  select(-df)
+
 p_sort <- order(mod_cont[["p.value"]])
 
 ## calculate cutoff p-values, alpha / (m + 1 - k)
@@ -581,10 +585,6 @@ min_ix <- min(which(mod_cont[["p.value"]][p_sort] > p_k))
 
 reject_null <- rep(FALSE, 4)
 reject_null[seq_len(min_ix - 1L)] <- TRUE
-
-mod_cont <- mod_emm$contrasts %>%
-  as.data.frame() %>%
-  select(-df)
 
 mod_cont[["reject_null"]][p_sort] <- reject_null
 
