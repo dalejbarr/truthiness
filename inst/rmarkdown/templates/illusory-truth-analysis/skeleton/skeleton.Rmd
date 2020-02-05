@@ -10,7 +10,7 @@ output:
 params:
   subdir: NULL
   recipe: FALSE
-bibliography: .refs.bib
+bibliography: '`r system.file("refs.bib", package = "truthiness")`'
 ---
 
 <style>
@@ -20,10 +20,6 @@ div.note { background-color:#e6f0ff; border-radius: 5px; padding: 20px; }
 
 ```{r setup, echo = FALSE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
-.oc <- as.character(toBibtex(citation("ordinal")))
-.oc[1] <- sub("\\{,\\s*$", "{ordinal,", "@Misc{,")
-writeLines(.oc, ".refs.bib")
 
 ## shortcut for pretty printing for integers
 .pi <- function(x) prettyNum(x, big.mark=',')
@@ -471,7 +467,7 @@ cat("* Total computation time: ",
     sprintf("%0.2f minutes", dur / 60), "\n")
 ```
 
-```{r fit-clmm-parallel, eval = parallel_installed, echo = parallel_installed, cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(4:8), results = 'asis'}
+```{r fit-clmm-parallel, eval = parallel_installed, echo = parallel_installed, cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(3:7), results = 'asis'}
 ## fit models using parallelized version (multi-core)
 ncores <- parallel::detectCores()
 ncores <- if (ncores > 6L) 6L else ncores
