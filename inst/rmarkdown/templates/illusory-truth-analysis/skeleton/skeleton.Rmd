@@ -101,10 +101,6 @@ warn <- function() {
 }
 ```
 
-```{r reproduction-recipe, echo = FALSE, eval = FALSE, results = 'asis'}
-cat(readLines(system.file("repr_instr.Rmd", package = "truthiness")), sep = "\n")
-```
-
 # Import and preprocess
 
 ```{r packages, message = FALSE}
@@ -112,8 +108,7 @@ cat(readLines(system.file("repr_instr.Rmd", package = "truthiness")), sep = "\n"
 
 library("emmeans")
 library("ordinal")
-## TODO change this line to library("truthiness")
-devtools::load_all("../../truthiness")
+library("truthiness")
 library("tidyverse")
 ```
 
@@ -430,7 +425,7 @@ where:
 
 The comparison of models 1 and 2 test the significance of the main effect of repetition (`R`). The comparison of models 3 and 4 test the significance of the repetition-by-interval interaction (coded by `R:I1`, `R:I2`, and `R:I3`).
 
-```{r fit-clmm-no-parallel, eval = (!parallel_installed), echo = (!parallel_installed), cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(4:8)}
+```{r fit-clmm-no-parallel, eval = (!parallel_installed), echo = (!parallel_installed), cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(3:7)}
 ## fit models using serial version (no multi-core)
 mods <- list()
 
