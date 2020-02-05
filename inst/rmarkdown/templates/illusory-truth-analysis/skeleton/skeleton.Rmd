@@ -533,15 +533,13 @@ if ((p_m > .05) && (p_i > .05)) {
 }
 ```
 
-```{r equivalence-main, results='asis'}
-## only run in the case there is no interaction
-if ((p_m > .05) && (p_i > .05)) {
-  ## perform equivalence test using emmeans
-  main_emm <- emmeans(mods[["main2"]], pairwise ~ Rep, data = moddata2)
-  test(main_emm, delta = .14, side = "equivalence")$contrasts %>%
-                                                    as.data.frame() %>%
-                                                    knitr::kable(digits = 3)
-}
+```{r equivalence-main, echo = ((p_m > .05) && (p_i > .05)), eval = ((p_m > .05) && (p_i > .05)), results='asis'}
+## only run in the case of nonsignificant main effect and interaction
+## perform equivalence test using emmeans
+main_emm <- emmeans(mods[["main2"]], pairwise ~ Rep, data = moddata2)
+test(main_emm, delta = .14, side = "equivalence")$contrasts %>%
+                                                  as.data.frame() %>%
+                                                  knitr::kable(digits = 3)
 ```
 
 ## Interaction
@@ -551,14 +549,6 @@ if ((p_m > .05) && (p_i > .05)) {
 ```{r report-ix, echo = FALSE, results='asis'}
 cat(report(b_i, se_i, chisq_i, df_i, p_i, "repetition-by-interval interaction"),
     "\n")
-```
-
-```{r ix-followup}
-mod_emm <- emmeans(mods[["ix2"]], allsimp ~ Rep * Int, data = moddata2)
-
-mod_cont <- mod_emm$contrasts %>%
-  as.data.frame() %>%
-  select(-df)
 ```
 
 ```{r pc-ix-hdr, echo = FALSE, results='asis'}
@@ -575,33 +565,41 @@ if (p_i < .05) {
 }
 ```
 
-```{r pc-or-equivalence-ix}
-if (p_i < .05) {
-  ## perform planned comparisons using Holm-Bonferroni correction
-  ## (uniformly more powerful than simple Bonferroni)
-  ## sort p-values in ascending order
-  p_sort <- order(mod_cont[["p.value"]])
+```{r planned-ix, echo = (p_i < .05), eval = (p_i < .05)}
+## perform planned comparisons using Holm-Bonferroni correction
+## (uniformly more powerful than simple Bonferroni)
+## sort p-values in ascending order
+mod_emm <- emmeans(mods[["ix2"]], pairwise ~ Rep | Int, data = moddata2)
 
-  ## calculate cutoff p-values, alpha / (m + 1 - k)
-  p_k <- .05 / (4 + 1 - 1:4)
+p_sort <- order(mod_cont[["p.value"]])
 
-  ## get minimal index such that p_k > cutoff
-  min_ix <- min(which(mod_cont[["p.value"]][p_sort] > p_k))
+## calculate cutoff p-values, alpha / (m + 1 - k)
+p_k <- .05 / (4 + 1 - 1:4)
 
-  reject_null <- rep(FALSE, 4)
-  reject_null[seq_len(min_ix - 1L)] <- TRUE
+## get minimal index such that p_k > cutoff
+min_ix <- min(which(mod_cont[["p.value"]][p_sort] > p_k))
 
-  mod_cont[["reject_null"]][p_sort] <- reject_null
+reject_null <- rep(FALSE, 4)
+reject_null[seq_len(min_ix - 1L)] <- TRUE
 
-  mod_cont %>%
-    select(-p.value) %>%
-    knitr::kable(digits = 3)
-} else {
-  ## perform equivalence test using emmeans
-  test(mod_emm, delta = .14, side = "equivalence")$contrasts %>%
-                                                   as.data.frame() %>%
-                                                   knitr::kable(digits = 3)
-}
+mod_cont <- mod_emm$contrasts %>%
+  as.data.frame() %>%
+  select(-df)
+
+mod_cont[["reject_null"]][p_sort] <- reject_null
+
+mod_cont %>%
+  select(-p.value) %>%
+  knitr::kable(digits = 3)
+```
+
+```{r equivalence-ix, echo = (p_i > .05), eval = (p_i > .05)}
+mod_emm <- emmeans(mods[["ix2"]], allsimp ~ Rep * Int, data = moddata2)
+
+## perform equivalence test using emmeans
+test(mod_emm, delta = .14, side = "equivalence")$contrasts %>%
+                                                 as.data.frame() %>%
+                                                 knitr::kable(digits = 3)
 ```
 
 # Session information {#sessinfo}
