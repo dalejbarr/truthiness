@@ -7,7 +7,6 @@
 reproduce_analysis(
   path,
   outfile = "analysis.html",
-  inferential = FALSE,
   recipe = FALSE,
   infile = NULL
 )
@@ -16,8 +15,6 @@ reproduce_analysis(
 \item{path}{Path to the anonymized data files.}
 
 \item{outfile}{Path to the HTML output file.}
-
-\item{inferential}{Whether to run inferential statistics.}
 
 \item{recipe}{Include instructions on how to reproduce the analysis.}
 

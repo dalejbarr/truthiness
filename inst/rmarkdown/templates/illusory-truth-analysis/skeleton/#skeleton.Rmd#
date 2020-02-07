@@ -1,0 +1,622 @@
+---
+title: "The Trajectory of Truth: Main Analysis"
+author: "Emma L. Henderson, Daniel J. Simons, and Dale J. Barr"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: 
+  html_document:
+    toc: true
+    code_folding: hide
+    df_print: paged
+params:
+  subdir: NULL
+  recipe: FALSE
+bibliography: '`r system.file("refs.bib", package = "truthiness")`'
+---
+
+<style>
+div.warn { background-color:#ff8888; border-radius: 5px; padding: 20px; }
+div.note { background-color:#e6f0ff; border-radius: 5px; padding: 20px; }
+</style>
+
+```{r setup, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+## shortcut for pretty printing for integers
+.pi <- function(x) prettyNum(x, big.mark=',')
+
+## write out results of statistical test
+report <- function(betas, ser, chisq, df, p, eff, alpha = .05) {
+  part1 <-
+    if (p < alpha) {
+      paste0("* There was a significant ", eff)
+    } else {
+      paste0("* The ", eff, " was not significant")
+    }
+  part2 <-
+    paste(paste(paste0("$\\hat{\\beta}_{", names(betas), "}"),
+                sprintf("%0.3f$ $(SE=%0.3f)$", betas, ser), sep = "="),
+          collapse = ", ")
+  part3 <-
+    sprintf("$\\chi^2(%d) = %0.3f$", df, chisq)
+  part4 <-
+    if (p < .001) {
+      "$p < .001$."
+    } else if (p > .999) {
+      "$p > .999$."
+    } else {
+      sprintf("$p = %0.3f$.", p)
+    }
+  paste(part1, part2, part3, part4, sep = ", ")
+}
+
+## make sure truthiness is installed
+if (!requireNamespace("truthiness")) {
+  stop("You must install the 'truthiness' package to run this analysis. \n",
+       "devtools::install_github('dalejbarr/truthiness')")
+}
+
+if (!requireNamespace("ordinal")) {
+  stop("You must install the 'ordinal' package to run this analysis.")
+}
+
+if (!requireNamespace("tidyverse")) {
+  stop("You must install the 'tidyverse' package to run this analysis.")
+}
+
+if (!requireNamespace("emmeans")) {
+  stop("You must install the 'emmeans' package to run this analysis.")
+}
+
+parallel_installed <-
+  if (requireNamespace("parallel")) {
+    TRUE
+  } else {
+    warning("You can speed up computation by installing the 'parallel' package.")
+    FALSE
+  }
+
+if (is.null(params$subdir)) {
+  stop("You need to specify the subdirectory containing the anonymized data")
+}
+
+if (!dir.exists(params$subdir)) {
+  stop("subdirectory '", params$subdir, "' does not exist")
+}
+
+cache_dir <- paste0(basename(params$subdir), "/cache/")
+
+## function to check whether we are working with real or simulated data
+## and spit out a warning box
+warn <- function() {
+  if (truthiness::check_fake(params$subdir)) {
+    extra_text <-
+      case_when(basename(params$subdir) == "all_null" ~ "**This document demonstrates a null main effect and null interaction.**",
+                basename(params$subdir) == "main_effect" ~ "**This document demonstrates a significant main effect and null interaction.**",
+                basename(params$subdir) == "interaction" ~ "**This document demonstrates a significant main effect and significant interaction.**",
+                TRUE ~ "")
+    paste("\n<div class=\"warn\">",
+          "*WARNING! Results in this document are based on **simulated** data*.",
+          "This document will be re-compiled and results will be updated after data collection.\n",
+          extra_text,
+          "</div>\n", sep = "\n")
+  }
+}
+```
+
+# Import and preprocess
+
+```{r packages, message = FALSE}
+## Load in the required add-on packages.
+
+library("emmeans")
+library("ordinal")
+library("truthiness")
+library("tidyverse")
+```
+
+Importing data from files in subdirectory ``r params$subdir``.
+
+For information about the structure of the anonymized data files and stimulus materials, either run `truthiness::codebook()` in the R console, or download and view the file [codebook.html](https://osf.io/2gmds/) in the OSF repository for this project.
+
+`r warn()`
+
+```{r import, cache=TRUE, cache.path=(cache_dir)}
+sess <- read_csv(file.path(params$subdir, "ANON_sessions.csv"),
+                 col_types = "cfccccllll") %>%
+  mutate(list_id = fct_relevel(list_id,
+                               levels(stimulus_conditions[["list_id"]])),
+         gender = fct_relevel(gender,
+                              c("Female", "Male",
+                                "Gender Variant", "Not Reported")))
+
+phase <- read_csv(file.path(params$subdir, "ANON_phases.csv"),
+                  col_types = "cfill") %>%
+  mutate(phase_id = fct_relevel(phase_id, as.character(1:4)))
+
+interest <- read_csv(file.path(params$subdir, "ANON_interest.csv"),
+                     col_types = "cfi") %>%
+  mutate(stim_id = fct_relevel(stim_id,
+                               levels(stimulus_conditions[["stim_id"]])))
+
+ratings <- read_csv(file.path(params$subdir, "ANON_ratings.csv"),
+                    col_types = "cffi") %>%
+  mutate(phase_id = fct_relevel(phase_id, as.character(1:4)),
+         stim_id = fct_relevel(stim_id,
+                               levels(stimulus_conditions[["stim_id"]])))
+
+n_item <- ratings %>% distinct(stim_id) %>% nrow()
+```
+
+## Pre-registered Exclusions
+
+The anonymized files contain `r .pi(nrow(ratings))` truth ratings of
+`r .pi(n_item)` statements from `r .pi(nrow(sess))` participants. Any
+participants who did not provide consent for the entire study will
+already have had their data removed during the pre-processing
+stage. Also any phases of the study where a participant withheld
+consent (despite consenting overall) will also have already been
+removed before this stage.
+
+### Participant-level exclusions
+
+There were four main exclusion criteria for removing participants, applied in the following order:
+
+1. Not being a (self-reported) native speaker of English;
+2. Reporting having looked up answers in at least one phase of the study;
+3. Flat lining; i.e., using only one response category across an entire phase of the study;
+4. Failing to complete all phases in a reasonable amount of time (for Phase 1, between 3 and 40 minutes; for all other phases, between 1 and 30 minutes).
+
+```{r remove-nonnative, cache=TRUE, cache.path=(cache_dir), dependson = "import"}
+sess_native <- sess %>%
+  filter(chk_native)
+
+n_nonnative <- nrow(sess) - nrow(sess_native)
+
+sess_nocheat <- sess_native %>%
+  filter(chk_nocheat)
+
+n_cheat <- nrow(sess_native) - nrow(sess_nocheat)
+
+sess_noflat <- sess_nocheat %>%
+  filter(chk_flatline)
+
+n_flatline <- nrow(sess_nocheat) - nrow(sess_noflat)
+
+sess_keep0 <- sess_noflat %>%
+  filter(chk_dur_all)
+
+n_dur_out_range <- nrow(sess_noflat) - nrow(sess_keep0)
+
+n_total <- n_nonnative + n_cheat + n_flatline + n_dur_out_range
+```
+
+Applying these criteria resulted in the removal of:
+
+* `r .pi(n_nonnative)` non-native English speaking participants;
+* `r .pi(n_cheat)` participants who reported looking up answers;
+* `r .pi(n_flatline)` participants who flat-lined in at least one phase; and
+* `r .pi(n_dur_out_range)` participants who had at least one phase with completion times outside the acceptable range.
+
+In total, the exclusion criteria resulted in the removal of 
+`r .pi(n_total)` participants.
+
+```{r exclude, cache=TRUE, cache.path=(cache_dir), dependson = c("import", "remove-nonnative")}
+## remove truth ratings from excluded participants
+ratings2 <- ratings %>%
+  semi_join(sess_keep0, "ID")
+
+## remove interest ratings while we're at it
+interest2 <- interest %>%
+  semi_join(sess_keep0, "ID")
+```
+
+Removing data from these 
+`r .pi(n_total)`
+participants resulted in the removal of 
+`r .pi(nrow(ratings) - nrow(ratings2))` truth ratings.
+
+### Phase-level exclusions
+
+The only exclusion criterion applied at the phase-level was failure to complete all of the ratings in the phase.
+
+```{r phase-finished, cache=TRUE, cache.path=(cache_dir), dependson = c("import", "remove-nonnative", "exclude")}
+phase_trim <- phase %>%
+  semi_join(sess_keep0, "ID")
+
+phase_keep <- phase_trim %>%
+  filter(chk_finished)
+
+n_incomplete <- nrow(phase_trim) - nrow(phase_keep)
+
+## now remove the truth ratings
+ratings_keep <- ratings2 %>%
+  semi_join(phase_keep, c("ID", "phase_id")) 
+
+## also remove the interest ratings
+interest_keep <- interest2 %>%
+  semi_join(phase_keep %>% filter(phase_id == "1"), "ID")
+```
+
+This criterion resulted in the removal of 
+`r .pi(n_incomplete)` phases
+(`r .pi(nrow(ratings2) - nrow(ratings_keep))` truth ratings).
+
+# Descriptive statistics
+
+`r warn()`
+
+```{r final-prep, cache=TRUE, cache.path=(cache_dir), dependson = c("import", "remove-nonnative", "exclude", "phase-finished")}
+## do the final stages of pre-processing and
+## prepare the data for modeling
+
+## make sure there are no entries in sess_keep0 for subjects
+## who have lost all of their phase data.
+sess_keep <- semi_join(sess_keep0, ratings, "ID")
+
+n_orphaned <- nrow(sess_keep0) - nrow(sess_keep)
+
+## lookup which condition each rating belongs to
+ratecond <- ratings %>%
+  inner_join(sess_keep %>% select(ID, list_id), "ID") %>%
+  inner_join(stimulus_conditions, c("list_id", "stim_id"))
+
+mod1 <- T ~ R + I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
+  (R | subj_id) + (R | stim_id)
+mod2 <- T ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3 + (R | subj_id) + (R | stim_id)
+mod3 <- T ~ R + I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
+  (R:I1 + R:I2 + R:I3 | subj_id) + (R:I1 + R:I2 + R:I3 | stim_id)
+mod4 <- T ~ R + I1 + I2 + I3 + (R:I1 + R:I2 + R:I3 | subj_id) +
+  (R:I1 + R:I2 + R:I3 | stim_id)
+
+## prepare data for clmm modeling:
+## make ID into a factor (subj_id);
+## make T into a factor;
+## add numerical (deviation-coded) predictors 
+moddata <- ratecond %>%
+  mutate(subj_id = factor(ID),
+    T = factor(trating, levels = 1:7, ordered = TRUE),
+    R = if_else(repetition == "repeated", 1/2, -1/2),
+    I1 = if_else(interval == "1 day", 3/4, -1/4),
+    I2 = if_else(interval == "1 week", 3/4, -1/4),
+    I3 = if_else(interval == "1 month", 3/4, -1/4)) %>%
+  select(subj_id, stim_id, repetition, interval, R, I1, I2, I3, T)
+
+## need to re-fit the model with predictors as factors
+## so that we can use emmeans
+## for the planned comparisons or for the equivalence test
+mod5 <- T ~ Rep * Int +
+  (R:I1 + R:I2 + R:I3 | subj_id) + (R:I1 + R:I2 + R:I3 | stim_id)
+mod6 <- T ~ Rep * Int + (Rep | subj_id) + (Rep | stim_id)
+
+moddata2 <- moddata %>%
+  mutate(Rep = C(repetition,
+               matrix(c(.5, -.5), nrow = 2,
+                      dimnames = list(c("repeated", "new")))),
+         Int = C(interval,
+               matrix(c(-1/4, -1/4, -1/4,
+                         3/4, -1/4, -1/4,
+                        -1/4,  3/4, -1/4,
+                        -1/4, -1/4,  3/4),
+                      nrow = 4, byrow = TRUE,
+                      dimnames = list(c("immediate", "1 day",
+                                        "1 week", "1 month"),
+                                      c("I1", "I2", "I3")))))
+```
+
+```{r orph-txt, echo = FALSE, results = "asis"}
+if (n_orphaned) {
+  cat("The phase exclusions above combined with dropouts meant ",
+      "that an additional ",
+      n_orphaned,
+      if (n_orphaned == 1L) " participant was " else " participants were ",
+      "left with no ratings data.", sep = "")
+}
+```
+
+Dropouts and the application of exclusion criteria left
+`r .pi(nrow(sess_keep))` participants remaining for analysis, who
+contributed a total of `r .pi(nrow(ratings_keep))` ratings.
+
+## Exclusions by Phase and Gender
+
+```{r gender-tbl}
+included <- phase_keep %>%
+  inner_join(sess_keep %>%
+             select(ID, gender), "ID") %>%
+  count(phase_id, gender, .drop = FALSE) %>%
+  rename(n_analysed = n)
+
+excluded <- anti_join(phase,
+                      phase_keep, c("ID", "phase_id")) %>%
+  inner_join(sess %>%
+             select(ID, gender), "ID") %>%
+  count(phase_id, gender, .drop = FALSE) %>%
+  rename(n_excluded = n)
+
+inner_join(excluded, included, c("phase_id", "gender")) %>%
+  mutate(n_recruited = n_excluded + n_analysed) %>%
+  select(phase_id, gender,
+         n_recruited, n_excluded, n_analysed) %>%
+  knitr::kable(caption = "Participants Recruited, Excluded, and Analysed, Separated by Experimental Phase and Gender")
+```
+
+## Means and standard deviations
+
+First, let's collapse over interval and look at the means and SDs for repetition.
+
+```{r rep-means-sd}
+ratecond %>%
+  group_by(repetition) %>%
+  summarise(mean = round(mean(trating), 2),
+            `standard deviation` = round(sd(trating), 2)) %>%
+  ungroup()
+```
+
+Now let's look at the repetition effects for each interval.
+
+```{r cell-means-sd}
+rcagg <- ratecond %>%
+  group_by(repetition, interval) %>%
+  summarise(mean = round(mean(trating), 2),
+            sd = round(sd(trating), 2)) %>%
+  ungroup()
+
+rcagg_subj <- ratecond %>%
+  group_by(ID, repetition, interval) %>%
+  summarise(mean = mean(trating)) %>%
+  ungroup()
+
+rcagg_stim <- ratecond %>%
+  group_by(stim_id, repetition, interval) %>%
+  summarise(mean = mean(trating)) %>%
+  ungroup()
+
+rcagg %>%
+  pivot_wider(names_from = c(repetition),
+              values_from = c(mean, sd)) %>%
+  mutate(`difference (repeated - new)` = round(mean_repeated - mean_new, 2)) %>%
+  select(interval,
+         `mean repeated` = mean_repeated,
+         `mean new` = mean_new,
+         `difference (repeated - new)`,
+         `SD repeated` = sd_repeated,
+         `SD new` = sd_new)
+```
+
+```{r cell-means-plot, fig.cap="*Effect of repetition across interval, cell means (black points, line) plotted against participant means (top row) and stimulus means (bottom row).*", fig.width=10, fig.height = 5, fig.align="center"}
+rcagg_both <- bind_rows(
+  rcagg_subj %>%
+  mutate(unit = "participant") %>%
+  select(ID, unit, everything()),
+  rcagg_stim %>%
+  mutate(unit = "stimulus", stim_id = as.character(stim_id)) %>%
+  select(ID = stim_id, unit, everything()))
+
+ggplot(rcagg_both, aes(repetition, mean, color = repetition, fill = repetition)) +
+  geom_violin(alpha = .2) +
+  geom_jitter(alpha = .1) +
+  geom_point(data = rcagg, color = "black", size = 3, alpha = .5) +
+  geom_line(aes(group = interval), data = rcagg, alpha = .5, color = "black") +
+  facet_grid(unit~interval) +
+  theme(legend.position = "none") +
+  labs(y = "mean rating")
+```
+
+# Inferential statistics
+
+We analyzed the data using cumulative logit mixed models via the `clmm()` function from the **`ordinal`** package [@ordinal]. We tested the repetition main effect and the repetition-by-interval interaction using likelihood ratio tests (LRTs), using the `anova()` function. Each test consisted of a comparison of two models, a base model containing the fixed effect (or effects) of interest and a comparison model identical to the base model except that the fixed effect (or effects) of interest had been removed. Each test was conducted with an $\alpha$ level of .05.
+
+```{r show-mods, echo = FALSE, results='asis'}
+cat("* Model 1: ",
+    "`", as.character(as.expression(mod1)), "`\n", sep = "")
+cat("* Model 2: ",
+    "`", as.character(as.expression(mod2)), "`\n", sep = "")
+cat("* Model 3: ",
+    "`", as.character(as.expression(mod3)), "`\n", sep = "")
+cat("* Model 4: ",
+    "`", as.character(as.expression(mod4)), "`\n", sep = "")
+```
+
+where:
+
+* `T` : individual truth rating;
+* `R` : deviation-coded repetition effect (repeated = .5, new = -.5);
+* `I1` : deviation-coded contrast of interval, 1 day (3/4) vs. immediate (-1/4);
+* `I2` : deviation-coded contrast of interval, 1 week (3/4) vs. immediate (-1/4);
+* `I3` : deviation-coded contrast of interval, 1 month (3/4) vs. immediate (-1/4).
+
+The comparison of models 1 and 2 test the significance of the main effect of repetition (`R`). The comparison of models 3 and 4 test the significance of the repetition-by-interval interaction (coded by `R:I1`, `R:I2`, and `R:I3`).
+
+```{r fit-clmm-no-parallel, eval = (!parallel_installed), echo = (!parallel_installed), cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(3:7)}
+## fit models using serial version (no multi-core)
+mods <- list()
+
+doFit <- TRUE
+
+## NOTE: moddata is the main dataset that we'll use for analysis
+mt1 <- system.time(
+  mods[["main_base"]] <-
+    clmm(mod1, data = moddata, Hess = TRUE,
+         model = FALSE, doFit = doFit))
+
+mt2 <- system.time(
+  mods[["main_comp"]] <-
+    clmm(mod2, data = moddata, Hess = FALSE,
+         model = FALSE, doFit = doFit))
+
+mt3 <- system.time(
+  mods[["ix_base"]] <-
+    clmm(mod3, data = moddata, Hess = TRUE,
+         model = FALSE, doFit = doFit))
+
+mt4 <- system.time(
+  mods[["ix_comp"]] <-
+    clmm(mod4, data = moddata, Hess = FALSE,
+         model = FALSE, doFit = doFit))
+
+mt5 <-
+  system.time(
+    mods[["ix2"]] <-
+      clmm(mod5, data = moddata2, Hess = TRUE,
+           model = FALSE, doFit = doFit))
+mt6 <-
+  system.time(
+    mods[["main2"]] <-
+      clmm(mod6, data = moddata2, Hess = TRUE,
+           model = FALSE, doFit = doFit))
+
+dur <- mt1[["elapsed"]] + mt2[["elapsed"]] +
+  mt3[["elapsed"]] + mt4[["elapsed"]] +
+  mt5[["elapsed"]] + mt6[["elapsed"]]
+
+cat("* Total computation time: ",
+    sprintf("%0.2f minutes", dur / 60), "\n")
+```
+
+```{r fit-clmm-parallel, eval = parallel_installed, echo = parallel_installed, cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(3:7), results = 'asis'}
+## fit models using parallelized version (multi-core)
+ncores <- parallel::detectCores()
+ncores <- if (ncores > 6L) 6L else ncores
+
+cl <- parallel::makeCluster(ncores)
+
+dur <- system.time(
+  mods <-
+    parallel::parLapply(
+                cl,
+                list(list(m = mod1, h = TRUE, d = moddata),
+                     list(m = mod2, h = FALSE, d = moddata),
+                     list(m = mod3, h = TRUE, d = moddata),
+                     list(m = mod4, h = FALSE, d = moddata),
+                     list(m = mod5, h = TRUE, d = moddata2),
+                     list(m = mod6, h = TRUE, d = moddata2)),
+                function(.x) {
+                  ordinal::clmm(.x[["m"]], data = .x[["d"]], Hess = .x[["h"]],
+                                doFit = TRUE)
+                }))[["elapsed"]]
+
+names(mods) <- c("main_base", "main_comp", "ix_base", "ix_comp", "ix2", "main2")
+
+parallel::stopCluster(cl)
+
+cat("* Total computation time: ",
+    sprintf("%0.2f minutes", dur / 60), "\n")
+```
+
+```{r chistats-main}
+## run likelihood ratio tests
+## main effect
+chisq_m <- as.numeric(-2 * logLik(mods[["main_comp"]]) -
+                         -2 * logLik(mods[["main_base"]]))
+df_m <- length(coefficients(mods[["main_base"]])) -
+  length(coefficients(mods[["main_comp"]]))
+p_m <- pchisq(chisq_m, df_m, lower.tail = FALSE)
+b_m <- coefficients(mods[["main_base"]])["R"]
+se_m <- sqrt(diag(vcov(mods[["main_base"]])))["R"]
+
+## interaction
+chisq_i <- as.numeric(-2 * logLik(mods[["ix_comp"]]) -
+                       -2 * logLik(mods[["ix_base"]]))
+df_i <- length(coefficients(mods[["ix_base"]])) -
+  length(coefficients(mods[["ix_comp"]]))
+p_i <- pchisq(chisq_i, df_i, lower.tail = FALSE)
+b_i <- coefficients(mods[["ix_base"]])[c("R:I1", "R:I2", "R:I3")]
+se_i <- sqrt(diag(vcov(mods[["ix_base"]])))[c("R:I1", "R:I2", "R:I3")]
+```
+
+## Main effect
+
+`r warn()`
+
+```{r report-main, echo = FALSE, results='asis'}
+cat(report(b_m, se_m, chisq_m, df_m, p_m, "main effect of repetition"), "\n")
+```
+
+```{r eq-hdr-main, echo = FALSE, results = 'asis'}
+if ((p_m > .05) && (p_i > .05)) {
+  cat("\n", "### Equivalence test", "\n",
+      "$p$-values less than $\\alpha$ = .05 imply equivalence to raw effect of .14 log odds (1/10 of a scale point on a 7 point scale)", "", sep = "\n")
+}
+```
+
+```{r equivalence-main, echo = ((p_m > .05) && (p_i > .05)), eval = ((p_m > .05) && (p_i > .05)), results='asis'}
+## only run in the case of nonsignificant main effect and interaction
+## perform equivalence test using emmeans
+main_emm <- emmeans(mods[["main2"]], pairwise ~ Rep, data = moddata2)
+test(main_emm, delta = .14, side = "equivalence")$contrasts %>%
+                                                  as.data.frame() %>%
+                                                  knitr::kable(digits = 3)
+```
+
+## Interaction
+
+`r warn()`
+
+```{r report-ix, echo = FALSE, results='asis'}
+cat(report(b_i, se_i, chisq_i, df_i, p_i, "repetition-by-interval interaction"),
+    "\n")
+```
+
+```{r pc-ix-hdr, echo = FALSE, results='asis'}
+if (p_i < .05) {
+  cat("\n", "### Planned comparisons", "\n",
+      paste0("To follow up the significant interaction, ",
+             "we tested the illusory truth effect at each of the four intervals, ",
+             "using the Holm-Bonferroni procedure to maintain ",
+             "the familywise error rate at $\\alpha = .05$."),
+      sep = "\n")
+} else {
+  cat("\n", "### Equivalence test", "\n",
+      "$p$-values less than $\\alpha$ = .05 imply equivalence to raw effect of .14 log odds (1/10 of a scale point on a 7 point scale)", "", sep = "\n")
+}
+```
+
+```{r planned-ix, echo = (p_i < .05), eval = (p_i < .05)}
+## perform planned comparisons using Holm-Bonferroni correction
+## (uniformly more powerful than simple Bonferroni)
+## sort p-values in ascending order
+mod_emm <- emmeans(mods[["ix2"]], pairwise ~ Rep | Int, data = moddata2)
+
+mod_cont <- mod_emm$contrasts %>%
+  as.data.frame() %>%
+  select(-df)
+
+p_sort <- order(mod_cont[["p.value"]])
+
+## calculate cutoff p-values, alpha / (m + 1 - k)
+p_k <- .05 / (4 + 1 - 1:4)
+
+## get minimal index such that p_k > cutoff
+min_ix <- min(which(mod_cont[["p.value"]][p_sort] > p_k))
+
+reject_null <- rep(FALSE, 4)
+reject_null[seq_len(min_ix - 1L)] <- TRUE
+
+mod_cont[["reject_null"]][p_sort] <- reject_null
+
+mod_cont %>%
+  select(-p.value) %>%
+  knitr::kable(digits = 3)
+```
+
+```{r equivalence-ix, echo = (p_i > .05), eval = (p_i > .05)}
+mod_emm <- emmeans(mods[["ix2"]], allsimp ~ Rep * Int, data = moddata2)
+
+## perform equivalence test using emmeans
+test(mod_emm, delta = .14, side = "equivalence")$contrasts %>%
+                                                 as.data.frame() %>%
+                                                 knitr::kable(digits = 3)
+```
+
+# Session information {#sessinfo}
+
+```{r exit}
+## before exiting, print out session info
+sessionInfo()
+```
+
+```{r reproduction-recipe2, echo = FALSE, eval = params$recipe, results = 'asis'}
+cat(readLines(system.file("repr_instr.Rmd", package = "truthiness")), sep = "\n")
+```
+
+# References
