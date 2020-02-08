@@ -659,6 +659,75 @@ test(mod_emm, delta = .14, side = "equivalence")$contrasts %>%
                                                  knitr::kable(digits = 3)
 ```
 
+## Model validation
+
+```{r validate-model, fig.cap="*Model validation: Plot of observed participant/stimulus means (points) against simulated data (violins) and cell means (black points, line).*", fig.width=10, fig.height = 5, fig.align="center"}
+## let's validate the interaction model (mods[["ix2"]])
+## by simulating data from the model
+simdat <- function(md, sdat, rdat, mdat) {
+  subj_rfx <- VarCorr(md)$stim_id
+  item_rfx <- VarCorr(md)$stim_id
+  cf <- coef(md)
+
+  srfx <- MASS::mvrnorm(nrow(sdat),
+                        mu = c(sub_int = 0, sub_ri1 = 0, sub_ri2 = 0, sub_ri3 = 0),
+                        Sigma = subj_rfx) %>%
+    as_tibble() %>%
+    mutate(ID = sdat[["ID"]],
+           list_id = sdat[["list_id"]]) %>%
+    select(ID, list_id, everything())
+
+  irfx <- MASS::mvrnorm(nrow(stimulus_materials),
+                        mu = c(stim_int = 0,
+                               stim_ri1 = 0, stim_ri2 = 0, stim_ri3 = 0),
+                        Sigma = item_rfx) %>%
+    as_tibble() %>%
+    mutate(stim_id = factor(1:nrow(stimulus_materials))) %>%
+    select(stim_id, everything())
+
+  srfx %>%
+    inner_join(stimulus_conditions, "list_id") %>%
+    select(ID, stim_id, sub_int, sub_ri1, sub_ri2, sub_ri3) %>%
+    semi_join(rdat, c("ID", "stim_id")) %>%
+    inner_join(irfx, "stim_id") %>%
+    inner_join(mdat %>%
+               mutate(subj_id = as.character(subj_id)) %>%
+               select(subj_id, stim_id, repetition, interval,
+                      R, I1, I2, I3), c("ID" = "subj_id", "stim_id")) %>%
+    mutate(eta = sub_int + stim_int +
+             cf["Rep1"] * R +
+             cf["IntI1"] * I1 + cf["IntI2"] * I2 + cf["IntI3"] * I3 +
+             (sub_ri1 + stim_ri1 + cf["Rep1:IntI1"]) * R * I1 +
+             (sub_ri2 + stim_ri2 + cf["Rep1:IntI2"]) * R * I2 +
+             (sub_ri3 + stim_ri3 + cf["Rep1:IntI3"]) * R * I3,
+           trating = eta2resp(eta, cf[c(paste0(1:6, "|", 2:7))])) %>%
+    select(ID, stim_id, repetition, interval, eta, trating)
+}
+
+dsim <- simdat(mods[["ix2"]], sess_keep, ratings_keep, moddata2)
+
+sim_subj_means <- dsim %>%
+  group_by(ID, repetition, interval) %>%
+  summarize(mean = mean(trating)) %>%
+  ungroup() %>%
+  mutate(unit = "participant")
+
+sim_stim_means <- dsim %>%
+  group_by(stim_id, repetition, interval) %>%
+  summarize(mean = mean(trating)) %>%
+  ungroup() %>%
+  mutate(unit = "stimulus")
+  
+ggplot(rcagg_both, aes(repetition, mean, color = repetition, fill = repetition)) +
+  geom_violin(data = bind_rows(sim_subj_means, sim_stim_means), alpha = .2) +
+  geom_jitter(alpha = .1) +
+  geom_point(data = rcagg, color = "black", size = 3, alpha = .5) +
+  geom_line(aes(group = interval), data = rcagg, alpha = .5, color = "black") +
+  facet_grid(unit~interval) +
+  theme(legend.position = "none") +
+  labs(y = "mean rating")
+```
+
 # ANOVA
 
 Most of the literature on the illusory truth effect uses the analysis of variance as the primary inferential approach. For comparison with the existing literature, we perform an ANOVA on our data. The ANOVA analysis treats stimuli as fixed effects and violates the assumption of a continuous DV with variance proportional to the mean, so we provide this only for illustrative purposes, and only draw our conclusions from the results of the cumulative logit mixed model analysis above.

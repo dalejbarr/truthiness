@@ -164,6 +164,12 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
 #'
 #' @param nsubj Number of subjects; must be a multiple of 8.
 #'
+#' @param phase_eff A four-element vector giving the size of the
+#'   illusory truth effect at each of the four phases (on the log odds
+#'   scale). Use \code{rep(0, 4)} for testing Type I error rate. A
+#'   value of .14 gives an effect of approximately 1/10 of a scale
+#'   point.
+#'
 #' @param path Path to subdirectory where files should be stored.
 #'
 #' @param overwrite Whether to overwrite the subdirectory.
@@ -210,6 +216,7 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
 #' @return A character vector with the names of the data files.
 #' @export
 simulate_resp_files <- function(nsubj,
+                                phase_eff = c(0, 0, 0, 0),
                                 path,
                                 overwrite = FALSE,
                                 p_too_fast = .01,
@@ -315,7 +322,7 @@ simulate_resp_files <- function(nsubj,
                        c("phase_id", "list_id", "stim_id",
                          "task_id", "order")]
 
-  dat <- gen_data(nsubj) %>%
+  dat <- gen_data(nsubj, phase_eff) %>%
     dplyr::inner_join(pids, "subj_id")
   dat[["trating"]] <- as.character(dat[["trating"]])
   dat[["trating"]] <-
