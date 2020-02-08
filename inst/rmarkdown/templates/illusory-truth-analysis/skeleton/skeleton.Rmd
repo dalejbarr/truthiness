@@ -661,7 +661,9 @@ test(mod_emm, delta = .14, side = "equivalence")$contrasts %>%
 
 ## Model validation
 
-```{r validate-model, fig.cap="*Model validation: Plot of observed participant/stimulus means (points) against simulated data (violins) and cell means (black points, line).*", fig.width=10, fig.height = 5, fig.align="center"}
+To validate the model, we simulate data based on the model fit and plot the distribution of the simulated data against the raw data and cell means. 
+
+```{r validate-model, fig.cap="*Model validation: Plot of observed participant/stimulus means (points) against simulated data distributions (violins) and cell means (black points, line).*", fig.width=10, fig.height = 5, fig.align="center"}
 ## let's validate the interaction model (mods[["ix2"]])
 ## by simulating data from the model
 simdat <- function(md, sdat, rdat, mdat) {
