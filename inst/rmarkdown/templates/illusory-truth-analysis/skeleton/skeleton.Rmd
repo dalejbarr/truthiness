@@ -67,6 +67,10 @@ if (!requireNamespace("emmeans")) {
   stop("You must install the 'emmeans' package to run this analysis.")
 }
 
+if (!requireNamespace("ez")) {
+  stop("You must install the 'ez' package to run this analysis.")
+}
+
 parallel_installed <-
   if (requireNamespace("parallel")) {
     TRUE
@@ -108,6 +112,7 @@ warn <- function() {
 ```{r packages, message = FALSE}
 ## Load in the required add-on packages.
 
+library("ez")
 library("emmeans")
 library("ordinal")
 library("truthiness")
@@ -182,12 +187,28 @@ sess_noflat <- sess_nocheat %>%
 
 n_flatline <- nrow(sess_nocheat) - nrow(sess_noflat)
 
-sess_keep0 <- sess_noflat %>%
+sess_dur_all <- sess_noflat %>%
   filter(chk_dur_all)
 
-n_dur_out_range <- nrow(sess_noflat) - nrow(sess_keep0)
+n_dur_out_range <- nrow(sess_noflat) - nrow(sess_dur_all)
 
-n_total <- n_nonnative + n_cheat + n_flatline + n_dur_out_range
+## manual exclusions at the participant level should be stored in the file
+## 'exclusions_participant.csv', created in the pre-processing stage
+pfile <- file.path(basename(params$subdir), "exclude_participants.csv")
+if (!file.exists(pfile)) {
+  warning("File '", pfile, "' not found!")
+  par_exclude <- tibble(ID = character(0), Reason = character(0))
+} else {
+  par_exclude <- read_csv(pfile, col_types = "cc")
+}
+
+sess_keep0 <- sess_dur_all %>%
+  anti_join(par_exclude, "ID")
+
+n_other_participant <- nrow(sess_dur_all) - nrow(sess_keep0)
+
+n_total <- n_nonnative + n_cheat + n_flatline + n_dur_out_range +
+  n_other_participant
 ```
 
 Applying these criteria resulted in the removal of:
@@ -196,6 +217,11 @@ Applying these criteria resulted in the removal of:
 * `r .pi(n_cheat)` participants who reported looking up answers;
 * `r .pi(n_flatline)` participants who flat-lined in at least one phase; and
 * `r .pi(n_dur_out_range)` participants who had at least one phase with completion times outside the acceptable range.
+* `r if (.pi(n_other_participant > 0L)) paste0(n_other_participant, " participants were excluded manually, for the reasons listed below.") else "No participants were excluded for any other reasons."`
+
+```{r manual-excl1, echo = FALSE, eval = (n_other_participant > 0L)}
+par_exclude %>% knitr::kable()
+```
 
 In total, the exclusion criteria resulted in the removal of 
 `r .pi(n_total)` participants.
@@ -219,14 +245,32 @@ participants resulted in the removal of
 
 The only exclusion criterion applied at the phase-level was failure to complete all of the ratings in the phase.
 
-```{r phase-finished, cache=TRUE, cache.path=(cache_dir), dependson = c("import", "remove-nonnative", "exclude")}
+```{r phase-finished, cache=TRUE, cache.path=(cache_dir), dependson = c("import", "remove-nonnative", "exclude", "other-exclude-1")}
 phase_trim <- phase %>%
   semi_join(sess_keep0, "ID")
 
-phase_keep <- phase_trim %>%
+phase_fin <- phase_trim %>%
   filter(chk_finished)
 
-n_incomplete <- nrow(phase_trim) - nrow(phase_keep)
+n_incomplete <- nrow(phase_trim) - nrow(phase_fin)
+
+## finally, apply phase-level manual exclusions from
+## 'exclusions_phase.csv', created in the pre-processing stage
+pfile <- file.path(basename(params$subdir), "exclude_phases.csv")
+if (!file.exists(pfile)) {
+  warning("File '", pfile, "' not found!")
+  phs_exclude <- tibble(ID = character(0),
+                        phase_id = factor(integer(0), levels = 1:4),
+                        Reason = character(0))
+} else {
+  phs_exclude <- read_csv(pfile, col_types = "cic") %>%
+    mutate(phase_id = factor(phase_id, levels = 1:4))
+}
+
+phase_keep <- phase_fin %>%
+  anti_join(phs_exclude, c("ID", "phase_id"))
+
+n_other_phase <- nrow(phase_fin) - nrow(phase_keep)
 
 ## now remove the truth ratings
 ratings_keep <- ratings2 %>%
@@ -240,6 +284,13 @@ interest_keep <- interest2 %>%
 This criterion resulted in the removal of 
 `r .pi(n_incomplete)` phases
 (`r .pi(nrow(ratings2) - nrow(ratings_keep))` truth ratings).
+
+`r if (n_other_phase) paste0("An additional ", n_other_phase, " phases were excluded manually for the following reasons: ")`
+
+```{r manual-excl2, echo = FALSE, eval = (n_other_phase > 0L)}
+phs_exclude %>%
+  knitr::kable()
+```
 
 # Descriptive statistics
 
@@ -606,6 +657,35 @@ mod_emm <- emmeans(mods[["ix2"]], allsimp ~ Rep * Int, data = moddata2)
 test(mod_emm, delta = .14, side = "equivalence")$contrasts %>%
                                                  as.data.frame() %>%
                                                  knitr::kable(digits = 3)
+```
+
+# ANOVA
+
+Most of the literature on the illusory truth effect uses the analysis of variance as the primary inferential approach. For comparison with the existing literature, we perform an ANOVA on our data. The ANOVA analysis treats stimuli as fixed effects and violates the assumption of a continuous DV with variance proportional to the mean, so we provide this only for illustrative purposes, and only draw our conclusions from the results of the cumulative logit mixed model analysis above.
+
+`r warn()`
+
+```{r anova}
+## convert DV to an integer
+## calculate subject means
+## fill in missing cells with NA
+adata <- moddata %>%
+  mutate(trating = as.integer(as.character(T))) %>%
+  group_by(subj_id, repetition, interval) %>%
+  summarize(mean_rating = mean(trating)) %>%
+  ungroup()
+
+## listwise deletion
+adata2 <- adata %>%
+  add_count(subj_id) %>%
+  filter(n == 8L) %>%
+  select(-n) %>%
+  mutate(subj_id = fct_drop(subj_id))
+
+ez::ezANOVA(adata2, dv = mean_rating,
+            wid = subj_id,
+            within = .(repetition, interval),
+            type = 3)
 ```
 
 # Session information {#sessinfo}

@@ -388,11 +388,12 @@ run_equiv <- function(.data, main_effect = FALSE, delta = .14) {
                            main_emm,
                            delta = delta, side = "equivalence")$contrasts$p.value)
   } else {
+    allse.emmc <- allsimp.emmc # a hack, I admit
     mod <- ordinal::clmm(trating ~ Rep * Int +
                            (R:I1 + R:I2 + R:I3 | subj_id) +
                            (R:I1 + R:I2 + R:I3 | stim_id),
                          data = .data)
-    mod_emm <- emmeans::emmeans(mod, allsimp ~ Rep * Int, data = .data)
+    mod_emm <- emmeans::emmeans(mod, allse ~ Rep * Int, data = .data)
     ## perform equivalence test using emmeans
     res <- c((mod_emm$contrasts %>% as.data.frame())[["p.value"]],
              emmeans::test(mod_emm,

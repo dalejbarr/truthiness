@@ -476,5 +476,13 @@ preprocess <- function(inpath,
   message("Wrote anonymized data to files ",
           "ANON_sessions.csv, ANON_phases.csv, ANON_ratings.csv, and ",
           "ANON_interest.csv in subdirectory '", outpath, "'")
+  par_exclude <- tibble::tibble(ID = character(0), reason = character(0))
+  phs_exclude <- tibble::tibble(ID = character(0), phase_id = integer(0),
+                                reason = character(0))
+  readr::write_csv(par_exclude, file.path(outpath,
+                                          "exclude_participants.csv"))
+  readr::write_csv(phs_exclude, file.path(outpath,
+                                          "exclude_phases.csv"))
+  message("\nEdit the files 'exclude_participants.csv' and 'exclude_phases.csv' to manually\n", "exclude participants and phases.")
   invisible(outpath)
 }
