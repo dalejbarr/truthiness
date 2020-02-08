@@ -245,7 +245,7 @@ participants resulted in the removal of
 
 The only exclusion criterion applied at the phase-level was failure to complete all of the ratings in the phase.
 
-```{r phase-finished, cache=TRUE, cache.path=(cache_dir), dependson = c("import", "remove-nonnative", "exclude", "other-exclude-1")}
+```{r phase-finished, cache=TRUE, cache.path=(cache_dir), dependson = c("import", "remove-nonnative", "exclude")}
 phase_trim <- phase %>%
   semi_join(sess_keep0, "ID")
 
@@ -478,7 +478,7 @@ where:
 
 The comparison of models 1 and 2 test the significance of the main effect of repetition (`R`). The comparison of models 3 and 4 test the significance of the repetition-by-interval interaction (coded by `R:I1`, `R:I2`, and `R:I3`).
 
-```{r fit-clmm-no-parallel, eval = (!parallel_installed), echo = (!parallel_installed), cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(3:7)}
+```{r fit-clmm-no-parallel, eval = (!parallel_installed), echo = (!parallel_installed), cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(3:4, 6:7, 9)}
 ## fit models using serial version (no multi-core)
 mods <- list()
 
@@ -524,7 +524,7 @@ cat("* Total computation time: ",
     sprintf("%0.2f minutes", dur / 60), "\n")
 ```
 
-```{r fit-clmm-parallel, eval = parallel_installed, echo = parallel_installed, cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(3:7), results = 'asis'}
+```{r fit-clmm-parallel, eval = parallel_installed, echo = parallel_installed, cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(3:4, 6:7, 9), results = 'asis'}
 ## fit models using parallelized version (multi-core)
 ncores <- parallel::detectCores()
 ncores <- if (ncores > 6L) 6L else ncores
