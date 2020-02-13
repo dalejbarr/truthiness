@@ -4,10 +4,12 @@
 \alias{allsimp.emmc}
 \title{Custom Contrast Function for emmeans}
 \usage{
-allsimp.emmc(levs, ...)
+allsimp.emmc(levels, ...)
 }
 \arguments{
-\item{levs}{Interaction levels (should be of length 8).}
+\item{levels}{Interaction levels (should be of length 8).}
+
+\item{...}{Any other arguments (NB: currently ignored).}
 }
 \description{
 Create a contrast matrix for equivalence test of a 2x4

@@ -388,12 +388,12 @@ run_equiv <- function(.data, main_effect = FALSE, delta = .14) {
                            main_emm,
                            delta = delta, side = "equivalence")$contrasts$p.value)
   } else {
-    allse.emmc <- allsimp.emmc # a hack, I admit
+    ## allse.emmc <- allsimp.emmc # a hack, I admit
     mod <- ordinal::clmm(trating ~ Rep * Int +
                            (R:I1 + R:I2 + R:I3 | subj_id) +
                            (R:I1 + R:I2 + R:I3 | stim_id),
                          data = .data)
-    mod_emm <- emmeans::emmeans(mod, allse ~ Rep * Int, data = .data)
+    mod_emm <- emmeans::emmeans(mod, allsimp ~ Rep * Int, data = .data)
     ## perform equivalence test using emmeans
     res <- c((mod_emm$contrasts %>% as.data.frame())[["p.value"]],
              emmeans::test(mod_emm,
@@ -401,4 +401,29 @@ run_equiv <- function(.data, main_effect = FALSE, delta = .14) {
     names(res) <- c(paste0("simple", 1:6), paste0("equiv", 1:6))
   }
   res
+}
+
+#' @export
+just_testing <- function(.data) {
+  .data[["Rep"]] <-
+    C(.data[["repetition"]],
+      matrix(c(.5, -.5), nrow = 2,
+             dimnames = list(c("repeated", "new"))))
+
+  .data[["Int"]] <- 
+    C(.data[["interval"]],
+      matrix(c(-1/4, -1/4, -1/4,
+               3/4, -1/4, -1/4,
+               -1/4,  3/4, -1/4,
+               -1/4, -1/4,  3/4),
+             nrow = 4, byrow = TRUE,
+             dimnames = list(c("immediate", "1 day",
+                               "1 week", "1 month"),
+                             c("I1", "I2", "I3"))))
+
+  .data[["T"]] <- as.integer(as.character(.data[["trating"]]))
+
+  mod <- lm(T ~ Rep * Int, .data)
+  mod_emm <- emmeans::emmeans(mod, allsimp ~ Rep * Int, data = .data)
+  mod_emm
 }

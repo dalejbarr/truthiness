@@ -6,6 +6,7 @@
 \usage{
 simulate_resp_files(
   nsubj,
+  phase_eff = c(0, 0, 0, 0),
   path,
   overwrite = FALSE,
   p_too_fast = 0.01,
@@ -22,6 +23,12 @@ simulate_resp_files(
 }
 \arguments{
 \item{nsubj}{Number of subjects; must be a multiple of 8.}
+
+\item{phase_eff}{A four-element vector giving the size of the
+illusory truth effect at each of the four phases (on the log odds
+scale). Use \code{rep(0, 4)} for testing Type I error rate. A
+value of .14 gives an effect of approximately 1/10 of a scale
+point.}
 
 \item{path}{Path to subdirectory where files should be stored.}
 
