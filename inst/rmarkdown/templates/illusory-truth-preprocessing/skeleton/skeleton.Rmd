@@ -1,0 +1,393 @@
+---
+title: "The Trajectory of Truth: Data Preprocessing and Anonymization"
+author: "Emma L. Henderson, Daniel J. Simons, and Dale J. Barr"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: 
+  html_document:
+    toc: true
+    code_folding: hide
+    df_print: paged
+params:
+  subdir: ""
+  anondir: ""
+---
+
+<style>
+div.warn { background-color:#ff8888; border-radius: 5px; padding: 20px; }
+div.note { background-color:#e6f0ff; border-radius: 5px; padding: 20px; }
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+if (is.null(params$subdir) || (params$subdir == "")) {
+  stop("You need to specify the subdirectory containing the anonymized data")
+}
+
+if (!dir.exists(params$subdir)) {
+  stop("subdirectory '", params$subdir, "' does not exist")
+}
+```
+
+Importing data from files in subdirectory ``r params$subdir``.
+
+```{r preprocess-manual-exclusions, results = 'asis'}
+library("truthiness")
+library("tidyverse")
+
+## pretty print big integers
+.pi <- function(x) prettyNum(x, big.mark=',')
+
+## check for manual exclusions
+man_exclude_part_fname <- paste0(basename(params$anondir),
+                                 "_manually_exclude_participants.csv")
+
+man_exclude_phs_fname <- paste0(basename(params$anondir),
+                                 "_manually_exclude_phases.csv")
+
+if (file.exists(man_exclude_part_fname)) {
+  man_exclude_part <- read_csv(man_exclude_part_fname, col_types = "cc")
+  if (nrow(man_exclude_part)) {
+    cat("Read in ", nrow(man_exclude_part), " manual participant exclusions from ",
+        man_exclude_part, "\n", sep = "")
+  } else {
+    cat("No manual exclusions found in the file `",
+        man_exclude_part_fname, "`.\n", sep = "")
+  }
+} else {
+  write_csv(tibble(PID = character(0), reason = character(0)),
+            man_exclude_part_fname)
+  cat("Created the file `", man_exclude_part_fname,
+      "`. Enter any manual participant-level exclusions in this file.\n",
+      sep = "")
+  man_exclude_part <- read_csv(man_exclude_part_fname, col_types = "cc")
+}
+
+if (file.exists(man_exclude_phs_fname)) {
+  man_exclude_phs <- read_csv(man_exclude_phs_fname, col_types = "cic") %>%
+    mutate(phase_id = factor(phase_id, levels = 1:4))
+  if (nrow(man_exclude_phs)) {
+    cat("Read in ", nrow(man_exclude_phs), " manual phase exclusions from ",
+        man_exclude_phs, "\n", sep = "")
+  } else {
+    cat("No manual exclusions found in the file `",
+        man_exclude_phs_fname, "`.\n", sep = "")
+  }
+} else {
+  write_csv(tibble(PID = character(0), phase_id = integer(0),
+                   reason = character(0)),
+            man_exclude_phs_fname)
+  cat("Created the file `", man_exclude_phs_fname,
+      "`. Enter any manual phase-level exclusions in this file.\n", sep = "")
+  man_exclude_phs <- read_csv(man_exclude_phs_fname, col_types = "cic") %>%
+    mutate(phase_id = factor(phase_id, levels = 1:4))
+}
+```
+
+```{r preprocess-all}
+## all the pre-processing is done in this chunk
+private_sess_fname <- paste0(basename(params$anondir),
+                             "_NOT_ANONYMIZED_sessions.rds")
+private_phase_fname <- paste0(basename(params$anondir),
+                              "_NOT_ANONYMIZED_phases.rds")
+report_fname <- paste0(basename(params$anondir), "_preprocessing_report.html")
+
+params$anondir <- normalize_path(params$anondir) # no trailing slash
+if (dir.exists(params$anondir)) {
+  unlink(params$anondir, TRUE, TRUE)
+}
+dir.create(params$anondir)
+if (check_fake(params$subdir)) {flag_fake(params$anondir)}
+
+sess <- import_sessions(params$subdir)
+phase <- import_phase_info(params$subdir)
+ratings <- import_tratings(params$subdir)
+interest <- import_iratings(params$subdir)
+
+## destroy data from non-consenting participants
+sess_consent <- sess %>%
+  mutate(chk_consent_all = grepl("^Yes", ConsentAll, ignore.case = TRUE))
+
+phase2 <- semi_join(phase,
+                    sess_consent %>%
+                    filter(chk_consent_all),
+                    "PID")
+
+phase_consent <- phase2 %>%
+  mutate(chk_consent = grepl("^Yes", Consent, ignore.case = TRUE))
+
+## TODO remove ratings from non-consenting participants
+
+## remove non-native speakers
+sess_native <- sess_consent %>%
+  mutate(chk_native = grepl("English", nativelang,
+                                   ignore.case = TRUE))
+
+## phase-level exclusion: was the phase completed?
+phase_finished <- phase_consent %>%
+  mutate(chk_finished = Finished == "TRUE")
+
+## identify anyone who looked up answers; remove them from all phases
+cheaters <- phase_finished %>%
+  filter(grepl("^Yes", cheat, ignore.case = TRUE)) %>%
+  distinct(PID) %>%
+  mutate(chk_nocheat = FALSE)
+
+sess_cheat <- sess_native %>%
+  left_join(cheaters, "PID") %>%
+  replace_na(list(chk_nocheat = TRUE))
+
+dur_cutoffs <-
+  tibble(phase_id = factor(1:4, levels = 1:4),
+         min_dur = c(3L * 60L, rep(1L * 60L, 3)),
+         max_dur = c(40L * 60L, rep(30L * 60L, 3)))
+
+## identify participants who were too fast or too slow on *any* phase
+phase_speed <- phase_finished %>%
+  inner_join(dur_cutoffs, "phase_id") %>%
+  mutate(chk_dur_phase =
+                  (as.integer(`Duration (in seconds)`) >= min_dur) &
+                  (as.integer(`Duration (in seconds)`) <= max_dur)) %>%
+  select(-min_dur, -max_dur)
+
+## manual phase exclusions
+phase_man <- phase_speed %>%
+  left_join(man_exclude_phs %>%
+            mutate(chk_notmanex = FALSE) %>%
+            rename(reason_for_manual_exclusion = reason) %>%
+            select(PID, phase_id, chk_notmanex, reason_for_manual_exclusion),
+            c("PID", "phase_id")) %>%
+  replace_na(list(chk_notmanex = TRUE,
+                  reason_for_manual_exclusion = NA_character_))
+
+sess_dur <- sess_cheat %>%
+  left_join(phase_man %>%
+                   filter(!chk_dur_phase) %>%
+                   distinct(PID) %>%
+                   mutate(chk_dur_all = FALSE), "PID") %>%
+  replace_na(list(chk_dur_all = TRUE))
+
+## now find any flatliners
+## interest scores
+ispt <- split(interest[["irating"]], interest[["PID"]])
+res <- sapply(ispt, function(.x) {length(unique(.x)) == 1L})
+flat_interest <- names(res)[res]
+
+## truth ratings
+tspt <- split(ratings[["trating"]],
+              list(ratings[["PID"]], ratings[["phase_id"]]), sep = ",")
+res <- sapply(tspt, function(.x) {length(unique(.x)) == 1L})
+flat_truth <- unique(sapply(names(res)[res],
+                            function(.x) {strsplit(.x, ",")[[1]][1]},
+                            USE.NAMES = FALSE))
+flatliners <- union(flat_interest, flat_truth)
+
+sess_noflat <- sess_dur %>%
+  mutate(chk_noflatline = !(PID %in% flatliners))
+
+sess_keep <- sess_noflat %>%
+  left_join(man_exclude_part %>%
+            mutate(chk_notmanex = FALSE) %>%
+            rename(reason_for_manual_exclusion = reason) %>%
+            select(PID, chk_notmanex, reason_for_manual_exclusion),
+            "PID") %>%
+  replace_na(list(chk_notmanex = TRUE,
+                  reason_for_manual_exclusion = NA_character_)) %>%
+  mutate(keep = chk_consent_all & chk_native & chk_nocheat & chk_dur_all &
+           chk_noflatline & chk_notmanex) %>%
+  select(!starts_with("reason_for_manual_exclusion"),
+         reason_for_manual_exclusion)
+
+phase_keep <- semi_join(phase_man,
+                        sess_keep %>%
+                        filter(keep), "PID") %>%
+  mutate(keep = chk_consent & chk_finished & chk_notmanex) %>%
+  select(!starts_with("reason_for_manual_exclusion"),
+         reason_for_manual_exclusion) %>%
+  select(-chk_dur_phase)
+
+## done with participant level + phase level exclusions
+## from here on, use phase_keep and sess_keep
+```
+
+`r warn(params$subdir)`
+
+The raw data files contain `r .pi(nrow(ratings))` truth ratings of `r
+.pi(n_item)` statements from `r .pi(nrow(sess))` participants.
+
+## Participant-level exclusions
+
+First, we excluded anyone who did not give consent for the entire study. 
+
+There were four additional exclusion criteria for participants, applied in the following order:
+
+1. Not being a (self-reported) native speaker of English;
+2. Reporting having looked up answers in at least one phase of the study;
+3. Flat lining; i.e., using only one response category across an entire phase of the study;
+4. Failing to complete all phases in a reasonable amount of time (for Phase 1, between 3 and 40 minutes; for all other phases, between 1 and 30 minutes).
+
+Particpants are excluded if one or more of these variables is `FALSE`:
+
+- `chk_consent_all` : gave consent for all phases
+- `chk_native` : is native speaker
+- `chk_nocheat` : never reported looking up answers
+- `chk_dur_all` : never completed a phase too quickly or too slowly
+- `chk_noflatline` : never produced a 'flatline' response
+- `chk_notmanex` : not manually excluded (see `reason_for_manual_exclusion`)
+
+### Summary of participant-level exclusions
+
+Note: `n` is the number of participants excluded for that combination of reasons:
+
+```{r part-exclusion-summary}
+excluded_part <- sess_keep %>%
+  filter(!keep) %>%
+  select(PID, list_id, starts_with("chk_"),
+         reason_for_manual_exclusion)
+
+tots <- count(excluded_part, chk_consent_all, chk_native, chk_nocheat, chk_dur_all,
+              chk_noflatline, chk_notmanex)
+
+tots
+```
+
+- **STARTING NUMBER OF PARTICIPANTS: `r .pi(nrow(sess))`**
+- **TOTAL PARTICIPANTS EXCLUDED FOR ALL REASONS: `r .pi(sum(pull(tots, n)))`**
+- **NUMBER OF REMAINING PARTICIPANTS: `r .pi(nrow(sess) - nrow(excluded_part))`**
+
+### List of excluded participants
+
+```{r part-exclusion-list}
+DT::datatable(excluded_part)
+```
+
+## Phase-level exclusions
+
+Phase-level exclusions apply *after* any participant-level exclusions; i.e., they apply only on any phases that remain after removing subjects.
+
+The only automatically applied exclusion criteria applied at the phase-level were (1) failure to give consent (`chk_consent`) and (2) failure to complete all of the ratings in the phase (`chk_finished`). Manual exclusions are listed in the file ``r man_exclude_phs_fname`` and tagged by the variable `chk_notmanex`.
+
+### Summary of phase-level exclusions
+
+```{r phase-exclusion-summary}
+excluded_phs <- phase_keep %>%
+  filter(!keep) %>%
+  select(PID, phase_id, chk_consent, chk_finished, chk_notmanex)
+
+tots_phs <- count(excluded_phs, chk_consent, chk_finished, chk_notmanex)
+
+tots_phs
+```
+
+- **STARTING NUMBER OF PHASES: `r .pi(nrow(phase))`**
+- **PHASES DROPPED DUE TO SUBJECT EXCLUSIONS: 
+`r .pi(nrow(phase) - nrow(phase %>% semi_join(sess_keep %>% filter(keep), "PID")))`
+- **REMAINING PHASES EXCLUDED FOR ALL REASONS: `r .pi(sum(pull(tots_phs, n)))`**
+- **NUMBER OF REMAINING PHASES: `r .pi(nrow(phase_keep %>% filter(keep)))`**
+
+### List of phase-level exclusions
+
+```{r phase-exclusion-list}
+DT::datatable(excluded_phs)
+```
+
+### Comments
+
+Comments left by participants (if any) will appear below.
+
+```{r phase-comments}
+phase_keep %>%
+  filter(!(comments %in% c("", "xxxx"))) %>%
+  DT::datatable()
+```
+
+```{r anonymize, eval = (complete_data), results = 'asis'}
+## if we have all phase data, anonymize
+sess_keep[["ID"]] <- sprintf("S%04d", sample(seq_len(nrow(sess_consent))))
+share_cols <- c("list_id",
+                "age", "gender", "nationality", "nativelang",
+                "chk_consent_all", "chk_native", "chk_nocheat",
+                "chk_dur_all", "chk_noflatline", "chk_notmanex",
+                "keep",
+                "reason_for_manual_exclusion")
+sess_private <- sess_keep[, c("PID", "ID",
+                              setdiff(names(sess_keep),
+                                      c("PID", "ID", "ConsentAll",
+                                        share_cols)))]
+sess_share <- sess_keep[, c("ID", share_cols)] %>%
+  arrange(ID) %>%
+  filter(chk_consent_all) %>%
+  select(-chk_consent_all)
+
+pshare_cols <- c("phase_id", "Duration (in seconds)",
+                 "chk_consent", "chk_finished",
+                 "chk_notmanex", "keep",
+                 "reason_for_manual_exclusion")
+pkeep <- phase_keep %>%
+  inner_join(sess_private[, c("ID", "PID")], "PID")
+
+phase_share <- pkeep[, c("ID", pshare_cols)] %>%
+  arrange(ID, phase_id) %>%
+  filter(chk_consent) %>%
+  select(-chk_consent)
+
+colnames(phase_share)[colnames(phase_share) == "Duration (in seconds)"] <-
+  "duration_secs"
+
+phase_private <- pkeep[, c("PID", "ID", "phase_id",
+                           setdiff(names(phase_keep),
+                                   c("PID", "ID", "phase_id", "list_id",
+                                     "Duration (in seconds)",
+                                     pshare_cols)))]
+
+ratings2 <- ratings %>%
+  group_by(PID, phase_id) %>%
+  ungroup() %>%
+  semi_join(sess_keep %>% filter(keep), "PID") %>%
+  semi_join(phase_keep %>% filter(keep), c("PID", "phase_id")) %>%
+  inner_join(phase_private[, c("PID", "ID", "phase_id")],
+                    c("PID", "phase_id"))
+
+ratings_share <-
+  ratings2[, c("ID", "phase_id", "stim_id", "trating")] %>%
+  arrange(ID, phase_id, stim_id)
+
+interest2 <- interest %>%
+  group_by(PID) %>%
+  ungroup() %>%
+  semi_join(sess_keep %>% filter(keep), "PID") %>%
+  semi_join(phase_keep %>%
+            filter(phase_id == 1L, keep), "PID") %>%
+  inner_join(phase_private %>% filter(phase_id == 1L) %>%
+                    select("PID", "ID"), "PID")
+
+interest_share <- interest2[, c("ID", "stim_id", "irating")] %>%
+  arrange(ID, stim_id)
+
+saveRDS(sess_private, private_sess_fname)
+cat("Wrote non-anonymized pre-processed session data to `",
+    private_sess_fname, "`.\n", sep = "")
+saveRDS(phase_private, private_phase_fname)
+cat("\nWrote non-anonymized pre-processed phase data to `",
+    private_phase_fname, "`\n", sep = "")  
+
+readr::write_csv(sess_share, file.path(params$anondir, "ANON_sessions.csv"))
+readr::write_csv(phase_share, file.path(params$anondir, "ANON_phases.csv"))
+readr::write_csv(ratings_share, file.path(params$anondir, "ANON_ratings.csv"))
+readr::write_csv(interest_share, file.path(params$anondir, "ANON_interest.csv"))
+
+cat("\nWrote anonymized data to files ",
+    "`ANON_sessions.csv`, `ANON_phases.csv`, `ANON_ratings.csv`, and ",
+    "`ANON_interest.csv` in subdirectory `", params$anondir, "`.\n", sep = "")
+
+mp_outfile1 <-
+  file.path(basename(params$anondir), "manually_exclude_participants.csv")
+mp_outfile2 <- 
+  file.path(basename(params$anondir), "manually_exclude_phases.csv")
+
+write_csv(man_exclude_part, mp_outfile1)
+write_csv(man_exclude_phs, mp_outfile2)
+          
+cat("\nCopied manual exclusions to `",
+    mp_outfile1, "` and `", mp_outfile2, "`.\n", sep = "")
+```

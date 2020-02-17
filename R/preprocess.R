@@ -174,31 +174,34 @@ import_sessions <- function(path) {
                        list_id = list_id,
                        phase_id = phase_id)
   df[["data"]] <- purrr::map(df[["fname"]], read_sessions)
-  ## lets figure out the columns that only appear in a single session
+
+  ## only do the below if we have data from all phases
+  ## if (length(ifiles) == 32L) {
+    ## lets figure out the columns that only appear in a single session
   cnames <- purrr::map(df[["data"]], names)
   by_phase <- split(cnames, df[["phase_id"]])
   pdat <- split(df, df[["phase_id"]])
   pcols <- purrr::map(by_phase, function(x) {unique(unlist(x))})
   ## get the columns unique to each phase
   pdat2 <- list()
-
+  
   for (i in 1:4) {
     others <- setdiff(1:4, i)
     unique_cols <-
-      c("PID",
-        setdiff(pcols[[i]],
-                union(union(pcols[[others[1]]], pcols[[others[2]]]),
-                      pcols[[others[3]]])))
+      unique(c("PID",
+               setdiff(pcols[[i]],
+                       union(union(pcols[[others[1]]], pcols[[others[2]]]),
+                             pcols[[others[3]]]))))
     pdat[[i]][["data2"]] <- purrr::map(pdat[[i]][["data"]],
                                        function(x) x[, unique_cols])
     pdat2[[i]] <- tidyr::unnest(pdat[[i]][, c("list_id", "data2")], c("data2"))    
   }
 
-  df2 <- dplyr::full_join(dplyr::full_join(pdat2[[1]], pdat2[[2]],
-                                           c("PID", "list_id")),
-                          dplyr::full_join(pdat2[[3]], pdat2[[4]],
-                                           c("PID", "list_id")),
-                          c("PID", "list_id"))
+  has_data <- purrr::map_lgl(pdat2,
+                             ~ !(is.null(.x[["PID"]]) | is.null(.x[["list_id"]])))
+
+  df2 <- purrr::reduce(pdat2[has_data], dplyr::full_join, by = c("PID", "list_id"))
+  
   df2[, c("PID", "list_id", setdiff(names(df2), c("PID", "list_id")))]
 }
 
@@ -223,8 +226,8 @@ import_phase_info <- function(path) {
   pdat <- split(df, df[["phase_id"]])
   pcols <- purrr::map(by_phase, function(x) {unique(unlist(x))})
   ## get the columns common to all phases
-  common_cols <- intersect(intersect(pcols[[1]], pcols[[2]]),
-                           intersect(pcols[[3]], pcols[[4]]))
+  has_data <- purrr::map_lgl(pcols, ~ (length(.x) > 0L))
+  common_cols <- purrr::reduce(pcols[has_data], intersect)
   pdat2 <- list()
   for (i in 1:4) {
     pdat[[i]][["data2"]] <- purrr::map(pdat[[i]][["data"]],
@@ -245,69 +248,24 @@ import_phase_info <- function(path) {
 #'
 #' @param overwrite Whether to overwrite the anonymized data.
 #'
+#' @param browse Whether to open the preprocessing report upon exit.
+#'
 #' @return Path where the files were written (\code{outpath}).
 #'
 #' @details Loads in the data from the raw response files and writes
 #'   out non-anonymized, pre-processed versions to the current working
 #'   directory, as well as anonymized versions to the directory
-#'   specified by \code{outpath}. The anonymized output files have the
-#'   following structure.
-#'
-#' \code{ANON_sessions.csv}: A table with one row for each participant
-#' and ten columns:
-#' 
-#' \describe{
-#'   \item{ID}{Unique participant identifier.}
-#'   \item{list_id}{Identifier of stimulus list.}
-#'   \item{age}{Age of the participant in years.}
-#'   \item{gender}{Gender of the participant.}
-#'   \item{nationality}{Nationality of the participant.}
-#'   \item{nativelang}{Native language of the participant.}
-#'   \item{chk_native}{Whether the participant was a native English speaker.}
-#'   \item{chk_nocheat}{Whether the participant did not look up answers.}
-#'   \item{chk_dur_all}{Whether the participant completed all phases
-#'   within a reasonable time-frame.}
-#'   \item{chk_flatline}{Whether the participant did not produce
-#'   'flatline' responses during any phase of the study.}
-#' }
-#'
-#' \code{ANON_phases.csv}: A table with one row for each participant
-#' and five columns:
-#' 
-#' \describe{
-#'   \item{ID}{Unique participant identifier.}
-#'   \item{phase_id}{Identifier of phase (1-4).}
-#'   \item{duration_secs}{Duration of phase in seconds.}
-#'   \item{chk_finished}{Whether the participant completed the phase.}
-#'   \item{chk_dur_phase}{Whether the phase was completed within a reasonable duration.}
-#' }
-#'
-#' \code{ANON_interest.csv}: A table with one row for each interest
-#' rating and three columns:
-#'
-#' \describe{
-#'   \item{ID}{Unique participant identifier.}
-#'   \item{stim_id}{Unique stimulus identifier.}
-#'   \item{irating}{Interest rating (0-10).}
-#' }
-#'
-#' \code{ANON_ratings.csv}: A table with one row for each truth rating
-#' and four columns.
-#'
-#' \describe{
-#'   \item{ID}{Unique participant indentifier.}
-#'   \item{phase_id}{Identifier of phase (1-4).}
-#'   \item{stim_id}{Unique stimulus identifier.}
-#'   \item{trating}{Truth rating (1-7).}
-#' }
+#'   specified by \code{outpath}. The structure of the files is
+#'   described by the function \code{\link{codebook}}.
 #' 
 #' @export
 preprocess <- function(inpath,
                        outpath = paste0("anon-", Sys.Date()),
-                       overwrite = FALSE) {
-
-  private_sess_fname <- "NOT_ANONYMIZED_sessions.rds"
-  private_phase_fname <- "NOT_ANONYMIZED_phases.rds"
+                       overwrite = FALSE,
+                       browse = TRUE) {
+  private_sess_fname <- paste0(basename(outpath), "_NOT_ANONYMIZED_sessions.rds")
+  private_phase_fname <- paste0(basename(outpath), "_NOT_ANONYMIZED_phases.rds")
+  report_fname <- paste0(basename(outpath), "_preprocessing_report.html")
   outpath <- normalize_path(outpath) # no trailing slash
   if (dir.exists(outpath)) {
     if (overwrite) {
@@ -322,7 +280,9 @@ preprocess <- function(inpath,
     stop("File '", private_sess_fname, "' exists and overwrite = FALSE")
   if (file.exists(private_phase_fname) && !overwrite)
     stop("File '", private_phase_fname, "' exists and overwrite = FALSE")
-  
+  if (file.exists(report_fname) && !overwrite)
+    stop("File '", report_fname, "' exists and overwrite = FALSE")  
+
   sess <- import_sessions(inpath)
   phase <- import_phase_info(inpath)
   ratings <- import_tratings(inpath)
@@ -411,7 +371,7 @@ preprocess <- function(inpath,
   
   ## use phase_keep and sess_keep
 
-  ## now anonymize
+  ## if we have all phase data, anonymize
   sess_keep[["ID"]] <- sprintf("S%04d", sample(seq_len(nrow(sess_consent))))
   share_cols <- c("list_id",
                   "age", "gender", "nationality", "nativelang",

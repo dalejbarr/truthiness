@@ -1,0 +1,4 @@
+name: Illusory Truth Preprocessing
+description: >
+   Preprocess (and anonymize) raw data from illusory truth study
+create_dir: FALSE

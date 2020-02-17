@@ -1,3 +1,26 @@
+#' Warn About Simulated Data
+#'
+#' Check whether the data in \code{subdir} is simulated data and
+#' generate a warning to include in an R Markdown document.
+#' 
+#' @param subdir Subdirectory with the anonymized data.
+#'
+#' @export
+warn <- function(subdir) {
+  if (truthiness::check_fake(subdir)) {
+    extra_text <-
+      case_when(basename(subdir) == "all_null" ~ "**This document demonstrates a null main effect and null interaction.**",
+                basename(subdir) == "main_effect" ~ "**This document demonstrates a significant main effect and null interaction.**",
+                basename(subdir) == "interaction" ~ "**This document demonstrates a significant main effect and significant interaction.**",
+                TRUE ~ "")
+    paste("\n<div class=\"warn\">",
+          "*WARNING! Results in this document are based on **simulated** data*.",
+          "This document will be re-compiled and results will be updated after data collection.\n",
+          extra_text,
+          "</div>\n", sep = "\n")
+  }
+}
+
 #' Compile and Display Codebook and Materials
 #'
 #' Compile and display the codebook for anonymized data and stimulus
