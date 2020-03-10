@@ -98,7 +98,8 @@ power_sim <- function(model,
 #'   specifies the illusory truth effect at the corresponding phase,
 #'   on the log odds scale (see \code{\link{gen_data}}).
 #'
-#' @param delta Smallest (raw) effect size of interest, on log odds scale.
+#' @param delta Smallest (raw) effect size of interest, on log odds
+#'   scale; \code{NULL} to store fitted model object.
 #'
 #' @param target_effect Which effect to test, the main effect
 #'   (\code{'main'}) or the interaction effect (\code{'interaction'}).
@@ -127,10 +128,17 @@ power_equiv <- function(phase_eff,
                         nsubj,
                         nruns,
                         outfile =
-                          sprintf("equiv_%s_%s_%04d_128_%05d_%s_%d.rds",
-                                  sprintf("%0.2f~%0.2f~%0.2f~%0.2f~%0.2f",
-                                          phase_eff[1], phase_eff[2],
-                                          phase_eff[3], phase_eff[4], delta),
+                          sprintf("%s_%s_%s_%04d_128_%05d_%s_%d.rds",
+                                  ifelse(is.null(delta), "model", "equiv"),
+                                  if (is.null(delta)) {
+                                    sprintf("%0.2f~%0.2f~%0.2f~%0.2f~x.xx",
+                                            phase_eff[1], phase_eff[2],
+                                            phase_eff[3], phase_eff[4])
+                                  } else {
+                                    sprintf("%0.2f~%0.2f~%0.2f~%0.2f~%0.2f",
+                                            phase_eff[1], phase_eff[2],
+                                            phase_eff[3], phase_eff[4], delta)
+                                  },
                                   target_effect,
                                   nsubj, nruns,
                                   Sys.info()[["nodename"]],
@@ -154,20 +162,31 @@ power_equiv <- function(phase_eff,
                   phase_eff[1], phase_eff[2],
                   phase_eff[3], phase_eff[4]))
   message("Testing ", target_effect, " effect...")
+
+  results <- list()
+  res_mx <- matrix(nrow = 12, ncol = nruns,
+                   dimnames = list(c(paste0("simple", 1:6),
+                                     paste0("equiv", 1:6)), NULL))
   
-  stime <- system.time(results <- replicate(nruns, {
-    dat <- gen_data(nsubj, phase_eff = phase_eff)
-    run_equiv(dat, main_effect = (target_effect == "main"), delta)
-  }))
+  stime <- system.time(
+    for (i in seq_len(nruns)) {
+      dat <- gen_data(nsubj, phase_eff = phase_eff)
+      results[[i]] <- run_equiv(dat, main_effect = (target_effect == "main"), delta)
+      if (is.null(delta)) {
+        saveRDS(results, outfile)        
+      } else {
+        res_mx[, i] <- results[[i]]
+        saveRDS(res_mx[, seq_len(i), drop = FALSE], outfile)
+      }
+      message(i, " / ", nruns, " completed")
+    }
+  )
 
   message(nruns, " simulations completed in ", round(stime[[3]]),
           " seconds")
 
-  if (is.null(outfile)) {
-    results
-  } else {
-    saveRDS(results, outfile)
-    message("Results saved to ", outfile)
-    cat(outfile, "\n", sep = "")
-  }
+  message("Results saved to: ")
+  cat(outfile, "\n", sep = "")
+  
+  invisible(NULL)
 }

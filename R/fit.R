@@ -382,11 +382,15 @@ run_equiv <- function(.data, main_effect = FALSE, delta = .14) {
                          data = .data)
     suppressMessages(main_emm <-
                        emmeans::emmeans(mod, pairwise ~ Rep, data = .data))
-    res <- 
-      c(simple = as.data.frame(main_emm$contrasts)$p.value,
-        equiv = emmeans::test(
-                           main_emm,
-                           delta = delta, side = "equivalence")$contrasts$p.value)
+    if (!is.null(delta)) {
+      res <- 
+        c(simple = as.data.frame(main_emm$contrasts)$p.value,
+          equiv = emmeans::test(
+                             main_emm,
+                             delta = delta, side = "equivalence")$contrasts$p.value)
+    } else {
+      res <- list(mod = mod, data = .data)
+    }
   } else {
     ## allse.emmc <- allsimp.emmc # a hack, I admit
     mod <- ordinal::clmm(trating ~ Rep * Int +
@@ -395,10 +399,14 @@ run_equiv <- function(.data, main_effect = FALSE, delta = .14) {
                          data = .data)
     mod_emm <- emmeans::emmeans(mod, allsimp ~ Rep * Int, data = .data)
     ## perform equivalence test using emmeans
-    res <- c((mod_emm$contrasts %>% as.data.frame())[["p.value"]],
-             emmeans::test(mod_emm,
-                           delta = delta, side = "equivalence")$contrasts$p.value)
-    names(res) <- c(paste0("simple", 1:6), paste0("equiv", 1:6))
+    if (!is.null(delta)) {
+      res <- c((mod_emm$contrasts %>% as.data.frame())[["p.value"]],
+               emmeans::test(mod_emm,
+                             delta = delta, side = "equivalence")$contrasts$p.value)
+      names(res) <- c(paste0("simple", 1:6), paste0("equiv", 1:6))
+    } else {
+      res <- list(mod = mod, data = .data)
+    }
   }
   res
 }

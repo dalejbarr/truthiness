@@ -10,9 +10,11 @@ power_equiv(
   target_effect,
   nsubj,
   nruns,
-  outfile = sprintf("equiv_\%s_\%s_\%04d_128_\%05d_\%s_\%d.rds",
-    sprintf("\%0.2f~\%0.2f~\%0.2f~\%0.2f~\%0.2f", phase_eff[1], phase_eff[2],
-    phase_eff[3], phase_eff[4], delta), target_effect, nsubj, nruns,
+  outfile = sprintf("\%s_\%s_\%s_\%04d_128_\%05d_\%s_\%d.rds", ifelse(is.null(delta),
+    "model", "equiv"), if (is.null(delta)) {    
+    sprintf("\%0.2f~\%0.2f~\%0.2f~\%0.2f~x.xx", phase_eff[1], phase_eff[2], phase_eff[3],
+    phase_eff[4]) } else {     sprintf("\%0.2f~\%0.2f~\%0.2f~\%0.2f~\%0.2f", phase_eff[1],
+    phase_eff[2], phase_eff[3], phase_eff[4], delta) }, target_effect, nsubj, nruns,
     Sys.info()[["nodename"]], Sys.getpid())
 )
 }
@@ -21,7 +23,8 @@ power_equiv(
 specifies the illusory truth effect at the corresponding phase,
 on the log odds scale (see \code{\link{gen_data}}).}
 
-\item{delta}{Smallest (raw) effect size of interest, on log odds scale.}
+\item{delta}{Smallest (raw) effect size of interest, on log odds
+scale; \code{NULL} to store fitted model object.}
 
 \item{target_effect}{Which effect to test, the main effect
 (\code{'main'}) or the interaction effect (\code{'interaction'}).}
