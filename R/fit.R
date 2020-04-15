@@ -348,6 +348,18 @@ fit_clmm <- function(.data, main_effect = FALSE) {
     thresh = el1$alpha)
 }
 
+
+strip <- function(x) {
+  ## Strip away all the unnecessary elements from a model to reduce memory size
+  nonessential <- c("L", "condVar", "Zt", "fitted.values", "model",
+                    "gfList", "ranef", "u")
+  res <- x[setdiff(names(x), nonessential)]
+  attr(res[["formula"]], ".Environment") <- NULL
+  attr(res[["terms"]], ".Environment") <- NULL
+  class(res) <- "clmm"
+  res
+}
+
 #' Run equivalence test
 #'
 #' @param .data Data frame.
@@ -389,7 +401,7 @@ run_equiv <- function(.data, main_effect = FALSE, delta = .14) {
                              main_emm,
                              delta = delta, side = "equivalence")$contrasts$p.value)
     } else {
-      res <- list(mod = mod, data = .data)
+      res <- list(mod = strip(mod), data = .data)
     }
   } else {
     ## allse.emmc <- allsimp.emmc # a hack, I admit
@@ -405,33 +417,38 @@ run_equiv <- function(.data, main_effect = FALSE, delta = .14) {
                              delta = delta, side = "equivalence")$contrasts$p.value)
       names(res) <- c(paste0("simple", 1:6), paste0("equiv", 1:6))
     } else {
-      res <- list(mod = mod, data = .data)
+      res <- list(mod = strip(mod), data = .data)
     }
   }
   res
 }
 
+
+#' Run Equivalence Test or Tests on Existing clmm Object
+#'
+#' @param mod Fitted model object, result of call to \code{clmm}.
+#' @param .data Data frame containing source data.
+#' @param main_effect Whether to perform the test for the main effect (TRUE) or interaction (FALSE).
+#' @param delta Delta (SESOI) for the equivalence test, in raw log odds units.
+#'
+#' @return A vector with the result of the equivalence test(s).
+#' 
 #' @export
-just_testing <- function(.data) {
-  .data[["Rep"]] <-
-    C(.data[["repetition"]],
-      matrix(c(.5, -.5), nrow = 2,
-             dimnames = list(c("repeated", "new"))))
-
-  .data[["Int"]] <- 
-    C(.data[["interval"]],
-      matrix(c(-1/4, -1/4, -1/4,
-               3/4, -1/4, -1/4,
-               -1/4,  3/4, -1/4,
-               -1/4, -1/4,  3/4),
-             nrow = 4, byrow = TRUE,
-             dimnames = list(c("immediate", "1 day",
-                               "1 week", "1 month"),
-                             c("I1", "I2", "I3"))))
-
-  .data[["T"]] <- as.integer(as.character(.data[["trating"]]))
-
-  mod <- lm(T ~ Rep * Int, .data)
-  mod_emm <- emmeans::emmeans(mod, allsimp ~ Rep * Int, data = .data)
-  mod_emm
+equivtest <- function(mod, .data, main_effect = FALSE, delta = .14) {
+  if (main_effect) {
+    suppressMessages(main_emm <-
+                       emmeans::emmeans(mod, pairwise ~ Rep, data = .data))
+    c(simple = as.data.frame(main_emm$contrasts)$p.value,
+      equiv = emmeans::test(
+                         main_emm,
+                         delta = delta, side = "equivalence")$contrasts$p.value)
+  } else {
+    mod_emm <- emmeans::emmeans(mod, allsimp ~ Rep * Int, data = .data)
+    ## perform equivalence test using emmeans
+    etest <- c((mod_emm$contrasts %>% as.data.frame())[["p.value"]],
+               emmeans::test(mod_emm,
+                             delta = delta, side = "equivalence")$contrasts$p.value)
+    names(etest) <- c(paste0("simple", 1:6), paste0("equiv", 1:6))
+    etest    
+  }
 }

@@ -1,7 +1,7 @@
 Package: truthiness
 Title: Simulation and Analysis of Illusory-Truth Data
-Version: 0.7.5
-Date: 2020-02-07
+Version: 0.7.6
+Date: 2020-04-15
 Authors@R: 
     person(given = "Dale",
            family = "Barr",
