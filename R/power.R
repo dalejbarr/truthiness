@@ -163,7 +163,6 @@ power_equiv <- function(phase_eff,
                   phase_eff[3], phase_eff[4]))
   message("Testing ", target_effect, " effect...")
 
-  results <- list()
   res_mx <- matrix(nrow = 12, ncol = nruns,
                    dimnames = list(c(paste0("simple", 1:6),
                                      paste0("equiv", 1:6)), NULL))
@@ -171,13 +170,22 @@ power_equiv <- function(phase_eff,
   stime <- system.time(
     for (i in seq_len(nruns)) {
       dat <- gen_data(nsubj, phase_eff = phase_eff)
-      results[[i]] <- run_equiv(dat, main_effect = (target_effect == "main"), delta)
+      results <- run_equiv(dat, main_effect = (target_effect == "main"), delta)
       if (is.null(delta)) {
-        saveRDS(results, outfile)        
+        if (file.exists(outfile)) {
+          res2 <- readRDS(outfile)
+        } else {
+          res2 <- list()
+        }
+        res2[[length(res2) + 1L]] <- results
+        saveRDS(res2, outfile)
+        rm(res2)
       } else {
-        res_mx[, i] <- results[[i]]
+        res_mx[, i] <- results
         saveRDS(res_mx[, seq_len(i), drop = FALSE], outfile)
       }
+      rm(results)
+      gc(FALSE)
       message(i, " / ", nruns, " completed")
     }
   )
