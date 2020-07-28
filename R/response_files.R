@@ -19,6 +19,7 @@ check_fake <- function(path) {
 }
 
 make_response_file <- function(data, segment_id, subj_data, idata, path) {
+  browser()
   id <- as.integer(strsplit(segment_id, "\\.")[[1]])
   names(id) <- c("L", "P")
   pad_string <- "xxxx"
@@ -342,10 +343,9 @@ simulate_resp_files <- function(nsubj,
   ## make interest rating data
   irate <- dat[dat[["repetition"]] == "repeated",
                c("subj_id", "list_id", "stim_id")]
-  irate[["trating"]] <- sample(c("0 Not at all interesting", 1:9,
-                                 "10 Completely interesting"),
+  irate[["trating"]] <- sample(levels(stimulus_categories[["category"]]),
                                nrow(irate), TRUE)
-  irate[["task"]] <- sprintf("IN%03d", irate[["stim_id"]])
+  irate[["task"]] <- sprintf("CJ%03d", irate[["stim_id"]])
 
   ilists <-
     split(irate[, c("subj_id", "task", "trating")],
@@ -358,4 +358,22 @@ simulate_resp_files <- function(nsubj,
                             pids, ilists, path))
 }
 
-
+#' Simulate guessing during the categorization task.
+#'
+#' Run simulations tabulating the number correct under guessing in the categorization task.
+#'
+#' @param nruns Number of simulation runs.
+#'
+#' @return A vector of length \code{nruns} with the number of correct guesses.
+#' @export
+simulate_category_guess <- function(nruns = 10000) {
+  simcorr <- replicate(nruns, {
+    categories <- levels(stimulus_categories[["category"]])
+    rtbl <- data.frame(stim_id = sort(unique(stimulus_categories[["stim_id"]])))
+    rtbl[["response"]] <- sample(categories, nrow(rtbl), TRUE)
+    rtbl_chk <- dplyr::left_join(rtbl, stimulus_categories,
+                                 c("stim_id", "response" = "category"))
+    sum(!is.na(rtbl_chk[["choice"]]))
+  })
+  simcorr
+}

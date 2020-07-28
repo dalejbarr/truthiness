@@ -18,7 +18,7 @@ write_csv(stimcond, "stimulus_conditions.csv")
 interest_list <- stimcond %>%
   filter(repetition == "repeated") %>%
   mutate(task = "interest",
-    task_id = sprintf("IN%03d", stim_id)) %>%
+    task_id = sprintf("CJ%03d", stim_id)) %>%
   select(-repetition, -interval, -actual_truth) %>%
   mutate(phase_id = 1L)
 
@@ -93,7 +93,8 @@ stimulus_categories <- statements_pre %>%
   select(stim_id, `1st category`, `2nd category`) %>%
   pivot_longer(-stim_id, names_to = "order", values_to = "category") %>%
   filter(!is.na(category)) %>%
-  mutate(choice = as.integer(substr(order, 1, 1))) %>%
+  mutate(choice = as.integer(substr(order, 1, 1)),
+         category = factor(category)) %>%
   select(stim_id, choice, category)
 
 ## now write out to separate files
