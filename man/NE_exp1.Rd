@@ -4,7 +4,8 @@
 \name{NE_exp1}
 \alias{NE_exp1}
 \title{Data from Nadarevic & Erdfelder (2014), Experiment 1}
-\format{A data frame with 14,950 observations on 7 variables:
+\format{
+A data frame with 14,950 observations on 7 variables:
 \describe{
   \item{subj_id}{Unique subject identifier.}
   \item{item_id}{Unique stimulus (statement) identifier.}
@@ -13,7 +14,8 @@
   \item{trating}{Truth rating on a six-point scale, with higher values corresponding to greater perceived truth.}
   \item{R}{Deviation-coded numerical predictor for \code{repetition}, with \code{old} = .5 and \code{new} = -.5.}
   \item{D}{Deviation-coded numerical predictor for \code{delay}, with \code{10m} = .5 and \code{1w} = -.5.}
-}}
+}
+}
 \usage{
 NE_exp1
 }

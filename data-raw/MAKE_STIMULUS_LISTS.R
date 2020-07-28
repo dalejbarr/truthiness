@@ -64,7 +64,7 @@ test_cond <- plists %>%
   filter(task == "truth") %>%
   select(list_id, phase_id, stim_id) %>%
   left_join(test_interest, c("list_id", "stim_id")) %>%
-  replace_na(list(repetition = "novel")) %>%
+  replace_na(list(repetition = "new")) %>%
   mutate(interval = recode(phase_id,
 			   "1" = "immediate",
 			   "2" = "1 day",
@@ -89,10 +89,12 @@ statements_pre <- read_csv("stimulus_topicCategorisations.csv",
 statements <- statements_pre %>%
   select(stim_id, statement, actual_truth)
 
-statements_cat <- statements_pre %>%
+stimulus_categories <- statements_pre %>%
   select(stim_id, `1st category`, `2nd category`) %>%
   pivot_longer(-stim_id, names_to = "order", values_to = "category") %>%
-  filter(!is.na(category))
+  filter(!is.na(category)) %>%
+  mutate(choice = as.integer(substr(order, 1, 1))) %>%
+  select(stim_id, choice, category)
 
 ## now write out to separate files
 todo <- plists %>%
@@ -127,3 +129,5 @@ stimulus_materials <- statements %>%
   mutate(stim_id = factor(stim_id))
 
 usethis::use_data(stimulus_materials, overwrite = TRUE)
+
+usethis::use_data(stimulus_categories, overwrite = TRUE)

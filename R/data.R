@@ -1,6 +1,7 @@
 globalVariables(c("clmm_maximal", "NE_exp1", "NE_items",
-                "presentation_lists", "stimulus_conditions",
-                "stimulus_materials", "prolific_headers"))
+                  "presentation_lists", "stimulus_conditions",
+                  "stimulus_categories",
+                  "stimulus_materials", "prolific_headers"))
 
 #' Data from Nadarevic & Erdfelder (2014), Experiment 1
 #'
@@ -98,3 +99,15 @@ globalVariables(c("clmm_maximal", "NE_exp1", "NE_items",
 #'   \item{statement}{The statement.}
 #' }
 "stimulus_materials"
+
+#' Target categories for stimulus items
+#'
+#' A dataset representing the category or categories a stimulus belongs to for the categorization task.
+#'
+#' @format A data frame with 170 observations on 3 variable:
+#' \describe{
+#'   \item{stim_id}{Unique identifier of the stimulus.}
+#'   \item{choice}{Category number, allows for more than one correct categorization.}
+#'   \item{category}{Name of category.}
+#' }
+"stimulus_categories"
