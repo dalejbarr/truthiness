@@ -80,8 +80,19 @@ stopifnot(setequal(test_cond %>%
 ## ok if we've got this far, we've passed all the tests. write it out
 write_csv(plists, "presentation_lists.csv")
 
-statements <- read_csv("stimulus_materials.csv",
-		       col_types = "icl")
+## statements_old <- read_csv("stimulus_materials.csv",
+##                            col_types = "icl")
+
+statements_pre <- read_csv("stimulus_topicCategorisations.csv",
+                           col_types = "iclcc")
+
+statements <- statements_pre %>%
+  select(stim_id, statement, actual_truth)
+
+statements_cat <- statements_pre %>%
+  select(stim_id, `1st category`, `2nd category`) %>%
+  pivot_longer(-stim_id, names_to = "order", values_to = "category") %>%
+  filter(!is.na(category))
 
 ## now write out to separate files
 todo <- plists %>%
