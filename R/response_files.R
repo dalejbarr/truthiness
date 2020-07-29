@@ -19,7 +19,6 @@ check_fake <- function(path) {
 }
 
 make_response_file <- function(data, segment_id, subj_data, idata, path) {
-  browser()
   id <- as.integer(strsplit(segment_id, "\\.")[[1]])
   names(id) <- c("L", "P")
   pad_string <- "xxxx"
@@ -66,9 +65,8 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
   plists3 <- tidyr::crossing(jtib[, "subj_id"],
                              plists2[, c("task_id")])
   plists3[["score"]] <- sample(
-    c("0 Not at all interesting",
-      1:9,
-      "10 Completely interesting"), nrow(plists3), TRUE)
+    levels(truthiness::stimulus_categories[["category"]]),
+    nrow(plists3), TRUE)
   this_idata <-
     tidyr::pivot_wider(plists3,
                        names_from = "task_id",
@@ -77,7 +75,7 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
   
   ftbl <- dplyr::inner_join(jtib, extra, "subj_id") %>%
     dplyr::inner_join(wide_data, "subj_id") %>%
-    dplyr::left_join(this_idata[, c("subj_id", tord)], "subj_id") %>%
+    dplyr::left_join(this_idata, c("subj_id", tord), "subj_id") %>%
     dplyr::inner_join(rtib, "subj_id")
   ftbl[["PROLIFIC_PID"]] <- ftbl[["PID"]]
 
