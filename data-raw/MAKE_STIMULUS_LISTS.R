@@ -38,7 +38,10 @@ plists <- bind_rows(interest_list, truth_list) %>%
   mutate(order = map(data, ~sample(seq_len(nrow(.x))))) %>%
   unnest(c(data, order)) %>%
   arrange(list_id, phase_id, task, order) %>%
-  select(phase_id, list_id, everything())
+  select(phase_id, list_id, everything()) %>%
+  mutate(phase_id = factor(phase_id),
+         list_id = factor(list_id),
+         stim_id = factor(stim_id))
 
 ## run some tests
 
