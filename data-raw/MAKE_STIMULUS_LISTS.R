@@ -132,3 +132,6 @@ stimulus_materials <- statements %>%
 usethis::use_data(stimulus_materials, overwrite = TRUE)
 
 usethis::use_data(stimulus_categories, overwrite = TRUE)
+
+presentation_lists <- plists
+usethis::use_data(presentation_lists, overwrite = TRUE)
