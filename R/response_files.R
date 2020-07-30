@@ -72,10 +72,10 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
                        names_from = "task_id",
                        values_from = "score")
   tord <- as.character(plists2[["task_id"]])
-  
+
   ftbl <- dplyr::inner_join(jtib, extra, "subj_id") %>%
     dplyr::inner_join(wide_data, "subj_id") %>%
-    dplyr::left_join(this_idata, c("subj_id", tord), "subj_id") %>%
+    dplyr::left_join(this_idata[, c("subj_id", tord)], "subj_id") %>%
     dplyr::inner_join(rtib, "subj_id")
   ftbl[["PROLIFIC_PID"]] <- ftbl[["PID"]]
 
@@ -89,7 +89,6 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
     ftbl[i, wide_cnames] <- as.character(sample(1:7, 1))
   }
 
-  browser()
   tt <- respfile_headers[["head_cols"]]
   zz <- respfile_headers[["tail_cols"]]
   if (id[["P"]] == 1L) {
