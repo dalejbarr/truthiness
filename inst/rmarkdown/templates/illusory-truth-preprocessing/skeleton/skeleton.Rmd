@@ -9,7 +9,7 @@ output:
     df_print: paged
 params:
   subdir: ""
-  anondir: ""
+  anondir: "anon-files"
 ---
 
 <style>
@@ -32,27 +32,23 @@ if (is.null(params$anondir) || (params$anondir == "")) {
   stop("You need to specify the subdirectory for the anonymized data")
 }
 
-if (!dir.exists(params$anondir)) {
-  stop("subdirectory '", params$anondir, "' does not exist")
-}
-
+library("truthiness")
+library("tidyverse")
 ```
 
 Importing data from files in subdirectory ``r params$subdir``.
 
 ```{r preprocess-manual-exclusions, results = 'asis'}
-library("truthiness")
-library("tidyverse")
 
 ## pretty print big integers
 .pi <- function(x) prettyNum(x, big.mark=',')
 
 ## check for manual exclusions
 man_exclude_part_fname <- paste0(basename(params$anondir),
-                                 "_manually_exclude_participants.csv")
+                                 "/manually_exclude_participants.csv")
 
 man_exclude_phs_fname <- paste0(basename(params$anondir),
-                                 "_manually_exclude_phases.csv")
+                                 "/manually_exclude_phases.csv")
 
 if (file.exists(man_exclude_part_fname)) {
   man_exclude_part <- read_csv(man_exclude_part_fname, col_types = "cc")
@@ -101,12 +97,12 @@ private_phase_fname <- paste0(basename(params$anondir),
                               "_NOT_ANONYMIZED_phases.rds")
 report_fname <- paste0(basename(params$anondir), "_preprocessing_report.html")
 
-params$anondir <- normalize_path(params$anondir) # no trailing slash
-if (dir.exists(params$anondir)) {
-  unlink(params$anondir, TRUE, TRUE)
+anondir <- normalize_path(params$anondir) # no trailing slash
+if (dir.exists(anondir)) {
+  unlink(anondir, TRUE, TRUE)
 }
-dir.create(params$anondir)
-if (check_fake(params$subdir)) {flag_fake(params$anondir)}
+dir.create(anondir)
+if (check_fake(params$subdir)) {flag_fake(anondir)}
 
 sess <- import_sessions(params$subdir)
 phase <- import_phase_info(params$subdir)
@@ -221,8 +217,8 @@ phase_keep <- semi_join(phase_man,
 
 `r warn(params$subdir)`
 
-The raw data files contain `r .pi(nrow(ratings))` truth ratings of `r
-.pi(n_item)` statements from `r .pi(nrow(sess))` participants.
+The raw data files contain `r .pi(nrow(ratings))` truth ratings of 
+`r .pi(n_item)` statements from `r .pi(nrow(sess))` participants.
 
 ## Participant-level exclusions
 
@@ -310,7 +306,7 @@ phase_keep %>%
   DT::datatable()
 ```
 
-```{r anonymize, eval = (complete_data), results = 'asis'}
+```{r anonymize, results = 'asis'}
 ## if we have all phase data, anonymize
 sess_keep[["ID"]] <- sprintf("S%04d", sample(seq_len(nrow(sess_consent))))
 share_cols <- c("list_id",
@@ -380,19 +376,19 @@ saveRDS(phase_private, private_phase_fname)
 cat("\nWrote non-anonymized pre-processed phase data to `",
     private_phase_fname, "`\n", sep = "")  
 
-readr::write_csv(sess_share, file.path(params$anondir, "ANON_sessions.csv"))
-readr::write_csv(phase_share, file.path(params$anondir, "ANON_phases.csv"))
-readr::write_csv(ratings_share, file.path(params$anondir, "ANON_ratings.csv"))
-readr::write_csv(cjudgments_share, file.path(params$anondir, "ANON_cjudgments.csv"))
+readr::write_csv(sess_share, file.path(anondir, "ANON_sessions.csv"))
+readr::write_csv(phase_share, file.path(anondir, "ANON_phases.csv"))
+readr::write_csv(ratings_share, file.path(anondir, "ANON_ratings.csv"))
+readr::write_csv(cjudgments_share, file.path(anondir, "ANON_cjudgments.csv"))
 
 cat("\nWrote anonymized data to files ",
     "`ANON_sessions.csv`, `ANON_phases.csv`, `ANON_ratings.csv`, and ",
-    "`ANON_cjudgments.csv` in subdirectory `", params$anondir, "`.\n", sep = "")
+    "`ANON_cjudgments.csv` in subdirectory `", anondir, "`.\n", sep = "")
 
 mp_outfile1 <-
-  file.path(basename(params$anondir), "manually_exclude_participants.csv")
+  file.path(basename(anondir), "manually_exclude_participants.csv")
 mp_outfile2 <- 
-  file.path(basename(params$anondir), "manually_exclude_phases.csv")
+  file.path(basename(anondir), "manually_exclude_phases.csv")
 
 write_csv(man_exclude_part, mp_outfile1)
 write_csv(man_exclude_phs, mp_outfile2)

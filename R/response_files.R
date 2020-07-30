@@ -1,7 +1,19 @@
+#' Get rid of trailing slash
+#' 
+#' @param path Directory name.
+#' 
+#' @return Directory \code{name} without a trailing slash.
+#' 
+#' @export
 normalize_path <- function(path) {
   sub("/$", "", path)
 }
 
+#' Flag the subdirectory as having simulated data
+#' 
+#' @param path Path to subdirectory.
+#' 
+#' @export
 flag_fake <- function(path) {
   writeLines(" ",
              file.path(normalize_path(path), ".fake"))
@@ -315,8 +327,9 @@ simulate_resp_files <- function(nsubj,
                     Q2_4 = sample(1:5, nsubj, TRUE),
                     Q2_5 = sample(1:5, nsubj, TRUE))
 
+  plists <- truthiness::presentation_lists
   tpres <-
-    presentation_lists[presentation_lists[["task"]] == "truth",
+    plists[plists[["task"]] == "truth",
                        c("phase_id", "list_id", "stim_id",
                          "task_id", "order")]
 
@@ -340,8 +353,9 @@ simulate_resp_files <- function(nsubj,
   ## make categorization data
   irate <- dat[dat[["repetition"]] == "repeated",
                c("subj_id", "list_id", "stim_id")]
-  irate[["trating"]] <- sample(levels(stimulus_categories[["category"]]),
-                               nrow(irate), TRUE)
+  irate[["trating"]] <- sample(levels(
+    truthiness::stimulus_categories[["category"]]),
+    nrow(irate), TRUE)
   irate[["task"]] <- sprintf("CJ%03d", irate[["stim_id"]])
 
   ilists <-
@@ -365,8 +379,9 @@ simulate_resp_files <- function(nsubj,
 #' @export
 simulate_category_guess <- function(nruns = 10000) {
   simcorr <- replicate(nruns, {
-    categories <- levels(stimulus_categories[["category"]])
-    rtbl <- data.frame(stim_id = sort(unique(stimulus_categories[["stim_id"]])))
+    categories <- levels(truthiness::stimulus_categories[["category"]])
+    rtbl <- data.frame(
+      stim_id = sort(unique(truthiness::stimulus_categories[["stim_id"]])))
     rtbl[["response"]] <- sample(categories, nrow(rtbl), TRUE)
     rtbl_chk <- dplyr::left_join(rtbl, stimulus_categories,
                                  c("stim_id", "response" = "category"))
