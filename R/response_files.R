@@ -60,7 +60,7 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
 
   plists <- truthiness::presentation_lists
   plists2 <-
-    plists[plists[["task"]] == "interest" &
+    plists[plists[["task"]] == "categorization" &
 	   as.integer(plists[["list_id"]]) == id[["L"]],]
   plists3 <- tidyr::crossing(jtib[, "subj_id"],
                              plists2[, c("task_id")])
@@ -337,7 +337,7 @@ simulate_resp_files <- function(nsubj,
 
   df1 <- split(df1, list(df1[["list_id"]], df1[["phase_id"]]))
 
-  ## make interest rating data
+  ## make categorization data
   irate <- dat[dat[["repetition"]] == "repeated",
                c("subj_id", "list_id", "stim_id")]
   irate[["trating"]] <- sample(levels(stimulus_categories[["category"]]),
