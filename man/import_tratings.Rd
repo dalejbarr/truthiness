@@ -10,7 +10,7 @@ import_tratings(path)
 \item{path}{Directory containing response files.}
 }
 \value{
-A table with the interest ratings data.
+A table with the truth rating data.
 }
 \description{
 Import Truth Ratings From Multiple Files

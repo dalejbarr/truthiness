@@ -11,7 +11,7 @@ scrape_cols <- function(path, cols) {
   df[, cols]
 }
 
-#' Read Interest Ratings From Response File
+#' Read Category Judgments From Response File
 #'
 #' Reads in the interest ratings from a single response file.
 #'
@@ -20,23 +20,26 @@ scrape_cols <- function(path, cols) {
 #' @return A long table with the interest ratings.
 #'
 #' @export
-read_iratings <- function(path) {
+read_cjudgments <- function(path) {
+
   if (!grepl(rfiles_iregex, basename(path))) {
     stop("Filename '", path,
-	 "' not recognized as file that contains interest ratings")
+	 "' not recognized as file that contains category judgments")
   }
-  cnames <- grep("^IN[0-9]{3}$", get_varnames(path), value = TRUE)
+  cnames <- grep("^CJ[0-9]{3}$", get_varnames(path), value = TRUE)
   idat <- scrape_cols(path, c("PID", cnames))
-  df <- tidyr::pivot_longer(idat, -PID, "stim_code", values_to = "irating")
-  valid <- grepl("^[0-9]{1,2}", df[["irating"]])
+  df <- tidyr::pivot_longer(idat, -PID, "stim_code", values_to = "category")
+  valid <- sapply(df[["category"]], function(.x) {
+    .x %in% levels(truthiness::stimulus_categories[["category"]])
+  }, USE.NAMES = FALSE)
   if (!all(valid)) {
-    stop("invalid interest rating in file'", basename(path),
+    stop("invalid category judgment in file'", basename(path),
          "' at line(s) ",
          paste(which(!valid), collapse = ", "))
   }
-  df[["stim_id"]] <- as.factor(as.integer(sub("^IN", "", df[["stim_code"]])))
-  df[["irating"]] <- sub("^([0-9]{1,2})\\s.+", "\\1", df[["irating"]])
-  df[["irating"]] <- as.integer(df[["irating"]])
+  df[["stim_id"]] <- as.factor(as.integer(sub("^CJ", "", df[["stim_code"]])))
+  df[["category"]] <- factor(df[["category"]],
+                             levels = levels(truthiness::stimulus_categories[["category"]]))
   df
 }
 
@@ -81,7 +84,7 @@ read_tratings <- function(path) {
 read_sessions <- function(path) {
   vnames <- get_varnames(path)
   tnames <- grep("^TR[0-9]{3}$", vnames, value = TRUE)
-  inames <- grep("^IN[0-9]{3}$", vnames, value = TRUE)
+  inames <- grep("^CJ[0-9]{3}$", vnames, value = TRUE)
   idat <- scrape_cols(path, setdiff(vnames, c(tnames, inames)))
   idat[, c("PID", setdiff(names(idat), "PID"))]
 }
@@ -129,25 +132,25 @@ validate_filenames <- function(path) {
   invisible(TRUE)
 }
 
-#' Import Interest Ratings From Multiple Files
+#' Import Category Judgments From Multiple Files
 #'
 #' @param path Directory containing response files.
 #'
-#' @return A table with the interest ratings data.
+#' @return A table with the category judgment data.
 #' 
 #' @export
-import_iratings <- function(path) {
+import_cjudgments <- function(path) {
   ifiles <- dir(sub("/$", "", path), rfiles_iregex, full.names = TRUE)
   df <- tibble::tibble(fname = ifiles)
-  df[["data"]] <- purrr::map(df[["fname"]], read_iratings)
-  tidyr::unnest(df, c(data))[, c("PID", "stim_id", "irating")]
+  df[["data"]] <- purrr::map(df[["fname"]], read_cjudgments)
+  tidyr::unnest(df, c(data))[, c("PID", "stim_id", "category")]
 }
 
 #' Import Truth Ratings From Multiple Files
 #'
 #' @param path Directory containing response files.
 #'
-#' @return A table with the interest ratings data.
+#' @return A table with the truth rating data.
 #' 
 #' @export
 import_tratings <- function(path) {
@@ -248,8 +251,6 @@ import_phase_info <- function(path) {
 #'
 #' @param overwrite Whether to overwrite the anonymized data.
 #'
-#' @param browse Whether to open the preprocessing report upon exit.
-#'
 #' @return Path where the files were written (\code{outpath}).
 #'
 #' @details Loads in the data from the raw response files and writes
@@ -261,8 +262,7 @@ import_phase_info <- function(path) {
 #' @export
 preprocess <- function(inpath,
                        outpath = paste0("anon-", Sys.Date()),
-                       overwrite = FALSE,
-                       browse = TRUE) {
+                       overwrite = FALSE) {
   private_sess_fname <- paste0(basename(outpath), "_NOT_ANONYMIZED_sessions.rds")
   private_phase_fname <- paste0(basename(outpath), "_NOT_ANONYMIZED_phases.rds")
   report_fname <- paste0(basename(outpath), "_preprocessing_report.html")
@@ -286,7 +286,7 @@ preprocess <- function(inpath,
   sess <- import_sessions(inpath)
   phase <- import_phase_info(inpath)
   ratings <- import_tratings(inpath)
-  interest <- import_iratings(inpath)
+  catjudgments <- import_cjudgments(inpath)
 
   ## destroy data from non-consenting participants
   sess_consent <- sess %>%
@@ -350,10 +350,10 @@ preprocess <- function(inpath,
     tidyr::replace_na(list(chk_dur_all = TRUE))
 
   ## now find any flatliners
-  ## interest scores
-  ispt <- split(interest[["irating"]], interest[["PID"]])
+  ## category judgments
+  ispt <- split(catjudgments[["category"]], catjudgments[["PID"]])
   res <- sapply(ispt, function(.x) {length(unique(.x)) == 1L})
-  flat_interest <- names(res)[res]
+  flat_catjudgments <- names(res)[res]
     
   ## truth ratings
   tspt <- split(ratings[["trating"]],
@@ -362,7 +362,7 @@ preprocess <- function(inpath,
   flat_truth <- unique(sapply(names(res)[res],
                               function(.x) {strsplit(.x, ",")[[1]][1]},
                               USE.NAMES = FALSE))
-  flatliners <- union(flat_interest, flat_truth)
+  flatliners <- union(flat_catjudgments, flat_truth)
 
   sess_keep <- sess_dur %>%
     dplyr::mutate(chk_flatline = !(PID %in% flatliners))
@@ -411,7 +411,7 @@ preprocess <- function(inpath,
     ratings2[, c("ID", "phase_id", "stim_id", "trating")] %>%
     dplyr::arrange(ID, phase_id, stim_id)
 
-  interest2 <- interest %>%
+  catjudge2 <- catjudgments %>%
     dplyr::group_by(PID) %>%
     dplyr::ungroup() %>%
     dplyr::semi_join(sess_consent, "PID") %>%
@@ -420,7 +420,7 @@ preprocess <- function(inpath,
     dplyr::inner_join(phase_private %>% dplyr::filter(phase_id == 1L) %>%
                       dplyr::select("PID", "ID"), "PID")
 
-  interest_share <- interest2[, c("ID", "stim_id", "irating")] %>%
+  cat_share <- catjudge2[, c("ID", "stim_id", "category")] %>%
     dplyr::arrange(ID, stim_id)
 
   saveRDS(sess_private, private_sess_fname)
@@ -432,10 +432,10 @@ preprocess <- function(inpath,
   readr::write_csv(sess_share, file.path(outpath, "ANON_sessions.csv"))
   readr::write_csv(phase_share, file.path(outpath, "ANON_phases.csv"))
   readr::write_csv(ratings_share, file.path(outpath, "ANON_ratings.csv"))
-  readr::write_csv(interest_share, file.path(outpath, "ANON_interest.csv"))
+  readr::write_csv(cat_share, file.path(outpath, "ANON_categories.csv"))
   message("Wrote anonymized data to files ",
           "ANON_sessions.csv, ANON_phases.csv, ANON_ratings.csv, and ",
-          "ANON_interest.csv in subdirectory '", outpath, "'")
+          "ANON_categories.csv in subdirectory '", outpath, "'")
   par_exclude <- tibble::tibble(ID = character(0), reason = character(0))
   phs_exclude <- tibble::tibble(ID = character(0), phase_id = integer(0),
                                 reason = character(0))
