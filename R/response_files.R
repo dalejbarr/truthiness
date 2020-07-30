@@ -86,10 +86,10 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
   ## repeaters
   rtodo <- which(ftbl[["repeater"]])
   for (i in rtodo) {
-    ftbl[i, wide_cnames] <- factor(rep(sample(1:7, 1), length(wide_cnames)),
-                                   levels = 1:7, ordered = TRUE)
+    ftbl[i, wide_cnames] <- as.character(sample(1:7, 1))
   }
 
+  browser()
   tt <- respfile_headers[["head_cols"]]
   zz <- respfile_headers[["tail_cols"]]
   if (id[["P"]] == 1L) {
