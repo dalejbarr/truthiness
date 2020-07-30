@@ -87,10 +87,10 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
   ## repeaters
   rtodo <- which(ftbl[["repeater"]])
   for (i in rtodo) {
-    ftbl[i, wide_cnames] <- factor(rep(sample(1:7, 1), length(wide_cnames)),
-                                   levels = 1:7, ordered = TRUE)
+    ftbl[i, wide_cnames] <- as.character(sample(1:7, 1))
   }
 
+  browser()
   tt <- respfile_headers[["head_cols"]]
   zz <- respfile_headers[["tail_cols"]]
   if (id[["P"]] == 1L) {
@@ -345,7 +345,7 @@ simulate_resp_files <- function(nsubj,
   irate[["trating"]] <- sample(c("0 Not at all interesting", 1:9,
                                  "10 Completely interesting"),
                                nrow(irate), TRUE)
-  irate[["task"]] <- sprintf("IN%03d", irate[["stim_id"]])
+  irate[["task"]] <- sprintf("CJ%03d", irate[["stim_id"]])
 
   ilists <-
     split(irate[, c("subj_id", "task", "trating")],
