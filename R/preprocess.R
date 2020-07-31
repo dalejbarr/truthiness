@@ -271,10 +271,12 @@ preprocess <- function(path,
   infile <- rmarkdown::draft(tf, "illusory-truth-preprocessing", "truthiness",
                              FALSE, FALSE)
   message("Pre-processing data in '", path, "'")
-  ofile <- rmarkdown::render(infile, output_file = report,
+  ofile <- rmarkdown::render(infile,
+                             output_file = file.path(getwd(), report),
                              knit_root_dir = getwd(),
-                             output_dir = dirname(outpath),
+                             output_dir = NULL,
                              params = list(subdir = path,
                                            anondir = outpath))
-  invisible(ofile)  
+  file.copy(ofile, report)
+  invisible(report)  
 }
