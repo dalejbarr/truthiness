@@ -245,12 +245,12 @@ import_phase_info <- function(path) {
 
 #' Pre-process and Anonymize Response Data
 #'
-#' @param inpath Path to the directory containing raw response files.
+#' @param path Path to the directory containing raw response files.
 #'
 #' @param outpath Path to the directory where anonymized data will be saved.
 #'
-#' @param overwrite Whether to overwrite the anonymized data.
-#'
+#' @param report Filename of the HTML preprocessing report.
+#' 
 #' @return Path where the files were written (\code{outpath}).
 #'
 #' @details Loads in the data from the raw response files and writes
@@ -260,189 +260,21 @@ import_phase_info <- function(path) {
 #'   described by the function \code{\link{codebook}}.
 #' 
 #' @export
-preprocess <- function(inpath,
+preprocess <- function(path,
                        outpath = paste0("anon-", Sys.Date()),
-                       overwrite = FALSE) {
-  private_sess_fname <- paste0(basename(outpath), "_NOT_ANONYMIZED_sessions.rds")
-  private_phase_fname <- paste0(basename(outpath), "_NOT_ANONYMIZED_phases.rds")
-  report_fname <- paste0(basename(outpath), "_preprocessing_report.html")
-  outpath <- normalize_path(outpath) # no trailing slash
-  if (dir.exists(outpath)) {
-    if (overwrite) {
-      unlink(outpath, TRUE, TRUE)
-    } else {
-      stop("output directory '", outpath, "' exists and overwrite = FALSE")
-    }
-  }
-  dir.create(outpath)
-  if (check_fake(inpath)) {flag_fake(outpath)}
-  if (file.exists(private_sess_fname) && !overwrite)
-    stop("File '", private_sess_fname, "' exists and overwrite = FALSE")
-  if (file.exists(private_phase_fname) && !overwrite)
-    stop("File '", private_phase_fname, "' exists and overwrite = FALSE")
-  if (file.exists(report_fname) && !overwrite)
-    stop("File '", report_fname, "' exists and overwrite = FALSE")  
-
-  sess <- import_sessions(inpath)
-  phase <- import_phase_info(inpath)
-  ratings <- import_tratings(inpath)
-  catjudgments <- import_cjudgments(inpath)
-
-  ## destroy data from non-consenting participants
-  sess_consent <- sess %>%
-    dplyr::filter(grepl("^Yes", ConsentAll, ignore.case = TRUE))
-
-  if (nrow(sess) - nrow(sess_consent)) {
-    message("Eliminated data from ",
-            nrow(sess) - nrow(sess_consent),
-            " participants who did not consent to the full study.")
-  }
-  
-  phase2 <- dplyr::semi_join(phase, sess_consent, "PID")
-
-  phase_consent <- phase2 %>%
-    dplyr::filter(grepl("^Yes", Consent, ignore.case = TRUE))
-
-  if (nrow(phase2) - nrow(phase_consent)) {
-    message("Eliminated data from ",
-            nrow(phase2) - nrow(phase_consent),
-            " phases where consent was not provided.")
-  }
-
-  ## remove non-native speakers
-  sess_native <- sess_consent %>%
-    dplyr::mutate(chk_native = grepl("English", nativelang,
-                                     ignore.case = TRUE))
-
-  ## phase-level exclusion: was the phase completed?
-  phase_finished <- phase_consent %>%
-    dplyr::mutate(chk_finished = Finished == "TRUE")
-
-  ## identify anyone who looked up answers; remove them from all phases
-  cheaters <- phase_finished %>%
-    dplyr::filter(grepl("^Yes", cheat, ignore.case = TRUE)) %>%
-    dplyr::distinct(PID) %>%
-    dplyr::mutate(chk_nocheat = FALSE)
-
-  sess_cheat <- sess_native %>%
-    dplyr::left_join(cheaters, "PID") %>%
-    tidyr::replace_na(list(chk_nocheat = TRUE))
-
-  dur_cutoffs <-
-    tibble::tibble(
-              phase_id = factor(1:4, levels = 1:4),
-              min_dur = c(3L * 60L, rep(1L * 60L, 3)),
-              max_dur = c(40L * 60L, rep(30L * 60L, 3)))
-  
-  ## identify participants who were too fast or too slow on *any* phase
-  phase_keep <- phase_finished %>%
-    dplyr::inner_join(dur_cutoffs, "phase_id") %>%
-    dplyr::mutate(chk_dur_phase =
-                    (as.integer(`Duration (in seconds)`) >= min_dur) &
-                    (as.integer(`Duration (in seconds)`) <= max_dur)) %>%
-    dplyr::select(-min_dur, -max_dur)
-
-  sess_dur <- sess_cheat %>%
-    dplyr::left_join(phase_keep %>%
-                     dplyr::filter(!chk_dur_phase) %>%
-                     dplyr::distinct(PID) %>%
-                     dplyr::mutate(chk_dur_all = FALSE), "PID") %>%
-    tidyr::replace_na(list(chk_dur_all = TRUE))
-
-  ## now find any flatliners
-  ## category judgments
-  ispt <- split(catjudgments[["category"]], catjudgments[["PID"]])
-  res <- sapply(ispt, function(.x) {length(unique(.x)) == 1L})
-  flat_catjudgments <- names(res)[res]
-    
-  ## truth ratings
-  tspt <- split(ratings[["trating"]],
-                list(ratings[["PID"]], ratings[["phase_id"]]), sep = ",")
-  res <- sapply(tspt, function(.x) {length(unique(.x)) == 1L})
-  flat_truth <- unique(sapply(names(res)[res],
-                              function(.x) {strsplit(.x, ",")[[1]][1]},
-                              USE.NAMES = FALSE))
-  flatliners <- union(flat_catjudgments, flat_truth)
-
-  sess_keep <- sess_dur %>%
-    dplyr::mutate(chk_flatline = !(PID %in% flatliners))
-
-  ## done with participant level + phase level exclusions
-  
-  ## use phase_keep and sess_keep
-
-  ## if we have all phase data, anonymize
-  sess_keep[["ID"]] <- sprintf("S%04d", sample(seq_len(nrow(sess_consent))))
-  share_cols <- c("list_id",
-                  "age", "gender", "nationality", "nativelang",
-                  "chk_native", "chk_nocheat", "chk_dur_all", "chk_flatline")
-  sess_private <- sess_keep[, c("PID", "ID",
-                                setdiff(names(sess_keep),
-                                        c("PID", "ID", "ConsentAll",
-                                          share_cols)))]
-  sess_share <- sess_keep[, c("ID", share_cols)] %>%
-    dplyr::arrange(ID)
-
-  pshare_cols <- c("phase_id", "Duration (in seconds)", "chk_finished",
-                   "chk_dur_phase")
-  pkeep <- phase_keep %>%
-    dplyr::inner_join(sess_private[, c("ID", "PID")], "PID")
-
-  phase_share <- pkeep[, c("ID", pshare_cols)] %>%
-    dplyr::arrange(ID, phase_id)
-  colnames(phase_share)[colnames(phase_share) == "Duration (in seconds)"] <-
-    "duration_secs"
-
-  phase_private <- pkeep[, c("PID", "ID", "phase_id",
-                             setdiff(names(phase_keep),
-                                     c("PID", "ID", "phase_id", "list_id",
-                                       "Duration (in seconds)",
-                                       pshare_cols)))]
-
-  ratings2 <- ratings %>%
-    dplyr::group_by(PID, phase_id) %>%
-    dplyr::ungroup() %>%
-    dplyr::semi_join(sess_consent, "PID") %>%
-    dplyr::semi_join(phase_consent, c("PID", "phase_id")) %>%
-    dplyr::inner_join(phase_private[, c("PID", "ID", "phase_id")],
-               c("PID", "phase_id"))
-
-  ratings_share <-
-    ratings2[, c("ID", "phase_id", "stim_id", "trating")] %>%
-    dplyr::arrange(ID, phase_id, stim_id)
-
-  catjudge2 <- catjudgments %>%
-    dplyr::group_by(PID) %>%
-    dplyr::ungroup() %>%
-    dplyr::semi_join(sess_consent, "PID") %>%
-    dplyr::semi_join(phase_consent %>%
-                     dplyr::filter(phase_id == 1L), "PID") %>%
-    dplyr::inner_join(phase_private %>% dplyr::filter(phase_id == 1L) %>%
-                      dplyr::select("PID", "ID"), "PID")
-
-  cat_share <- catjudge2[, c("ID", "stim_id", "category")] %>%
-    dplyr::arrange(ID, stim_id)
-
-  saveRDS(sess_private, private_sess_fname)
-  message("Wrote non-anonymized pre-processed session data to '",
-          private_sess_fname, "'")
-  saveRDS(phase_private, private_phase_fname)
-  message("Wrote non-anonymized pre-processed phase data to '",
-          private_phase_fname, "'")  
-  readr::write_csv(sess_share, file.path(outpath, "ANON_sessions.csv"))
-  readr::write_csv(phase_share, file.path(outpath, "ANON_phases.csv"))
-  readr::write_csv(ratings_share, file.path(outpath, "ANON_ratings.csv"))
-  readr::write_csv(cat_share, file.path(outpath, "ANON_categories.csv"))
-  message("Wrote anonymized data to files ",
-          "ANON_sessions.csv, ANON_phases.csv, ANON_ratings.csv, and ",
-          "ANON_categories.csv in subdirectory '", outpath, "'")
-  par_exclude <- tibble::tibble(ID = character(0), reason = character(0))
-  phs_exclude <- tibble::tibble(ID = character(0), phase_id = integer(0),
-                                reason = character(0))
-  readr::write_csv(par_exclude, file.path(outpath,
-                                          "exclude_participants.csv"))
-  readr::write_csv(phs_exclude, file.path(outpath,
-                                          "exclude_phases.csv"))
-  message("\nEdit the files 'exclude_participants.csv' and 'exclude_phases.csv' to manually\n", "exclude participants and phases.")
-  invisible(outpath)
+                       report = paste0(basename(outpath),
+                                       "-preprocessing.html")) {
+  path <- normalize_path(path)
+  outpath <- normalize_path(outpath)
+  if (!dir.exists(path)) {stop("directory '", path, "' does not exist")}
+  tf <- tempfile(fileext = ".Rmd")
+  infile <- rmarkdown::draft(tf, "illusory-truth-preprocessing", "truthiness",
+                             FALSE, FALSE)
+  message("Pre-processing data in '", path, "'")
+  ofile <- rmarkdown::render(infile, output_file = report,
+                             knit_root_dir = getwd(),
+                             output_dir = dirname(outpath),
+                             params = list(subdir = path,
+                                           anondir = outpath))
+  invisible(ofile)  
 }
