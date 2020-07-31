@@ -4,19 +4,14 @@
 \alias{power_equiv}
 \title{Power Simulation For Equivalence Test}
 \usage{
-power_equiv(
-  phase_eff,
-  delta,
-  target_effect,
-  nsubj,
-  nruns,
-  outfile = sprintf("\%s_\%s_\%s_\%04d_128_\%05d_\%s_\%d.rds", ifelse(is.null(delta),
-    "model", "equiv"), if (is.null(delta)) {    
-    sprintf("\%0.2f~\%0.2f~\%0.2f~\%0.2f~x.xx", phase_eff[1], phase_eff[2], phase_eff[3],
-    phase_eff[4]) } else {     sprintf("\%0.2f~\%0.2f~\%0.2f~\%0.2f~\%0.2f",
-    phase_eff[1], phase_eff[2], phase_eff[3], phase_eff[4], delta) }, target_effect,
-    nsubj, nruns, Sys.info()[["nodename"]], Sys.getpid())
-)
+power_equiv(phase_eff, delta, target_effect, nsubj, nruns,
+  outfile = sprintf("\%s_\%s_\%s_\%04d_128_\%05d_\%s_\%d.rds",
+  ifelse(is.null(delta), "model", "equiv"), if (is.null(delta)) {    
+  sprintf("\%0.2f~\%0.2f~\%0.2f~\%0.2f~x.xx", phase_eff[1], phase_eff[2],
+  phase_eff[3], phase_eff[4]) } else {    
+  sprintf("\%0.2f~\%0.2f~\%0.2f~\%0.2f~\%0.2f", phase_eff[1], phase_eff[2],
+  phase_eff[3], phase_eff[4], delta) }, target_effect, nsubj, nruns,
+  Sys.info()[["nodename"]], Sys.getpid()))
 }
 \arguments{
 \item{phase_eff}{A four-element vector, each element of which

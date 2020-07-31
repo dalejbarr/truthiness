@@ -4,14 +4,12 @@
 \name{stimulus_materials}
 \alias{stimulus_materials}
 \title{Stimulus materials (statements) used in the experiment.}
-\format{
-A data frame (tibble) with 128 rows and three variables:
+\format{A data frame (tibble) with 128 rows and three variables:
 \describe{
   \item{stim_id}{Unique identifier of the stimulus.}
   \item{actual_truth}{Whether the statement is actually true.}
   \item{statement}{The statement.}
-}
-}
+}}
 \usage{
 stimulus_materials
 }

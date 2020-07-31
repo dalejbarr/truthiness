@@ -4,15 +4,13 @@
 \name{NE_items}
 \alias{NE_items}
 \title{Item information from Nadarevic & Erdfelder (2014)}
-\format{
-A data frame with 176 rows and 4 variables:
+\format{A data frame with 176 rows and 4 variables:
 \describe{
   \item{item_id}{Unique stimulus (statement) identifier.}
   \item{statement}{Statement (in German).}
   \item{set}{Which set the statement belong to, used for counterbalancing.}
   \item{status}{Actual truth of the statement.}
-}
-}
+}}
 \usage{
 NE_items
 }

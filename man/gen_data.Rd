@@ -4,14 +4,11 @@
 \alias{gen_data}
 \title{Simulate truth rating data}
 \usage{
-gen_data(
-  nsubj,
-  phase_eff = rep(0, 4),
+gen_data(nsubj, phase_eff = rep(0, 4),
   thresh = alpha_6_to_7(truthiness::clmm_maximal$alpha),
   subj_rfx = ordinal::VarCorr(truthiness::clmm_maximal)$subj_id,
   item_rfx = ordinal::VarCorr(truthiness::clmm_maximal)$item_id,
-  dropout = c(0.05, 0.1, 0.1)
-)
+  dropout = c(0.05, 0.1, 0.1))
 }
 \arguments{
 \item{nsubj}{Number of subjects. Because of counterbalancing, must

@@ -4,14 +4,15 @@
 \alias{preprocess}
 \title{Pre-process and Anonymize Response Data}
 \usage{
-preprocess(inpath, outpath = paste0("anon-", Sys.Date()), overwrite = FALSE)
+preprocess(path, outpath = paste0("anon-", Sys.Date()),
+  report = paste0(basename(outpath), "-preprocessing.html"))
 }
 \arguments{
-\item{inpath}{Path to the directory containing raw response files.}
+\item{path}{Path to the directory containing raw response files.}
 
 \item{outpath}{Path to the directory where anonymized data will be saved.}
 
-\item{overwrite}{Whether to overwrite the anonymized data.}
+\item{report}{Filename of the HTML preprocessing report.}
 }
 \value{
 Path where the files were written (\code{outpath}).

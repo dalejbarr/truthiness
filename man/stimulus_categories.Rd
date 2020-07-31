@@ -4,14 +4,12 @@
 \name{stimulus_categories}
 \alias{stimulus_categories}
 \title{Target categories for stimulus items}
-\format{
-A data frame with 170 observations on 3 variable:
+\format{A data frame with 170 observations on 3 variable:
 \describe{
   \item{stim_id}{Unique identifier of the stimulus.}
   \item{choice}{Category number, allows for more than one correct categorization.}
   \item{category}{Name of category.}
-}
-}
+}}
 \usage{
 stimulus_categories
 }
