@@ -379,11 +379,11 @@ cat("\nWrote non-anonymized pre-processed phase data to `",
 readr::write_csv(sess_share, file.path(anondir, "ANON_sessions.csv"))
 readr::write_csv(phase_share, file.path(anondir, "ANON_phases.csv"))
 readr::write_csv(ratings_share, file.path(anondir, "ANON_ratings.csv"))
-readr::write_csv(cjudgments_share, file.path(anondir, "ANON_cjudgments.csv"))
+readr::write_csv(cjudgments_share, file.path(anondir, "ANON_categories.csv"))
 
 cat("\nWrote anonymized data to files ",
     "`ANON_sessions.csv`, `ANON_phases.csv`, `ANON_ratings.csv`, and ",
-    "`ANON_cjudgments.csv` in subdirectory `", anondir, "`.\n", sep = "")
+    "`ANON_categories.csv` in subdirectory `", anondir, "`.\n", sep = "")
 
 mp_outfile1 <-
   file.path(basename(anondir), "manually_exclude_participants.csv")

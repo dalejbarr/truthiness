@@ -122,7 +122,7 @@ phase <- read_csv(file.path(params$subdir, "ANON_phases.csv"),
                   col_types = "cfill") %>%
   mutate(phase_id = fct_relevel(phase_id, as.character(1:4)))
 
-cjudgments <- read_csv(file.path(params$subdir, "ANON_cjudgments.csv"),
+cjudgments <- read_csv(file.path(params$subdir, "ANON_categories.csv"),
                      col_types = "cfi") %>%
   mutate(stim_id = fct_relevel(stim_id,
                                levels(stimulus_conditions[["stim_id"]])))
