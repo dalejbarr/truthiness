@@ -4,7 +4,8 @@
 \name{presentation_lists}
 \alias{presentation_lists}
 \title{Lists for counterbalanced stimulus presentation.}
-\format{A data frame (tibble) with 1,536 rows and 6 variables:
+\format{
+A data frame (tibble) with 1,536 rows and 6 variables:
 \describe{
 
   \item{phase_id}{Phase (1-4) in which the stimulus will be presented.}
@@ -19,7 +20,8 @@
   \item{task_id}{Unique identifier of the task/stimulus combination.}
 
   \item{order}{Presentation order within the phase.}
-}}
+}
+}
 \usage{
 presentation_lists
 }

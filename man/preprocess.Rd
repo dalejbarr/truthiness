@@ -4,12 +4,7 @@
 \alias{preprocess}
 \title{Pre-process and Anonymize Response Data}
 \usage{
-preprocess(
-  inpath,
-  outpath = paste0("anon-", Sys.Date()),
-  overwrite = FALSE,
-  browse = TRUE
-)
+preprocess(inpath, outpath = paste0("anon-", Sys.Date()), overwrite = FALSE)
 }
 \arguments{
 \item{inpath}{Path to the directory containing raw response files.}
@@ -17,8 +12,6 @@ preprocess(
 \item{outpath}{Path to the directory where anonymized data will be saved.}
 
 \item{overwrite}{Whether to overwrite the anonymized data.}
-
-\item{browse}{Whether to open the preprocessing report upon exit.}
 }
 \value{
 Path where the files were written (\code{outpath}).

@@ -1,5 +1,5 @@
 ---
-title: "The Trajectory of Truth: Data Preprocessing and Anonymization"
+title: "The Truth Trajectory: Data Preprocessing and Anonymization"
 author: "Emma L. Henderson, Daniel J. Simons, and Dale J. Barr"
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: 
@@ -9,7 +9,7 @@ output:
     df_print: paged
 params:
   subdir: ""
-  anondir: ""
+  anondir: "anon-files"
 ---
 
 <style>
@@ -21,29 +21,34 @@ div.note { background-color:#e6f0ff; border-radius: 5px; padding: 20px; }
 knitr::opts_chunk$set(echo = TRUE)
 
 if (is.null(params$subdir) || (params$subdir == "")) {
-  stop("You need to specify the subdirectory containing the anonymized data")
+  stop("You need to specify the subdirectory containing the raw data")
 }
 
 if (!dir.exists(params$subdir)) {
   stop("subdirectory '", params$subdir, "' does not exist")
 }
+
+if (is.null(params$anondir) || (params$anondir == "")) {
+  stop("You need to specify the subdirectory for the anonymized data")
+}
+
+library("truthiness")
+library("tidyverse")
 ```
 
 Importing data from files in subdirectory ``r params$subdir``.
 
 ```{r preprocess-manual-exclusions, results = 'asis'}
-library("truthiness")
-library("tidyverse")
 
 ## pretty print big integers
 .pi <- function(x) prettyNum(x, big.mark=',')
 
 ## check for manual exclusions
-man_exclude_part_fname <- paste0(basename(params$anondir),
-                                 "_manually_exclude_participants.csv")
+## man_exclude_part_fname <- paste0(basename(params$anondir),
+man_exclude_part_fname <- "manually_exclude_participants.csv"
 
-man_exclude_phs_fname <- paste0(basename(params$anondir),
-                                 "_manually_exclude_phases.csv")
+## man_exclude_phs_fname <- paste0(basename(params$anondir),
+man_exclude_phs_fname <- "manually_exclude_phases.csv"
 
 if (file.exists(man_exclude_part_fname)) {
   man_exclude_part <- read_csv(man_exclude_part_fname, col_types = "cc")
@@ -92,17 +97,17 @@ private_phase_fname <- paste0(basename(params$anondir),
                               "_NOT_ANONYMIZED_phases.rds")
 report_fname <- paste0(basename(params$anondir), "_preprocessing_report.html")
 
-params$anondir <- normalize_path(params$anondir) # no trailing slash
-if (dir.exists(params$anondir)) {
-  unlink(params$anondir, TRUE, TRUE)
+anondir <- normalize_path(params$anondir) # no trailing slash
+if (dir.exists(anondir)) {
+  unlink(anondir, TRUE, TRUE)
 }
-dir.create(params$anondir)
-if (check_fake(params$subdir)) {flag_fake(params$anondir)}
+dir.create(anondir)
+if (check_fake(params$subdir)) {flag_fake(anondir)}
 
 sess <- import_sessions(params$subdir)
 phase <- import_phase_info(params$subdir)
 ratings <- import_tratings(params$subdir)
-interest <- import_iratings(params$subdir)
+cjudgments <- import_cjudgments(params$subdir)
 
 ## destroy data from non-consenting participants
 sess_consent <- sess %>%
@@ -168,10 +173,10 @@ sess_dur <- sess_cheat %>%
   replace_na(list(chk_dur_all = TRUE))
 
 ## now find any flatliners
-## interest scores
-ispt <- split(interest[["irating"]], interest[["PID"]])
+## cjudgments scores
+ispt <- split(cjudgments[["category"]], cjudgments[["PID"]])
 res <- sapply(ispt, function(.x) {length(unique(.x)) == 1L})
-flat_interest <- names(res)[res]
+flat_cjudgments <- names(res)[res]
 
 ## truth ratings
 tspt <- split(ratings[["trating"]],
@@ -180,7 +185,7 @@ res <- sapply(tspt, function(.x) {length(unique(.x)) == 1L})
 flat_truth <- unique(sapply(names(res)[res],
                             function(.x) {strsplit(.x, ",")[[1]][1]},
                             USE.NAMES = FALSE))
-flatliners <- union(flat_interest, flat_truth)
+flatliners <- union(flat_cjudgments, flat_truth)
 
 sess_noflat <- sess_dur %>%
   mutate(chk_noflatline = !(PID %in% flatliners))
@@ -208,12 +213,13 @@ phase_keep <- semi_join(phase_man,
 
 ## done with participant level + phase level exclusions
 ## from here on, use phase_keep and sess_keep
+n_item <- nrow(distinct(ratings, stim_id))
 ```
 
 `r warn(params$subdir)`
 
-The raw data files contain `r .pi(nrow(ratings))` truth ratings of `r
-.pi(n_item)` statements from `r .pi(nrow(sess))` participants.
+The raw data files contain `r .pi(nrow(ratings))` truth ratings of 
+`r .pi(n_item)` statements from `r .pi(nrow(sess))` participants.
 
 ## Participant-level exclusions
 
@@ -280,8 +286,7 @@ tots_phs
 ```
 
 - **STARTING NUMBER OF PHASES: `r .pi(nrow(phase))`**
-- **PHASES DROPPED DUE TO SUBJECT EXCLUSIONS: 
-`r .pi(nrow(phase) - nrow(phase %>% semi_join(sess_keep %>% filter(keep), "PID")))`
+- **PHASES DROPPED DUE TO SUBJECT EXCLUSIONS: `r .pi(nrow(phase) - nrow(phase %>% semi_join(sess_keep %>% filter(keep), "PID")))`**
 - **REMAINING PHASES EXCLUDED FOR ALL REASONS: `r .pi(sum(pull(tots_phs, n)))`**
 - **NUMBER OF REMAINING PHASES: `r .pi(nrow(phase_keep %>% filter(keep)))`**
 
@@ -301,7 +306,7 @@ phase_keep %>%
   DT::datatable()
 ```
 
-```{r anonymize, eval = (complete_data), results = 'asis'}
+```{r anonymize, results = 'asis'}
 ## if we have all phase data, anonymize
 sess_keep[["ID"]] <- sprintf("S%04d", sample(seq_len(nrow(sess_consent))))
 share_cols <- c("list_id",
@@ -352,7 +357,7 @@ ratings_share <-
   ratings2[, c("ID", "phase_id", "stim_id", "trating")] %>%
   arrange(ID, phase_id, stim_id)
 
-interest2 <- interest %>%
+cjudgments2 <- cjudgments %>%
   group_by(PID) %>%
   ungroup() %>%
   semi_join(sess_keep %>% filter(keep), "PID") %>%
@@ -361,7 +366,7 @@ interest2 <- interest %>%
   inner_join(phase_private %>% filter(phase_id == 1L) %>%
                     select("PID", "ID"), "PID")
 
-interest_share <- interest2[, c("ID", "stim_id", "irating")] %>%
+cjudgments_share <- cjudgments2[, c("ID", "stim_id", "category")] %>%
   arrange(ID, stim_id)
 
 saveRDS(sess_private, private_sess_fname)
@@ -371,19 +376,19 @@ saveRDS(phase_private, private_phase_fname)
 cat("\nWrote non-anonymized pre-processed phase data to `",
     private_phase_fname, "`\n", sep = "")  
 
-readr::write_csv(sess_share, file.path(params$anondir, "ANON_sessions.csv"))
-readr::write_csv(phase_share, file.path(params$anondir, "ANON_phases.csv"))
-readr::write_csv(ratings_share, file.path(params$anondir, "ANON_ratings.csv"))
-readr::write_csv(interest_share, file.path(params$anondir, "ANON_interest.csv"))
+readr::write_csv(sess_share, file.path(anondir, "ANON_sessions.csv"))
+readr::write_csv(phase_share, file.path(anondir, "ANON_phases.csv"))
+readr::write_csv(ratings_share, file.path(anondir, "ANON_ratings.csv"))
+readr::write_csv(cjudgments_share, file.path(anondir, "ANON_cjudgments.csv"))
 
 cat("\nWrote anonymized data to files ",
     "`ANON_sessions.csv`, `ANON_phases.csv`, `ANON_ratings.csv`, and ",
-    "`ANON_interest.csv` in subdirectory `", params$anondir, "`.\n", sep = "")
+    "`ANON_cjudgments.csv` in subdirectory `", anondir, "`.\n", sep = "")
 
 mp_outfile1 <-
-  file.path(basename(params$anondir), "manually_exclude_participants.csv")
+  file.path(basename(anondir), "manually_exclude_participants.csv")
 mp_outfile2 <- 
-  file.path(basename(params$anondir), "manually_exclude_phases.csv")
+  file.path(basename(anondir), "manually_exclude_phases.csv")
 
 write_csv(man_exclude_part, mp_outfile1)
 write_csv(man_exclude_phs, mp_outfile2)

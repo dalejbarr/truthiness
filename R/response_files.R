@@ -1,7 +1,19 @@
+#' Get rid of trailing slash
+#' 
+#' @param path Directory name.
+#' 
+#' @return Directory \code{name} without a trailing slash.
+#' 
+#' @export
 normalize_path <- function(path) {
   sub("/$", "", path)
 }
 
+#' Flag the subdirectory as having simulated data
+#' 
+#' @param path Path to subdirectory.
+#' 
+#' @export
 flag_fake <- function(path) {
   writeLines(" ",
              file.path(normalize_path(path), ".fake"))
@@ -60,20 +72,19 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
 
   plists <- truthiness::presentation_lists
   plists2 <-
-    plists[plists[["task"]] == "interest" &
+    plists[plists[["task"]] == "categorization" &
 	   as.integer(plists[["list_id"]]) == id[["L"]],]
   plists3 <- tidyr::crossing(jtib[, "subj_id"],
                              plists2[, c("task_id")])
   plists3[["score"]] <- sample(
-    c("0 Not at all interesting",
-      1:9,
-      "10 Completely interesting"), nrow(plists3), TRUE)
+    levels(truthiness::stimulus_categories[["category"]]),
+    nrow(plists3), TRUE)
   this_idata <-
     tidyr::pivot_wider(plists3,
                        names_from = "task_id",
                        values_from = "score")
   tord <- as.character(plists2[["task_id"]])
-  
+
   ftbl <- dplyr::inner_join(jtib, extra, "subj_id") %>%
     dplyr::inner_join(wide_data, "subj_id") %>%
     dplyr::left_join(this_idata[, c("subj_id", tord)], "subj_id") %>%
@@ -90,7 +101,6 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
     ftbl[i, wide_cnames] <- as.character(sample(1:7, 1))
   }
 
-  browser()
   tt <- respfile_headers[["head_cols"]]
   zz <- respfile_headers[["tail_cols"]]
   if (id[["P"]] == 1L) {
@@ -317,8 +327,9 @@ simulate_resp_files <- function(nsubj,
                     Q2_4 = sample(1:5, nsubj, TRUE),
                     Q2_5 = sample(1:5, nsubj, TRUE))
 
+  plists <- truthiness::presentation_lists
   tpres <-
-    presentation_lists[presentation_lists[["task"]] == "truth",
+    plists[plists[["task"]] == "truth",
                        c("phase_id", "list_id", "stim_id",
                          "task_id", "order")]
 
@@ -339,12 +350,12 @@ simulate_resp_files <- function(nsubj,
 
   df1 <- split(df1, list(df1[["list_id"]], df1[["phase_id"]]))
 
-  ## make interest rating data
+  ## make categorization data
   irate <- dat[dat[["repetition"]] == "repeated",
                c("subj_id", "list_id", "stim_id")]
-  irate[["trating"]] <- sample(c("0 Not at all interesting", 1:9,
-                                 "10 Completely interesting"),
-                               nrow(irate), TRUE)
+  irate[["trating"]] <- sample(levels(
+    truthiness::stimulus_categories[["category"]]),
+    nrow(irate), TRUE)
   irate[["task"]] <- sprintf("CJ%03d", irate[["stim_id"]])
 
   ilists <-
@@ -358,4 +369,23 @@ simulate_resp_files <- function(nsubj,
                             pids, ilists, path))
 }
 
-
+#' Simulate guessing during the categorization task.
+#'
+#' Run simulations tabulating the number correct under guessing in the categorization task.
+#'
+#' @param nruns Number of simulation runs.
+#'
+#' @return A vector of length \code{nruns} with the number of correct guesses.
+#' @export
+simulate_category_guess <- function(nruns = 10000) {
+  simcorr <- replicate(nruns, {
+    categories <- levels(truthiness::stimulus_categories[["category"]])
+    rtbl <- data.frame(
+      stim_id = sort(unique(truthiness::stimulus_categories[["stim_id"]])))
+    rtbl[["response"]] <- sample(categories, nrow(rtbl), TRUE)
+    rtbl_chk <- dplyr::left_join(rtbl, stimulus_categories,
+                                 c("stim_id", "response" = "category"))
+    sum(!is.na(rtbl_chk[["choice"]]))
+  })
+  simcorr
+}

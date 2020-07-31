@@ -4,7 +4,9 @@
 \name{clmm_maximal}
 \alias{clmm_maximal}
 \title{Fitted cumulative mixed model for Nadarevic & Erdfelder data.}
-\format{An object of class "clmm", resulting from a call to the \code{clmm} function in the ordinal package.}
+\format{
+An object of class "clmm", resulting from a call to the \code{clmm} function in the ordinal package.
+}
 \usage{
 clmm_maximal
 }

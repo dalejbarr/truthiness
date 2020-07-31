@@ -1,5 +1,5 @@
 ---
-title: "The Trajectory of Truth: Main Analysis"
+title: "The Truth Trajectory: Main Analysis"
 author: "Emma L. Henderson, Daniel J. Simons, and Dale J. Barr"
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: 
@@ -122,7 +122,7 @@ phase <- read_csv(file.path(params$subdir, "ANON_phases.csv"),
                   col_types = "cfill") %>%
   mutate(phase_id = fct_relevel(phase_id, as.character(1:4)))
 
-interest <- read_csv(file.path(params$subdir, "ANON_interest.csv"),
+cjudgments <- read_csv(file.path(params$subdir, "ANON_cjudgments.csv"),
                      col_types = "cfi") %>%
   mutate(stim_id = fct_relevel(stim_id,
                                levels(stimulus_conditions[["stim_id"]])))
@@ -215,8 +215,8 @@ In total, the exclusion criteria resulted in the removal of
 ratings2 <- ratings %>%
   semi_join(sess_keep0, "ID")
 
-## remove interest ratings while we're at it
-interest2 <- interest %>%
+## remove category judgments while we're at it
+cjudgments2 <- cjudgments %>%
   semi_join(sess_keep0, "ID")
 ```
 
@@ -260,8 +260,8 @@ n_other_phase <- nrow(phase_fin) - nrow(phase_keep)
 ratings_keep <- ratings2 %>%
   semi_join(phase_keep, c("ID", "phase_id")) 
 
-## also remove the interest ratings
-interest_keep <- interest2 %>%
+## also remove the category judgments
+cjudgments_keep <- cjudgments2 %>%
   semi_join(phase_keep %>% filter(phase_id == "1"), "ID")
 ```
 

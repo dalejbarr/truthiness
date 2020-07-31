@@ -1,0 +1,129 @@
+﻿stim_id,statement,actual_truth,1st category,2nd category
+1,The natural red dye in the shells of crustaceans is called xanthophyll.,FALSE,"science, nature & technology",language
+2,Sac fungi belong to the Protista family.,FALSE,"science, nature & technology",
+3,The fourth man on the moon was Charles P. Conrad.,FALSE,history & politics,"science, nature & technology"
+4,The air pump is a French invention.,FALSE,history & politics,"science, nature & technology"
+5,A galactic year takes 2500 terrestrial years.,FALSE,"science, nature & technology",
+6,Socrates was Alexander the Great's teacher.,FALSE,history & politics,
+7,The capital of Madagascar is Toamasina.,FALSE,geography,
+8,Valparaiso is one of Angola's biggest cities.,FALSE,geography,
+9,Parema Lapis is a type of parasite.,FALSE,"science, nature & technology",
+10,Theodore Fontane published his first novel at the age of 35.,FALSE,art & entertainment,history & politics
+11,The Prophet Muhammad worked as a doctor before his religious calling.,FALSE,history & politics,
+12,"According to EU regulations, the volume of an iPhone must not exceed 80 decibels.",FALSE,"science, nature & technology",
+13,11.9% of the earth's surface is 1000 meters above sea level.,FALSE,geography,"science, nature & technology"
+14,Pope Pius IX was Pope Leo XIII's successor.,FALSE,history & politics,
+15,The activity of a radioactive substance is measured in Sievert.,FALSE,"science, nature & technology",
+16,The standard base unit of time is milliseconds.,FALSE,"science, nature & technology",
+17,The casing on the first Apple computer was made of aluminium.,FALSE,"science, nature & technology",
+18,'Cum hoc ergo propter hoc' is an example of syllogistic reasoning.,FALSE,language,
+19,Volcanoes can reach a maximum height of about 5000 metres.,FALSE,"science, nature & technology",geography
+20,The Spanish ex-dictator Francisco Franco was nicknamed 'Conducator'.,FALSE,history & politics,
+21,"According to the WHO, cancer is the leading cause of death.",FALSE,"science, nature & technology",
+22,Androphobia is a fear of other people.,FALSE,language,
+23,The Morda is a river in Germany.,FALSE,geography,"science, nature & technology"
+24,The Barringer Crater is located in the moon's northern hemisphere.,FALSE,"science, nature & technology",geography
+25,The island of Sel belongs to Denmark.,FALSE,geography,history & politics
+26,The Sundra Trench is the deepest ocean trench on Earth.,FALSE,geography,"science, nature & technology"
+27,"In Greece, it is not Friday the 13th that is cursed, but Wednesday the 13th.",FALSE,geography,art & entertainment
+28,Lipid is a term for hydrophilic solids.,FALSE,"science, nature & technology",language
+29,Former UN Secretary General Kofi Annan comes from Nigeria.,FALSE,history & politics,
+30,The Italian flag was designed by Giuseppe Garibaldi.,FALSE,geography,history & politics
+31,The speed at which sound travels is unaffected by temperature.,FALSE,"science, nature & technology",
+32,One of the first German internet search engines was called 'Alcazar'.,FALSE,"science, nature & technology",history & politics
+33,The all-wheel drive was invented in England in 1938.,FALSE,history & politics,"science, nature & technology"
+34,The first UN Secretary-General was Dag Hammarskjöld from Sweden.,FALSE,history & politics,
+35,The Prussian King Augustus I the Strong was nicknamed the Soldier King.,FALSE,history & politics,
+36,The German boxer Henry Maske became world champion in the cruiserweight class.,FALSE,sports ,
+37,'Au rendez-vous des amis' is a painting by August Macke.,FALSE,art & entertainment,
+38,Richard Gere and Cindy Crawford got married in Mexico.,FALSE,art & entertainment,
+39,Gisele Bündchen has a twin brother.,FALSE,art & entertainment,
+40,The sun's photosphere can only be observed through a coronagraph.,FALSE,"science, nature & technology",
+41,The Cocos Islands belong to Indonesia.,FALSE,geography,
+42,Mehndi is the Indian word for Yoga Master.,FALSE,language,
+43,The Lama temple is located in Shanghai.,FALSE,geography,
+44,The Sea of Galilee is the lowest-lying body of standing water on Earth.,FALSE,geography,
+45,The Castle-Taubig Thesis makes predictions about the capacity of a calculating machine.,FALSE,"science, nature & technology",
+46,Ephendios is the Greek god of agriculture.,FALSE,history & politics,
+47,"The last EU country to abolish the death penalty was Spain, in 1996.",FALSE,history & politics,
+48,"Ibo, like Esperanto, is a made-up world language.",FALSE,language,
+49,The first on-board computer for cars was developed in America.,FALSE,"science, nature & technology",
+50,John Wayne's real name was Jonathan Walter Miller.,FALSE,art & entertainment,
+51,The zero meridian runs through the London Borough of Kingston.,FALSE,geography,"science, nature & technology"
+52,Volleyball was invented in Florida.,FALSE,sports ,history & politics
+53,The act of comparison with something impossible is called 'an aberration'.,FALSE,language,
+54,The world's tallest tree is a spruce.,FALSE,"science, nature & technology",
+55,"A swan has about 50,000 feathers on its body.",FALSE,"science, nature & technology",
+56,All clocks in the film 'Pulp Fiction' are set to 4:10.,FALSE,art & entertainment,
+57,Lake Segozero in Russia is the largest lake in Europe.,FALSE,geography,
+58,Ultrasound consists of waves and vibrations below 16 Hertz.,FALSE,"science, nature & technology",
+59,Every odd number greater than two can be the sum of two prime numbers.,FALSE,"science, nature & technology",
+60,The black alder belongs to the beech family.,FALSE,"science, nature & technology",
+61,The Capybara is the largest of all marsupials.,FALSE,"science, nature & technology",
+62,King Charles IV of France was nicknamed 'Charles the Evil'.,FALSE,history & politics,
+63,Jean-Jacques Rousseau was a single father.,FALSE,art & entertainment,history & politics
+64,A system crash on a Mac computer is indicated by a warning triangle.,FALSE,"science, nature & technology",
+65,The peace treaty ending the Franco-German War was signed in Frankfurt.,TRUE,history & politics,
+66,Canada has the world's longest coastline.,TRUE,geography,
+67,"In men, excessive sex drive is not called nymphomania, but satyriasis.",TRUE,language,"science, nature & technology"
+68,Alberto Fujimori served as president of Peru from 1990 − 2000.,TRUE,history & politics,
+69,Tigers not only have striped fur but also striped skin.,TRUE,"science, nature & technology",
+70,The Yukon is the third longest river in the United States.,TRUE,geography,
+71,The mathematician Leonhard Euler's Latin squares were the earliest precursors to Sudoku.,TRUE,"science, nature & technology",history & politics
+72,The band 'Oasis' named itself after a leisure centre.,TRUE,art & entertainment,
+73,"In ancient Roman religion, the Penates were household deities.",TRUE,history & politics,language
+74,Lubaantun is a ruined Mayan city in Belize.,TRUE,geography,history & politics
+75,Manama is the capital of Bahrain.,TRUE,geography,
+76,Bolivia has the highest-altitude seat of government in the world.,TRUE,geography,
+77,The only image that Van Gogh sold during his lifetime was 'The Red Vineyard.',TRUE,art & entertainment,
+78,The Ising model is a mathematical model of ferromagnetism.,TRUE,"science, nature & technology",
+79,The Slavonia was the first ship to use the SOS distress signal.,TRUE,history & politics,"science, nature & technology"
+80,Only about two percent of the world's population is naturally blonde.,TRUE,"science, nature & technology",
+81,'In varietate concordia' is the official motto of the European Union.,TRUE,language,history & politics
+82,The world's biggest cemetery is in Bahrain.,TRUE,geography,
+83,Albert Einstein married his cousin.,TRUE,history & politics,"science, nature & technology"
+84,Sesame seeds come in many different colours.,TRUE,"science, nature & technology",
+85,"In discus, the throwing circle is 2.5m wide.",TRUE,sports ,
+86,The area between the eyebrows is called the Glabella.,TRUE,"science, nature & technology",language
+87,Inorganic pigments are also called 'mineral colours'.,TRUE,"science, nature & technology",language
+88,The national motto of India is 'Truth alone triumphs'.,TRUE,history & politics,language
+89,Early Scholasticism was a movement during the Middle Ages.,TRUE,history & politics,
+90,Jürgen Klinsmann was nicknamed 'Flipper' at Bayern Munich.,TRUE,sports ,
+91,Ecuador has the highest-altitude city with more than a million inhabitants.,TRUE,geography,
+92,John S. Pemberton invented Coca-Cola.,TRUE,history & politics,"science, nature & technology"
+93,James Connolly was the first modern Olympic gold medallist.,TRUE,sports ,history & politics
+94,"According to the book of Genesis, Methuselah was the grandfather of Noah.",TRUE,history & politics,art & entertainment
+95,A chordophone is a musical instrument that makes sound with its strings.,TRUE,art & entertainment,language
+96,Members of the Nazi SS had their blood type tattooed near their armpit.,TRUE,history & politics,
+97,Panarellos are steam wand adaptors on espresso machines.,TRUE,language,"science, nature & technology"
+98,"Blackberries, raspberries, and strawberries belong to the Rose family.",TRUE,"science, nature & technology",
+99,"Mongols put salt, not sugar, in their tea.",TRUE,geography,
+100,The first windmills were built in Persia.,TRUE,history & politics,geography
+101,Herbert Blumer was the leading symbolic interactionist of his time.,TRUE,history & politics,"science, nature & technology"
+102,Semiotics is the philosophical theory of signs.,TRUE,language,
+103,A housefly has a maximum lifespan of 70 days.,TRUE,"science, nature & technology",
+104,The German rock band Tokio Hotel was previously called 'Devilish'.,TRUE,art & entertainment,
+105,Mount Waialeale in Hawaii is one of the rainiest spots on earth.,TRUE,geography,"science, nature & technology"
+106,James Polk was president of the United States from 1845-1849.,TRUE,history & politics,
+107,The Battle of Trafalgar (21 October 1805) was part of the War of the Third Coalition.,TRUE,history & politics,
+108,"Jimi Hendrix was born November 27th, 1942 in Seattle, Washington.",TRUE,art & entertainment,history & politics
+109,Three-coloured cats are almost always female.,TRUE,"science, nature & technology",
+110,The Wandering Spider native to South America is one of the three most poisonous species in the world.,TRUE,"science, nature & technology",
+111,Yasser Arafat fought in the Suez war for the Egyptian army.,TRUE,history & politics,
+112,The Battle of Zama marked the end of the Second Punic war.,TRUE,history & politics,
+113,The film 'Indecent Proposal' won the Golden Raspberry for worst film.,TRUE,art & entertainment,
+114,The first time Italy won the football World Cup was in 1934.,TRUE,sports ,
+115,'The Rite of Spring' is a piece of music by Igor Stravinsky.,TRUE,art & entertainment,
+116,Odin is a major god in most branches of Germanic mythology.,TRUE,history & politics,art & entertainment
+117,Freddie Mercury's real name was Farrokh Bulsara.,TRUE,art & entertainment,
+118,The Swedes were the first to introduce cartons instead of milk bottles.,TRUE,"science, nature & technology",
+119,Pamela Anderson is a Canadian citizen.,TRUE,art & entertainment,
+120,Tokyo is the world's most populous city.,TRUE,geography,
+121,Nauru is the smallest sovereign republic on earth.,TRUE,geography,
+122,The ad-Dahna Desert is in Saudi Arabia.,TRUE,geography,
+123,A polo game is divided into periods of 7.5 minutes called 'chukkas'.,TRUE,sports ,
+124,The exosphere is the uppermost layer of the Earth's atmosphere.,TRUE,"science, nature & technology",language
+125,The name BenQ stands for 'Bringing Enjoyment and Quality to Life',TRUE,"science, nature & technology",language
+126,Female ferrets can die from oestrogen poisoning if they are on heat and do not get pregnant.,TRUE,"science, nature & technology",
+127,The Congo has the largest water flow rate of any river in Africa.,TRUE,geography,"science, nature & technology"
+128,The official language in Uganda is English.,TRUE,language,geography
