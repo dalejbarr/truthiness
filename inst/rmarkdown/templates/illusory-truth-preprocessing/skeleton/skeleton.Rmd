@@ -44,11 +44,11 @@ Importing data from files in subdirectory ``r params$subdir``.
 .pi <- function(x) prettyNum(x, big.mark=',')
 
 ## check for manual exclusions
-man_exclude_part_fname <- paste0(basename(params$anondir),
-                                 "/manually_exclude_participants.csv")
+## man_exclude_part_fname <- paste0(basename(params$anondir),
+man_exclude_part_fname <- "manually_exclude_participants.csv"
 
-man_exclude_phs_fname <- paste0(basename(params$anondir),
-                                 "/manually_exclude_phases.csv")
+## man_exclude_phs_fname <- paste0(basename(params$anondir),
+man_exclude_phs_fname <- "manually_exclude_phases.csv"
 
 if (file.exists(man_exclude_part_fname)) {
   man_exclude_part <- read_csv(man_exclude_part_fname, col_types = "cc")
@@ -213,6 +213,7 @@ phase_keep <- semi_join(phase_man,
 
 ## done with participant level + phase level exclusions
 ## from here on, use phase_keep and sess_keep
+n_item <- nrow(distinct(ratings, stim_id))
 ```
 
 `r warn(params$subdir)`
