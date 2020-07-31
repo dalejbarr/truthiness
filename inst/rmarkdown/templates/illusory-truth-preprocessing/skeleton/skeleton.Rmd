@@ -1,5 +1,5 @@
 ---
-title: "The Trajectory of Truth: Data Preprocessing and Anonymization"
+title: "The Truth Trajectory: Data Preprocessing and Anonymization"
 author: "Emma L. Henderson, Daniel J. Simons, and Dale J. Barr"
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: 
@@ -286,8 +286,7 @@ tots_phs
 ```
 
 - **STARTING NUMBER OF PHASES: `r .pi(nrow(phase))`**
-- **PHASES DROPPED DUE TO SUBJECT EXCLUSIONS: 
-`r .pi(nrow(phase) - nrow(phase %>% semi_join(sess_keep %>% filter(keep), "PID")))`
+- **PHASES DROPPED DUE TO SUBJECT EXCLUSIONS: `r .pi(nrow(phase) - nrow(phase %>% semi_join(sess_keep %>% filter(keep), "PID")))`**
 - **REMAINING PHASES EXCLUDED FOR ALL REASONS: `r .pi(sum(pull(tots_phs, n)))`**
 - **NUMBER OF REMAINING PHASES: `r .pi(nrow(phase_keep %>% filter(keep)))`**
 
