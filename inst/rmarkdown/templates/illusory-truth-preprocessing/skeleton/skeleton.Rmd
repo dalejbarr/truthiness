@@ -384,15 +384,4 @@ readr::write_csv(cjudgments_share, file.path(anondir, "ANON_categories.csv"))
 cat("\nWrote anonymized data to files ",
     "`ANON_sessions.csv`, `ANON_phases.csv`, `ANON_ratings.csv`, and ",
     "`ANON_categories.csv` in subdirectory `", anondir, "`.\n", sep = "")
-
-mp_outfile1 <-
-  file.path(basename(anondir), "manually_exclude_participants.csv")
-mp_outfile2 <- 
-  file.path(basename(anondir), "manually_exclude_phases.csv")
-
-write_csv(man_exclude_part, mp_outfile1)
-write_csv(man_exclude_phs, mp_outfile2)
-          
-cat("\nCopied manual exclusions to `",
-    mp_outfile1, "` and `", mp_outfile2, "`.\n", sep = "")
 ```

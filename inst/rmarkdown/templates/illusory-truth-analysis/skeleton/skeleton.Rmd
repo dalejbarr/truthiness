@@ -111,7 +111,7 @@ For information about the structure of the anonymized data files and stimulus ma
 
 ```{r import, cache=TRUE, cache.path=(cache_dir)}
 sess <- read_csv(file.path(params$subdir, "ANON_sessions.csv"),
-                 col_types = "cfccccllll") %>%
+                 col_types = "cfccccllllllc") %>%
   mutate(list_id = fct_relevel(list_id,
                                levels(stimulus_conditions[["list_id"]])),
          gender = fct_relevel(gender,
@@ -119,11 +119,11 @@ sess <- read_csv(file.path(params$subdir, "ANON_sessions.csv"),
                                 "Gender Variant", "Not Reported")))
 
 phase <- read_csv(file.path(params$subdir, "ANON_phases.csv"),
-                  col_types = "cfill") %>%
+                  col_types = "cfilllc") %>%
   mutate(phase_id = fct_relevel(phase_id, as.character(1:4)))
 
 cjudgments <- read_csv(file.path(params$subdir, "ANON_categories.csv"),
-                     col_types = "cfi") %>%
+                     col_types = "cfc") %>%
   mutate(stim_id = fct_relevel(stim_id,
                                levels(stimulus_conditions[["stim_id"]])))
 
@@ -177,22 +177,14 @@ sess_dur_all <- sess_noflat %>%
 n_dur_out_range <- nrow(sess_noflat) - nrow(sess_dur_all)
 
 ## manual exclusions at the participant level should be stored in the file
-## 'exclusions_participant.csv', created in the pre-processing stage
-pfile <- file.path(basename(params$subdir), "exclude_participants.csv")
-if (!file.exists(pfile)) {
-  warning("File '", pfile, "' not found!")
-  par_exclude <- tibble(ID = character(0), Reason = character(0))
-} else {
-  par_exclude <- read_csv(pfile, col_types = "cc")
-}
-
+## 'manually_exclusions_participants.csv' in the raw data directory
 sess_keep0 <- sess_dur_all %>%
-  anti_join(par_exclude, "ID")
+  filter(chk_notmanex)
 
 n_other_participant <- nrow(sess_dur_all) - nrow(sess_keep0)
 
 n_total <- n_nonnative + n_cheat + n_flatline + n_dur_out_range +
-  n_other_participant
+    n_other_participant
 ```
 
 Applying these criteria resulted in the removal of:
@@ -204,7 +196,10 @@ Applying these criteria resulted in the removal of:
 * `r if (.pi(n_other_participant > 0L)) paste0(n_other_participant, " participants were excluded manually, for the reasons listed below.") else "No participants were excluded for any other reasons."`
 
 ```{r manual-excl1, echo = FALSE, eval = (n_other_participant > 0L)}
-par_exclude %>% knitr::kable()
+sess_keep0 %>%
+  filter(!chk_notmanex) %>%
+  select(ID, reason_for_manual_exclusion) %>%
+    knitr::kable()
 ```
 
 In total, the exclusion criteria resulted in the removal of 
@@ -238,21 +233,8 @@ phase_fin <- phase_trim %>%
 
 n_incomplete <- nrow(phase_trim) - nrow(phase_fin)
 
-## finally, apply phase-level manual exclusions from
-## 'exclusions_phase.csv', created in the pre-processing stage
-pfile <- file.path(basename(params$subdir), "exclude_phases.csv")
-if (!file.exists(pfile)) {
-  warning("File '", pfile, "' not found!")
-  phs_exclude <- tibble(ID = character(0),
-                        phase_id = factor(integer(0), levels = 1:4),
-                        Reason = character(0))
-} else {
-  phs_exclude <- read_csv(pfile, col_types = "cic") %>%
-    mutate(phase_id = factor(phase_id, levels = 1:4))
-}
-
 phase_keep <- phase_fin %>%
-  anti_join(phs_exclude, c("ID", "phase_id"))
+  filter(chk_notmanex)
 
 n_other_phase <- nrow(phase_fin) - nrow(phase_keep)
 
@@ -272,7 +254,9 @@ This criterion resulted in the removal of
 `r if (n_other_phase) paste0("An additional ", n_other_phase, " phases were excluded manually for the following reasons: ")`
 
 ```{r manual-excl2, echo = FALSE, eval = (n_other_phase > 0L)}
-phs_exclude %>%
+phase_fin %>%
+  filter(!chk_notmanex) %>%
+  select(ID, phase_id, reason_for_manual_exclusion) %>%
   knitr::kable()
 ```
 
