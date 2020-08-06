@@ -54,7 +54,7 @@ if (file.exists(man_exclude_part_fname)) {
   man_exclude_part <- read_csv(man_exclude_part_fname, col_types = "cc")
   if (nrow(man_exclude_part)) {
     cat("Read in ", nrow(man_exclude_part), " manual participant exclusions from ",
-        man_exclude_part, "\n", sep = "")
+        man_exclude_part_fname, "\n", sep = "")
   } else {
     cat("No manual exclusions found in the file `",
         man_exclude_part_fname, "`.\n", sep = "")
@@ -73,7 +73,7 @@ if (file.exists(man_exclude_phs_fname)) {
     mutate(phase_id = factor(phase_id, levels = 1:4))
   if (nrow(man_exclude_phs)) {
     cat("Read in ", nrow(man_exclude_phs), " manual phase exclusions from ",
-        man_exclude_phs, "\n", sep = "")
+        man_exclude_phs_fname, "\n", sep = "")
   } else {
     cat("No manual exclusions found in the file `",
         man_exclude_phs_fname, "`.\n", sep = "")
