@@ -4,11 +4,22 @@
 \alias{simulate_resp_files}
 \title{Simulate response data files from the rating study}
 \usage{
-simulate_resp_files(nsubj, phase_eff = c(0, 0, 0, 0), path,
-  overwrite = FALSE, p_too_fast = 0.01, p_too_slow = 0.01,
-  p_incomplete = 0.01, p_cheat = 0.01, p_no_consent_all = 0.01,
-  p_no_consent_phase = 0.01, p_nonnative = 0.01, p_repeater = 0.01,
-  duration_range_1 = c(180, 2400), duration_range_all = c(60, 1800))
+simulate_resp_files(
+  nsubj,
+  phase_eff = c(0, 0, 0, 0),
+  path,
+  overwrite = FALSE,
+  p_too_fast = 0.01,
+  p_too_slow = 0.01,
+  p_incomplete = 0.01,
+  p_cheat = 0.01,
+  p_no_consent_all = 0.01,
+  p_no_consent_phase = 0.01,
+  p_nonnative = 0.01,
+  p_repeater = 0.01,
+  duration_range_1 = c(180, 2400),
+  duration_range_all = c(60, 1800)
+)
 }
 \arguments{
 \item{nsubj}{Number of subjects; must be a multiple of 8.}

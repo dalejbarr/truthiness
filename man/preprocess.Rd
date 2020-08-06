@@ -4,8 +4,11 @@
 \alias{preprocess}
 \title{Pre-process and Anonymize Response Data}
 \usage{
-preprocess(path, outpath = paste0("anon-", Sys.Date()),
-  report = paste0(basename(outpath), "-preprocessing.html"))
+preprocess(
+  path,
+  outpath = paste0("anon-", Sys.Date()),
+  report = paste0(basename(outpath), "-preprocessing.html")
+)
 }
 \arguments{
 \item{path}{Path to the directory containing raw response files.}

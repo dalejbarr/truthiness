@@ -4,8 +4,12 @@
 \alias{reproduce_analysis}
 \title{Reproduce the Master Data Analysis}
 \usage{
-reproduce_analysis(path, outfile = "analysis.html", recipe = FALSE,
-  infile = NULL)
+reproduce_analysis(
+  path,
+  outfile = "analysis.html",
+  recipe = FALSE,
+  infile = NULL
+)
 }
 \arguments{
 \item{path}{Path to the anonymized data files.}

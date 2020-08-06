@@ -4,7 +4,8 @@
 \name{stimulus_conditions}
 \alias{stimulus_conditions}
 \title{Lookup table identifying stimulus conditions across lists.}
-\format{A data frame (tibble) with 1,024 rows and 4 variables:
+\format{
+A data frame (tibble) with 1,024 rows and 4 variables:
 \describe{
 
   \item{list_id}{Unique identifier of stimulus presentation list.}
@@ -18,7 +19,8 @@
   \item{interval}{Interval (phase) in which the truth-rating was
   performed (immediate = 1, 1 day = 2, 1 week = 3, 1 month = 4).}
 
-}}
+}
+}
 \usage{
 stimulus_conditions
 }
