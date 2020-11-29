@@ -115,10 +115,8 @@ sess <- read_csv(file.path(params$subdir, "ANON_sessions.csv"),
   mutate(list_id = fct_relevel(list_id,
                                levels(stimulus_conditions[["list_id"]])),
          gender = fct_relevel(Gender,
-                              c("Female", "Male",
-                                "Gender variant"))) %>%
+                              c("Female", "Male"))) %>%
   select(-Gender)
-##                                "Gender variant", "Not Reported")))
 
 phase <- read_csv(file.path(params$subdir, "ANON_phases.csv"),
                   col_types = "cfilllc") %>%
