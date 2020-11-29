@@ -8,7 +8,7 @@ output:
     code_folding: hide
     df_print: paged
 params:
-  subdir: "."
+  subdir: ""
   anondir: "anon-files"
 ---
 
@@ -87,11 +87,7 @@ if (file.exists(man_exclude_phs_fname)) {
   man_exclude_phs <- read_csv(man_exclude_phs_fname, col_types = "cic") %>%
     mutate(phase_id = factor(phase_id, levels = 1:4))
 }
-
-.allfiles <- paste0("`", paste(locate_data_files(params$subdir), collapse = "`, `"), "`")
 ```
-
-Importing data from the following data files: `r .allfiles`
 
 ```{r preprocess-all}
 ## all the pre-processing is done in this chunk
@@ -106,11 +102,12 @@ if (dir.exists(anondir)) {
   unlink(anondir, TRUE, TRUE)
 }
 dir.create(anondir)
+if (check_fake(params$subdir)) {flag_fake(anondir)}
 
-sess <- import_sessions(params$subdir)
-phase <- import_phase_info(params$subdir)
-ratings <- import_tratings(params$subdir)
-cjudgments <- import_cjudgments(params$subdir)
+sess <- import_sessions_simulated(params$subdir)
+phase <- import_phase_info_simulated(params$subdir)
+ratings <- import_tratings_simulated(params$subdir)
+cjudgments <- import_cjudgments_simulated(params$subdir)
 
 ## destroy data from non-consenting participants
 sess_consent <- sess %>%
@@ -128,7 +125,7 @@ phase_consent <- phase2 %>%
 
 ## remove non-native speakers
 sess_native <- sess_consent %>%
-  mutate(chk_native = grepl("English", NativeLang,
+  mutate(chk_native = grepl("English", nativelang,
                                    ignore.case = TRUE))
 
 ## phase-level exclusion: was the phase completed?
@@ -137,7 +134,7 @@ phase_finished <- phase_consent %>%
 
 ## identify anyone who looked up answers; remove them from all phases
 cheaters <- phase_finished %>%
-  filter(grepl("^Yes", Cheat, ignore.case = TRUE)) %>%
+  filter(grepl("^Yes", cheat, ignore.case = TRUE)) %>%
   distinct(PID) %>%
   mutate(chk_nocheat = FALSE)
 
@@ -299,56 +296,21 @@ tots_phs
 DT::datatable(excluded_phs)
 ```
 
-## Comments
+### Comments
 
 Comments left by participants (if any) will appear below.
 
 ```{r phase-comments}
-if ("Comments" %in% names(sess_keep)) {
-  sess_keep %>%
-    filter(!is.na(Comments)) %>%
-    select(PID, Comments) %>%
-    DT::datatable()
-}
+phase_keep %>%
+  filter(!(comments %in% c("", "xxxx"))) %>%
+  DT::datatable()
 ```
-
-```{r recruit-txt, results = 'asis'}
-## only run this if we have more phases to run
-if (length(locate_data_files(params$subdir)) < 4L) {
-  phases <- as.integer(sub(".*[Pp]([1-4])\\.[Cc][Ss][Vv]$", "\\1",
-                           locate_data_files(params$subdir)))
-  next_phase <- max(phases) + 1L
-
-  cat("\n## Recruitment for phase ", next_phase, "\n\n", sep = "")
-
-  .np <- sess_keep %>%
-    filter(keep) %>%
-    select(PID, list_id) %>%
-    arrange(list_id, PID)
-
-  .of <- paste0("recruitment_phase_", next_phase, ".csv")
-  
-  .np %>%
-    write_csv(.of)
-
-  cat("**List of prolific IDs written to file `", .of, "`**\n", sep = "")
-}
-```
-
-```{r recruit}
-## only run this if we have more phases to run
-if (length(locate_data_files(params$subdir)) < 4L) {
-  DT::datatable(.np)
-}
-```
-
-<!-- rest of this file writes out the anonymized data -->
 
 ```{r anonymize, results = 'asis'}
 ## if we have all phase data, anonymize
 sess_keep[["ID"]] <- sprintf("S%04d", sample(seq_len(nrow(sess_consent))))
 share_cols <- c("list_id",
-                "Age", "Gender", "Nationality", "NativeLang",
+                "age", "gender", "nationality", "nativelang",
                 "chk_consent_all", "chk_native", "chk_nocheat",
                 "chk_dur_all", "chk_noflatline", "chk_notmanex",
                 "keep",
