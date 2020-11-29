@@ -114,11 +114,9 @@ sess <- read_csv(file.path(params$subdir, "ANON_sessions.csv"),
                  col_types = "cfccccllllllc") %>%
   mutate(list_id = fct_relevel(list_id,
                                levels(stimulus_conditions[["list_id"]])),
-         gender = fct_relevel(Gender,
+         gender = fct_relevel(gender,
                               c("Female", "Male",
-                                "Gender variant"))) %>%
-  select(-Gender)
-##                                "Gender variant", "Not Reported")))
+                                "Gender Variant", "Not Reported")))
 
 phase <- read_csv(file.path(params$subdir, "ANON_phases.csv"),
                   col_types = "cfilllc") %>%
@@ -365,7 +363,7 @@ inner_join(excluded, included, c("phase_id", "gender")) %>%
 
 First, let's collapse over interval and look at the means and SDs for repetition.
 
-```{r rep-means-sd, message=FALSE}
+```{r rep-means-sd}
 ratecond %>%
   group_by(repetition) %>%
   summarise(mean = round(mean(trating), 2),
@@ -375,7 +373,7 @@ ratecond %>%
 
 Now let's look at the repetition effects for each interval.
 
-```{r cell-means-sd, message=FALSE}
+```{r cell-means-sd}
 rcagg <- ratecond %>%
   group_by(repetition, interval) %>%
   summarise(mean = round(mean(trating), 2),
