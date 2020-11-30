@@ -88,7 +88,8 @@ if (file.exists(man_exclude_phs_fname)) {
     mutate(phase_id = factor(phase_id, levels = 1:4))
 }
 
-.allfiles <- paste0("`", paste(locate_data_files(params$subdir), collapse = "`, `"), "`")
+.allfiles <- paste0("`", paste(locate_data_files(params$subdir),
+                               collapse = "`, `"), "`")
 ```
 
 Importing data from the following data files: `r .allfiles`
@@ -309,6 +310,50 @@ if ("Comments" %in% names(sess_keep)) {
     filter(!is.na(Comments)) %>%
     select(PID, Comments) %>%
     DT::datatable()
+}
+```
+
+<!-- check dropouts -->
+
+```{r dropouts-sum, message=FALSE}
+if (length(locate_data_files(params$subdir)) > 1L) {
+  phases <- as.integer(sub(".*[Pp]([1-4])\\.[Cc][Ss][Vv]$", "\\1",
+                           locate_data_files(params$subdir)))
+  .this_phase <- max(phases)
+
+  cat("\n## Dropouts\n\n", sep = "")
+
+  .pdat <- phase_keep %>%
+    filter(keep) %>% 
+    semi_join(sess_keep %>% filter(keep), "PID")
+
+  .dout <- .pdat %>%
+    mutate(phi = as.integer(phase_id)) %>%
+    filter(phi < .this_phase) %>%
+    select(PID, phase_id, phi) %>%
+    left_join(.pdat %>%
+              mutate(phi = as.integer(phase_id) - 1L) %>%
+              select(PID, phase_id, phi),
+              c("PID", "phi")) %>%
+    mutate(dropout = is.na(phase_id.y),
+           phase_id = as.integer(phase_id.x) + 1L) %>%
+    select(PID, phase_id, dropout) 
+
+  .p1 <- .pdat %>%
+    filter(phase_id == "1") %>%
+    mutate(phase_id = as.integer(phase_id)) %>%
+    count(phase_id, name = "n_retained")
+  
+  .pall <- .dout %>%
+    group_by(phase_id) %>%
+    summarize(n_invited = n(), n_retained = sum(!dropout),
+              dropout_rate = sprintf("%0.1f%%",
+                                     100 * round((n_invited - n_retained) /
+                                                 n_invited, 3)))
+  
+  bind_rows(.p1, .pall) %>%
+    select(phase_id, n_invited, n_retained, dropout_rate) %>%
+    knitr::kable()
 }
 ```
 
