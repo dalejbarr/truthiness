@@ -315,7 +315,7 @@ if ("Comments" %in% names(sess_keep)) {
 
 <!-- check dropouts -->
 
-```{r dropouts-sum, message=FALSE}
+```{r dropouts-sum, message=FALSE, results = 'asis'}
 if (length(locate_data_files(params$subdir)) > 1L) {
   phases <- as.integer(sub(".*[Pp]([1-4])\\.[Cc][Ss][Vv]$", "\\1",
                            locate_data_files(params$subdir)))
@@ -366,8 +366,9 @@ if (length(locate_data_files(params$subdir)) < 4L) {
 
   cat("\n## Recruitment for phase ", next_phase, "\n\n", sep = "")
 
-  .np <- sess_keep %>%
-    filter(keep) %>%
+  .np <- phase_keep %>%
+    filter(phase_id == max(phases), keep) %>%
+    semi_join(sess_keep %>% filter(keep), "PID") %>%
     select(PID, list_id) %>%
     arrange(list_id, PID)
 

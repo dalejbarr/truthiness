@@ -631,7 +631,7 @@ test(mod_emm, delta = .14, side = "equivalence")$contrasts %>%
 
 To validate the model, we simulate data based on the model fit and plot the distribution of the simulated data against the raw data and cell means. 
 
-```{r validate-model, fig.cap="*Model validation: Plot of observed participant/stimulus means (points) against simulated data distributions (violins) and cell means (black points, line).*", fig.width=10, fig.height = 5, fig.align="center"}
+```{r validate-model, fig.cap="*Model validation: Plot of observed participant/stimulus means (points) against simulated data distributions (violins) and cell means (black points, line).*", fig.width=10, fig.height = 5, fig.align="center", message=FALSE}
 ## let's validate the interaction model (mods[["ix2"]])
 ## by simulating data from the model
 simdat <- function(md, sdat, rdat, mdat) {
@@ -704,7 +704,7 @@ Most of the literature on the illusory truth effect uses the analysis of varianc
 
 `r warn(params$subdir)`
 
-```{r anova}
+```{r anova, message=FALSE}
 ## convert DV to an integer
 ## calculate subject means
 ## fill in missing cells with NA
