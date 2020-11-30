@@ -1,4 +1,4 @@
-name: Illusory Truth Analysis
+name: Illusory Truth Analysis (Simulated)
 description: >
-   Main analysis of the illusory truth project (Henderson, Simons, & Barr)
+   Analysis of simulated data for the illusory truth project (Henderson, Simons, & Barr)
 create_dir: FALSE
