@@ -6,7 +6,7 @@ output:
   html_document:
     df_print: kable
 params:
-  show_stim: FALSE
+  show_stim: TRUE
 ---
 
 # Codebook
@@ -14,12 +14,12 @@ params:
 Below is information about the structure of the anonymized data
 files. These files are:
 
-* **`ANON_sess.csv`** : Information about the experimental sessions
+* **`ANON_sessions.csv`** : Information about the experimental sessions.
 * **`ANON_phases.csv`** : Information about the individual phases of data collection.
 * **`ANON_ratings.csv`** : Truth ratings.
-* **`ANON_interest.csv`** : Interest ratings.
+* **`ANON_categories.csv`** : Categorization judgments from the exposure phase.
 
-## Session information (`ANON_sess.csv`)
+## Session information (`ANON_sessions.csv`)
 
 ```{r sess, echo = FALSE}
 library("tibble")
@@ -28,14 +28,17 @@ library("truthiness")
 tribble(~Variable, ~Description,
         "`ID`", "Unique participant identifier",
         "`list_id`", "Which presentation list the participant received (1-8).",
-        "`age`", "Participant age (years)",
-        "`gender`", "Participant gender (Female, Male, Gender Variant, or Not Reported)",
-        "`nationality`", "Participant nationality",
-        "`nativelang`", "Participant native language",
+        "`Age`", "Participant age (years)",
+        "`Gender`", "Participant gender (Female, Male, Gender variant, or Prefer not to say)",
+        "`Nationality`", "Participant nationality",
+        "`NativeLang`", "Participant native language",
         "`chk_native`", "Whether participant self-identified as a native English speaker",
         "`chk_nocheat`", "Whether participant did not report looking up answer during any phase",
         "`chk_dur_all`", "Whether participant completed all phases within reasonable limits",
-        "`chk_flatline`", "Whether participant did not produce any 'flatline' responses for a single phase (e.g., all ratings of the same response category)")
+        "`chk_noflatline`", "Whether participant did not produce any 'flatline' responses for a single phase (e.g., all ratings of the same response category)",
+        "`chk_notmanex`", "Whether the participant was manually excluded.",
+        "`keep`", "Whether to retain participant's data in the analysis.",
+        "`reason_for_manual_exclusion`", "If the participant has been manually excluded, the reason for doing so; otherwise `NA`")
 ```
 
 ## Phase information (`ANON_phases.csv`)
@@ -46,10 +49,13 @@ tribble(~Variable, ~Description,
         "`phase_id`", "Which phase (1 = immediate, 2 = 1 day, 3 = 1 week, 4 = 1 month)",
         "`duration_secs`", "Total duration of the phase for specific participant/phase combination",
         "`chk_finished`", "Whether all responses were filled in",
-        "`chk_dur_phase`", "Whether the phase was completed within reasonable time limits.")
+        "`chk_dur_phase`", "Whether the phase was completed within reasonable time limits.",
+        "`chk_notmanex`", "Whether the phase for this participant was manually excluded.",
+        "`keep`", "Whether to retain this phase data for this participant in the analysis.",
+        "`reason_for_manual_exclusion`", "If the phase has been manually excluded, the reason for doing so; otherwise `NA`")
 ```
 
-## Truth ratings (`ANON_truth.csv`)
+## Truth ratings (`ANON_ratings.csv`)
 
 ```{r truth, echo = FALSE}
 tribble(~Variable, ~Description,
@@ -60,13 +66,13 @@ tribble(~Variable, ~Description,
         )
 ```
 
-## Interest ratings (`ANON_interest.csv`)
+## Categorization judgments (`ANON_categories.csv`)
 
 ```{r interest, echo = FALSE}
 tribble(~Variable, ~Description,
         "`ID`", "Unique participant identifier",
         "`stim_id`", "Unique stimulus identifier",
-        "`irating`", "Interest rating (0-10), 0 = Not at all interesting, 10 = Completely interesting"
+        "`category`", "Category the participant assigned this statement to."
         )
 ```
 
