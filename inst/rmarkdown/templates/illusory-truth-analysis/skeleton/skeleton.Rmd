@@ -10,6 +10,7 @@ output:
 params:
   subdir: NULL
   recipe: FALSE
+  image:  "analysis.RData"
 bibliography: '`r system.file("refs.bib", package = "truthiness")`'
 ---
 
@@ -651,10 +652,15 @@ p_sort <- order(mod_cont[["p.value"]])
 p_k <- .05 / (4 + 1 - 1:4)
 
 ## get minimal index such that p_k > cutoff
-min_ix <- min(which(mod_cont[["p.value"]][p_sort] > p_k))
+nonsig_ix <- which(mod_cont[["p.value"]][p_sort] > p_k)
 
-reject_null <- rep(FALSE, 4)
-reject_null[seq_len(min_ix - 1L)] <- TRUE
+if (length(nonsig_ix) > 0L) {
+  min_ix <- min(nonsig_ix)
+  reject_null <- rep(FALSE, 4)
+  reject_null[seq_len(min_ix - 1L)] <- TRUE
+} else {
+  reject_null <- rep(TRUE, 4)
+}			     
 
 mod_cont[["reject_null"]][p_sort] <- reject_null
 
@@ -774,8 +780,9 @@ ez::ezANOVA(adata2, dv = mean_rating,
 
 # Session information {#sessinfo}
 
-```{r save-image}
-save.image("analysis.RData")
+```{r save-image, include=FALSE}
+if (!is.null(params$image))
+   save.image(params$image)
 ```
 
 ```{r exit}

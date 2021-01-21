@@ -122,15 +122,6 @@ sess_mult <- sess %>%
   count(PID, name = "sessions") %>%
   filter(sessions > 1L) 
 
-sess_mult
-
-sess_mult %>%
-  inner_join(phase, "PID") %>%
-  select(PID, phase_id, StartDate, EndDate, Finished) %>%
-  arrange(PID, phase_id, StartDate) %>%
-  DT::datatable()
-```
-
 There were `r nrow(sess_mult)` total participants who logged multiple sessions in the system.
 
 ```{r sess-excl}
