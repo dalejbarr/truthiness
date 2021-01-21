@@ -110,8 +110,8 @@ dir.create(anondir)
 
 sess <- import_sessions(params$subdir)
 phase <- import_phase_info(params$subdir)
-ratings <- import_tratings(params$subdir)
-cjudgments <- import_cjudgments(params$subdir)
+ratings_pre <- import_tratings(params$subdir)
+cjudgments_pre <- import_cjudgments(params$subdir)
 ```
 
 ## Participants who logged multiple sessions
@@ -121,15 +121,6 @@ cjudgments <- import_cjudgments(params$subdir)
 sess_mult <- sess %>% 
   count(PID, name = "sessions") %>%
   filter(sessions > 1L) 
-
-sess_mult
-
-sess_mult %>%
-  inner_join(phase, "PID") %>%
-  select(PID, phase_id, StartDate, EndDate, Finished) %>%
-  arrange(PID, phase_id, StartDate) %>%
-  DT::datatable()
-```
 
 There were `r nrow(sess_mult)` total participants who logged multiple sessions in the system.
 
@@ -146,6 +137,15 @@ phase2 <- semi_join(phase,
 phase_consent <- phase2 %>%
   mutate(chk_consent = grepl("^Yes", Consent, ignore.case = TRUE))
 
+ratings <- semi_join(ratings_pre,
+                     sess_consent %>%
+                     filter(chk_consent_all),
+                     "PID")
+
+cjudgments <- semi_join(cjudgments_pre,
+                        sess_consent %>%
+                        filter(chk_consent_all),
+                        "PID")
 
 ## remove non-native speakers
 sess_native <- sess_consent %>%
@@ -250,8 +250,7 @@ sess_keep <- sess_noflat %>%
          reason_for_manual_exclusion)
 
 phase_keep <- semi_join(phase_man,
-                        sess_keep %>%
-                        filter(keep), "PID") %>%
+                        sess_keep %>% filter(chk_consent_all), "PID") %>%
   mutate(keep = chk_consent & chk_finished & chk_notmanex) %>%
   select(!starts_with("reason_for_manual_exclusion"),
          reason_for_manual_exclusion) %>%
@@ -354,7 +353,7 @@ phase %>%
   DT::datatable()
 ```
 
-```{r phase4-comments-header}
+```{r phase4-comments-header, results = 'asis'}
 if ("Comments" %in% names(sess_keep)) {
   cat("### Comments left at end of final phase")
 }
@@ -497,6 +496,15 @@ sess_private <- sess_keep[, c("PID", "ID",
                               setdiff(names(sess_keep),
                                       c("PID", "ID", "ConsentAll",
                                         share_cols)))]
+
+sess_no_dups <- sess_keep %>%
+  count(PID) %>%
+  filter(n == 1L) %>%
+  select(-n) %>%
+  inner_join(sess_keep %>% select(PID, ID, chk_consent_all), "PID") %>%
+  filter(chk_consent_all) %>%
+  select(-chk_consent_all)
+
 sess_share <- sess_keep[, c("ID", share_cols)] %>%
   arrange(ID) %>%
   filter(chk_consent_all) %>%
@@ -506,10 +514,12 @@ pshare_cols <- c("phase_id", "Duration (in seconds)",
                  "chk_consent", "chk_finished",
                  "chk_notmanex", "keep",
                  "reason_for_manual_exclusion")
+
 pkeep <- phase_keep %>%
   inner_join(sess_private[, c("ID", "PID")], "PID")
 
 phase_share <- pkeep[, c("ID", pshare_cols)] %>%
+  semi_join(sess_no_dups, "ID") %>%
   arrange(ID, phase_id) %>%
   filter(chk_consent) %>%
   select(-chk_consent)
@@ -524,25 +534,18 @@ phase_private <- pkeep[, c("PID", "ID", "phase_id",
                                      pshare_cols)))]
 
 ratings2 <- ratings %>%
-  group_by(PID, phase_id) %>%
-  ungroup() %>%
-  semi_join(sess_keep %>% filter(keep), "PID") %>%
-  semi_join(phase_keep %>% filter(keep), c("PID", "phase_id")) %>%
-  inner_join(phase_private[, c("PID", "ID", "phase_id")],
-                    c("PID", "phase_id"))
-
+  inner_join(sess_no_dups, "PID") %>%
+  select(-PID) %>%
+  select(ID, everything())
+  
 ratings_share <-
   ratings2[, c("ID", "phase_id", "stim_id", "trating")] %>%
   arrange(ID, phase_id, stim_id)
 
 cjudgments2 <- cjudgments %>%
-  group_by(PID) %>%
-  ungroup() %>%
-  semi_join(sess_keep %>% filter(keep), "PID") %>%
-  semi_join(phase_keep %>%
-            filter(phase_id == 1L, keep), "PID") %>%
-  inner_join(phase_private %>% filter(phase_id == 1L) %>%
-                    select("PID", "ID"), "PID")
+  inner_join(sess_no_dups, "PID") %>%
+  select(-PID) %>%
+  select(ID, everything())
 
 cjudgments_share <- cjudgments2[, c("ID", "stim_id", "category")] %>%
   arrange(ID, stim_id)
