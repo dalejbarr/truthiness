@@ -8,8 +8,8 @@ output:
     code_folding: hide
     df_print: paged
 params:
-  subdir: "."
-  anondir: "anon-files"
+  subdir: "current"
+  anondir: "anon"
 ---
 
 <style>
@@ -110,9 +110,30 @@ dir.create(anondir)
 
 sess <- import_sessions(params$subdir)
 phase <- import_phase_info(params$subdir)
-ratings <- import_tratings(params$subdir)
-cjudgments <- import_cjudgments(params$subdir)
+ratings_pre <- import_tratings(params$subdir)
+cjudgments_pre <- import_cjudgments(params$subdir)
+```
 
+## Participants who logged multiple sessions
+
+```{r excl1}
+## check for participants who completed multiple times
+sess_mult <- sess %>% 
+  count(PID, name = "sessions") %>%
+  filter(sessions > 1L) 
+
+sess_mult
+
+sess_mult %>%
+  inner_join(phase, "PID") %>%
+  select(PID, phase_id, StartDate, EndDate, Finished) %>%
+  arrange(PID, phase_id, StartDate) %>%
+  DT::datatable()
+```
+
+There were `r nrow(sess_mult)` total participants who logged multiple sessions in the system.
+
+```{r sess-excl}
 ## destroy data from non-consenting participants
 sess_consent <- sess %>%
   mutate(chk_consent_all = grepl("^Yes", ConsentAll, ignore.case = TRUE))
@@ -125,16 +146,27 @@ phase2 <- semi_join(phase,
 phase_consent <- phase2 %>%
   mutate(chk_consent = grepl("^Yes", Consent, ignore.case = TRUE))
 
-## TODO remove ratings from non-consenting participants
+ratings <- semi_join(ratings_pre,
+                     sess_consent %>%
+                     filter(chk_consent_all),
+                     "PID")
+
+cjudgments <- semi_join(cjudgments_pre,
+                        sess_consent %>%
+                        filter(chk_consent_all),
+                        "PID")
 
 ## remove non-native speakers
 sess_native <- sess_consent %>%
   mutate(chk_native = grepl("English", NativeLang,
                                    ignore.case = TRUE))
 
-## phase-level exclusion: was the phase completed?
+###########################################################################
+## check whether to delete entire participant data due to phase-level performance
+
+## was the phase completed?
 phase_finished <- phase_consent %>%
-  mutate(chk_finished = Finished == "TRUE")
+  mutate(chk_finished = toupper(Finished) == "TRUE")
 
 ## identify anyone who looked up answers; remove them from all phases
 cheaters <- phase_finished %>%
@@ -182,14 +214,33 @@ ispt <- split(cjudgments[["category"]], cjudgments[["PID"]])
 res <- sapply(ispt, function(.x) {length(unique(.x)) == 1L})
 flat_cjudgments <- names(res)[res]
 
+phs_flat_c <- 
+  tibble(PID = names(res),
+         phase_id = factor("1", levels = 1:4),
+         chk_noflat_c = !res)
+
 ## truth ratings
 tspt <- split(ratings[["trating"]],
-              list(ratings[["PID"]], ratings[["phase_id"]]), sep = ",")
+              list(ratings[["PID"]], as.character(ratings[["phase_id"]])),
+              sep = ",")
 res <- sapply(tspt, function(.x) {length(unique(.x)) == 1L})
 flat_truth <- unique(sapply(names(res)[res],
                             function(.x) {strsplit(.x, ",")[[1]][1]},
                             USE.NAMES = FALSE))
 flatliners <- union(flat_cjudgments, flat_truth)
+
+phs_flat_t <- 
+  tibble(PID = sapply(strsplit(names(res), ","), function(.x) {.x[[1]]}),
+         phase_id = factor(
+           sapply(strsplit(names(res), ","), function(.x) {.x[[2]]}),
+           levels = 1:4),
+         chk_noflat_t = !res)
+
+phs_flat <- left_join(phs_flat_t, phs_flat_c,
+                      c("PID", "phase_id")) %>%
+  replace_na(list(chk_noflat_c = TRUE)) %>%
+  mutate(chk_noflatline = chk_noflat_t & chk_noflat_c) %>%
+  select(-chk_noflat_t, -chk_noflat_c)
 
 sess_noflat <- sess_dur %>%
   mutate(chk_noflatline = !(PID %in% flatliners))
@@ -208,8 +259,7 @@ sess_keep <- sess_noflat %>%
          reason_for_manual_exclusion)
 
 phase_keep <- semi_join(phase_man,
-                        sess_keep %>%
-                        filter(keep), "PID") %>%
+                        sess_keep %>% filter(chk_consent_all), "PID") %>%
   mutate(keep = chk_consent & chk_finished & chk_notmanex) %>%
   select(!starts_with("reason_for_manual_exclusion"),
          reason_for_manual_exclusion) %>%
@@ -302,9 +352,23 @@ DT::datatable(excluded_phs)
 
 ## Comments
 
-Comments left by participants (if any) will appear below.
+### Comments in the TechDiff field
 
-```{r phase-comments}
+```{r techdiff-comments}
+phase %>%
+  filter(!is.na(TechDiff)) %>%
+  select(phase_id, PID, TechDiff) %>%
+  arrange(desc(phase_id), TechDiff, PID) %>%
+  DT::datatable()
+```
+
+```{r phase4-comments-header, results = 'asis'}
+if ("Comments" %in% names(sess_keep)) {
+  cat("### Comments left at end of final phase")
+}
+```
+
+```{r phase4-comments}
 if ("Comments" %in% names(sess_keep)) {
   sess_keep %>%
     filter(!is.na(Comments)) %>%
@@ -315,63 +379,101 @@ if ("Comments" %in% names(sess_keep)) {
 
 <!-- check dropouts -->
 
+## Dropouts
+
 ```{r dropouts-sum, message=FALSE, results = 'asis'}
-if (length(locate_data_files(params$subdir)) > 1L) {
-  phases <- as.integer(sub(".*[Pp]([1-4])\\.[Cc][Ss][Vv]$", "\\1",
-                           locate_data_files(params$subdir)))
-  .this_phase <- max(phases)
+phases <- as.integer(phase %>% distinct(phase_id) %>% pull() %>% sort())
+.this_phase <- max(phases)
 
-  cat("\n## Dropouts\n\n", sep = "")
+.s2 <- sess_keep %>%
+  group_by(PID) %>%
+  summarize(chk_consent_all = all(chk_consent_all),
+            chk_notmanex_sess = all(chk_notmanex),
+            chk_native = all(chk_native), .groups = "drop")
 
-  .pdat <- phase_keep %>%
-    filter(keep) %>% 
-    semi_join(sess_keep %>% filter(keep), "PID")
+phase_man %>%
+  semi_join(.s2 %>%
+            filter(chk_consent_all & chk_notmanex_sess & chk_native), "PID") %>%
+  filter(!(chk_dur_phase & chk_finished)) %>%
+  count(phase_id)
 
-  .dout <- .pdat %>%
-    mutate(phi = as.integer(phase_id)) %>%
-    filter(phi < .this_phase) %>%
-    select(PID, phase_id, phi) %>%
-    left_join(.pdat %>%
-              mutate(phi = as.integer(phase_id) - 1L) %>%
-              select(PID, phase_id, phi),
-              c("PID", "phi")) %>%
-    mutate(dropout = is.na(phase_id.y),
-           phase_id = as.integer(phase_id.x) + 1L) %>%
-    select(PID, phase_id, dropout) 
+.p2 <- phase_man %>%
+  mutate(chk_nocheat = !grepl("^Yes", Cheat, ignore.case = TRUE)) %>%
+  left_join(phs_flat, c("PID", "phase_id")) %>%
+  replace_na(list(chk_noflatline = FALSE)) %>%
+  group_by(PID, phase_id) %>%
+  summarize(chk_consent = all(chk_consent),
+            chk_finished = all(chk_finished),
+            chk_notmanex = all(chk_notmanex),
+            chk_dur_phase = all(chk_dur_phase),
+            chk_nocheat = all(chk_nocheat),
+            chk_noflatline = all(chk_noflatline),
+            .groups = "drop")
 
-  .p1 <- .pdat %>%
-    filter(phase_id == "1") %>%
-    mutate(phase_id = as.integer(phase_id)) %>%
-    count(phase_id, name = "n_retained")
-  
-  .pall <- .dout %>%
-    group_by(phase_id) %>%
-    summarize(n_invited = n(), n_retained = sum(!dropout),
-              dropout_rate = sprintf("%0.1f%%",
-                                     100 * round((n_invited - n_retained) /
-                                                 n_invited, 3)))
-  
-  bind_rows(.p1, .pall) %>%
-    select(phase_id, n_invited, n_retained, dropout_rate) %>%
-    knitr::kable()
-}
+.sp <- left_join(.s2, .p2, "PID") %>%
+  replace_na(list(phase_id = "1",
+                  chk_consent = FALSE,
+                  chk_finished = FALSE,
+                  chk_notmanex = FALSE)) %>%
+  mutate(phase_keep = chk_consent & chk_finished & chk_notmanex &
+           chk_nocheat & chk_noflatline & chk_dur_phase,
+         sess_keep = chk_consent_all & chk_notmanex_sess & chk_native,
+         keep = phase_keep & sess_keep)
+
+.drop1 <- .sp %>%
+  group_by(phase_id) %>%
+  summarise(n_attempted = n(),
+            n_retained = sum(keep),
+            n_excluded = n_attempted - n_retained,
+            .groups = "drop") %>%
+  select(phase_id, n_attempted, n_excluded, n_retained)
+
+.drop1 %>%
+  inner_join(bind_rows(tibble(phase_id = factor("1", levels = 1:4),
+                              n_invited = NA_integer_),
+                       .drop1 %>%
+                       mutate(phase_id = factor(as.integer(phase_id) + 1L,
+                                                levels = 1:4)) %>%
+                       select(phase_id, n_invited = n_retained)),
+             "phase_id") %>%
+  select(phase_id, n_invited, n_attempted, n_excluded, n_retained) %>%
+  mutate(dropout = sprintf("%0.1f%%",
+                           100 * (n_invited - n_attempted) / n_invited),
+         exclusions = sprintf("%0.1f%%",
+                              100 * (n_excluded / n_attempted))) %>%
+  DT::datatable()
 ```
 
 ```{r recruit-txt, results = 'asis'}
 ## only run this if we have more phases to run
-if (length(locate_data_files(params$subdir)) < 4L) {
-  phases <- as.integer(sub(".*[Pp]([1-4])\\.[Cc][Ss][Vv]$", "\\1",
-                           locate_data_files(params$subdir)))
-  next_phase <- max(phases) + 1L
+if (.this_phase < 4L) {
+  next_phase <- .this_phase + 1L
 
   cat("\n## Recruitment for phase ", next_phase, "\n\n", sep = "")
 
-  .np <- phase_keep %>%
+  .np1 <- phase_keep %>%
     filter(phase_id == max(phases), keep) %>%
     semi_join(sess_keep %>% filter(keep), "PID") %>%
     select(PID, list_id) %>%
     arrange(list_id, PID)
 
+  .np2 <- .sp %>%
+    filter(phase_id == .this_phase, keep) %>%
+    inner_join(sess %>% select(PID, list_id), "PID") %>%
+    select(PID, list_id)
+
+  .np <- .np2
+  ## old algorithm vs new
+  ## if there are people that wouldn't be excluded, check multiples
+  if (nrow(setdiff(.np1, .np2)) > 0L) {
+    .in_common <- semi_join(setdiff(.np1, .np2), sess_mult, "PID")
+    ## see if we can explain the difference
+    if (nrow(.in_common) != nrow(setdiff(.np1, .np2, "PID"))) {
+      warning("old and new exclusion algorithms don't match; using old algorithm")
+      .np <- .np1
+    }
+  }
+  
   .of <- paste0("recruitment_phase_", next_phase, ".csv")
   
   .np %>%
@@ -383,7 +485,7 @@ if (length(locate_data_files(params$subdir)) < 4L) {
 
 ```{r recruit}
 ## only run this if we have more phases to run
-if (length(locate_data_files(params$subdir)) < 4L) {
+if (.this_phase < 4L) {
   DT::datatable(.np)
 }
 ```
@@ -403,6 +505,15 @@ sess_private <- sess_keep[, c("PID", "ID",
                               setdiff(names(sess_keep),
                                       c("PID", "ID", "ConsentAll",
                                         share_cols)))]
+
+sess_no_dups <- sess_keep %>%
+  count(PID) %>%
+  filter(n == 1L) %>%
+  select(-n) %>%
+  inner_join(sess_keep %>% select(PID, ID, chk_consent_all), "PID") %>%
+  filter(chk_consent_all) %>%
+  select(-chk_consent_all)
+
 sess_share <- sess_keep[, c("ID", share_cols)] %>%
   arrange(ID) %>%
   filter(chk_consent_all) %>%
@@ -412,10 +523,12 @@ pshare_cols <- c("phase_id", "Duration (in seconds)",
                  "chk_consent", "chk_finished",
                  "chk_notmanex", "keep",
                  "reason_for_manual_exclusion")
+
 pkeep <- phase_keep %>%
   inner_join(sess_private[, c("ID", "PID")], "PID")
 
 phase_share <- pkeep[, c("ID", pshare_cols)] %>%
+  semi_join(sess_no_dups, "ID") %>%
   arrange(ID, phase_id) %>%
   filter(chk_consent) %>%
   select(-chk_consent)
@@ -430,25 +543,18 @@ phase_private <- pkeep[, c("PID", "ID", "phase_id",
                                      pshare_cols)))]
 
 ratings2 <- ratings %>%
-  group_by(PID, phase_id) %>%
-  ungroup() %>%
-  semi_join(sess_keep %>% filter(keep), "PID") %>%
-  semi_join(phase_keep %>% filter(keep), c("PID", "phase_id")) %>%
-  inner_join(phase_private[, c("PID", "ID", "phase_id")],
-                    c("PID", "phase_id"))
-
+  inner_join(sess_no_dups, "PID") %>%
+  select(-PID) %>%
+  select(ID, everything())
+  
 ratings_share <-
   ratings2[, c("ID", "phase_id", "stim_id", "trating")] %>%
   arrange(ID, phase_id, stim_id)
 
 cjudgments2 <- cjudgments %>%
-  group_by(PID) %>%
-  ungroup() %>%
-  semi_join(sess_keep %>% filter(keep), "PID") %>%
-  semi_join(phase_keep %>%
-            filter(phase_id == 1L, keep), "PID") %>%
-  inner_join(phase_private %>% filter(phase_id == 1L) %>%
-                    select("PID", "ID"), "PID")
+  inner_join(sess_no_dups, "PID") %>%
+  select(-PID) %>%
+  select(ID, everything())
 
 cjudgments_share <- cjudgments2[, c("ID", "stim_id", "category")] %>%
   arrange(ID, stim_id)

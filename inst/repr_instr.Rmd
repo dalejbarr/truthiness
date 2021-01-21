@@ -1,8 +1,6 @@
 # Appendix: Instructions for reproducing these analyses
 
-Note that to re-run this analysis you'll need an anonymized copy of the data available in a subdirectory of the working directory. 
-
-If you don't have the data you can use simulated data available in the [OSF repository](https://osf.io/7xhye/) for this project. Make sure that the subdirectories `all_null`, `main_effect` and/or `interaction` are subdirectories of the working directory.
+Note that to re-run this analysis you'll need an anonymized copy of the data available in a subdirectory of the working directory. You can obtain the anonymized data from the project repository at <https://osf.io/nvugt/>.
 
 You can re-run the analysis either with or without a software container that encapsulates all the software needed for analysis. Using the software container is the only method guaranteed to exactly match the results obtained by the authors. Instructions are provided below for both methods.
 
@@ -19,7 +17,7 @@ singularity exec library://dalejbarr/talklab/illusory-truth \
     makeit analysis SUBDIR=path-to-anonymized-data
 ```
 
-where `path-to-anonymized-data` is replaced with the name of the subdirectory with the anonymous data (or one of the simulated versions of the data). Note that the inferential statistics can take very long to run, depending on the size of the dataset. For a large dataset, this can take more than 24 hours.
+where `path-to-anonymized-data` is replaced with the name of the subdirectory with the anonymous data (or one of the simulated versions of the data). Note that the inferential statistics can take very long (~24 hours) to run. This will save a file `analysis.html` with the analysis report and a binary image `analysis.RData` containing the analysis data.
 
 ### Copying and editing the master R Markdown script
 
