@@ -790,8 +790,7 @@ ez::ezANOVA(adata2, dv = mean_rating,
 # Session information {#sessinfo}
 
 ```{r save-image, include=FALSE}
-modsfit <- list(mt1 = mt1, mt2 = mt2, mt3 = mt3, mt4 = mt4, mt5 = mt5, mt6 = mt6)
-saveRDS(modsfit, "fitted_models.rds")
+saveRDS(mods, "fitted_models.rds")
 
 ## to load:
 ## mf <- readRDS("fitted_models.rds")
