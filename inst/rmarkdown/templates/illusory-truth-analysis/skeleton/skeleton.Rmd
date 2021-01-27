@@ -299,7 +299,8 @@ phase_fin %>%
 
 ## make sure there are no entries in sess_keep0 for subjects
 ## who have lost all of their phase data.
-sess_keep <- semi_join(sess_keep0, ratings, "ID")
+sess_keep <- semi_join(sess_keep0, ratings, "ID") %>%
+  semi_join(phase_keep, "ID")
 
 ## lookup which condition each rating belongs to
 ratecond <- ratings %>%
