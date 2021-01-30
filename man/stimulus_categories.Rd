@@ -3,7 +3,7 @@
 \docType{data}
 \name{stimulus_categories}
 \alias{stimulus_categories}
-\title{Target categories for stimulus items}
+\title{Target Categories for Statements in the Truth Trajectory Study}
 \format{
 A data frame with 170 observations on 3 variable:
 \describe{

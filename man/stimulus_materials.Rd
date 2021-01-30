@@ -3,7 +3,7 @@
 \docType{data}
 \name{stimulus_materials}
 \alias{stimulus_materials}
-\title{Stimulus materials (statements) used in the experiment.}
+\title{Statements Used in the Truth Trajectory Study}
 \format{
 A data frame (tibble) with 128 rows and three variables:
 \describe{
@@ -16,6 +16,6 @@ A data frame (tibble) with 128 rows and three variables:
 stimulus_materials
 }
 \description{
-Stimulus materials (statements) used in the experiment.
+Statements Used in the Truth Trajectory Study
 }
 \keyword{datasets}

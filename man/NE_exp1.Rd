@@ -3,7 +3,7 @@
 \docType{data}
 \name{NE_exp1}
 \alias{NE_exp1}
-\title{Data from Nadarevic & Erdfelder (2014), Experiment 1}
+\title{Data from Nadarevic & Erdfelder 2014}
 \format{
 A data frame with 14,950 observations on 7 variables:
 \describe{
@@ -20,7 +20,7 @@ A data frame with 14,950 observations on 7 variables:
 NE_exp1
 }
 \description{
-A dataset containing the trial data.
+A dataset containing the trial data from Experiment 1 of Nadarevic & Erdfelder (2014).
 }
 \details{
 The raw data file from which the dataset is derived is available using \code{system.file("data-raw", "Nadarevic_Erdfelder_2014_Exp1.csv", package = "truthiness")}, and the script for pre-processing the data can be assessed with \code{system.file("data-raw", "Nadarevic_Erdfelder_2014_Exp1.R")}. Note that to reduce the size of the stored object, elements \code{gfList}, \code{L}, and \code{condVar} have been removed from the fitted model data.

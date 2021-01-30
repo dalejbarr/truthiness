@@ -3,7 +3,7 @@
 \docType{data}
 \name{presentation_lists}
 \alias{presentation_lists}
-\title{Lists for counterbalanced stimulus presentation.}
+\title{Lists for Counterbalanced Stimulus Presentation}
 \format{
 A data frame (tibble) with 1,536 rows and 6 variables:
 \describe{
@@ -26,6 +26,6 @@ A data frame (tibble) with 1,536 rows and 6 variables:
 presentation_lists
 }
 \description{
-Lists for counterbalanced stimulus presentation.
+Lists for Counterbalanced Stimulus Presentation
 }
 \keyword{datasets}

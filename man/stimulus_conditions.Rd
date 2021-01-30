@@ -3,7 +3,7 @@
 \docType{data}
 \name{stimulus_conditions}
 \alias{stimulus_conditions}
-\title{Lookup table identifying stimulus conditions across lists.}
+\title{Lookup Table Identifying Stimulus Conditions Across Lists}
 \format{
 A data frame (tibble) with 1,024 rows and 4 variables:
 \describe{
@@ -25,6 +25,6 @@ A data frame (tibble) with 1,024 rows and 4 variables:
 stimulus_conditions
 }
 \description{
-Lookup table identifying stimulus conditions across lists.
+Lookup Table Identifying Stimulus Conditions Across Lists
 }
 \keyword{datasets}

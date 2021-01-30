@@ -3,7 +3,7 @@
 \docType{data}
 \name{NE_items}
 \alias{NE_items}
-\title{Item information from Nadarevic & Erdfelder (2014)}
+\title{Item Information from Nadarevic & Erdfelder 2014}
 \format{
 A data frame with 176 rows and 4 variables:
 \describe{
@@ -17,6 +17,6 @@ A data frame with 176 rows and 4 variables:
 NE_items
 }
 \description{
-A dataset describing the statements used as stimuli.
+A dataset describing the statements used as stimuli in Experiment 1 of Nadarevic & Erdfelder (2014).
 }
 \keyword{datasets}
