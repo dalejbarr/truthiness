@@ -10,7 +10,7 @@ A data frame (tibble) with 72,282 observations on 4 variables:
   \item{ID}{Participant identifier.}
   \item{phase_id}{Phase number (1-4).}
   \item{stim_id}{Stimulus identifier.}
-  \item{trating}{Rating.}
+  \item{trating}{Rating on a seven-point scale, 1=Definitely False, 7=Definitely True.}
 }
 }
 \usage{

@@ -26,7 +26,8 @@ Imports:
     purrr,
     mgcv,
     rmarkdown,
-    emmeans
+    emmeans,
+    DT
 RoxygenNote: 7.1.1
 Suggests: 
     testthat (>= 2.1.0)
