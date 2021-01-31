@@ -213,7 +213,7 @@ tots_phs %>%
 ```
 
 Applying these criteria resulted in the removal of 
-`r .pi(n_phs*removed)` phases
+`r .pi(n_phs_removed)` phases
 (`r .pi(nrow(ratings2) - nrow(ratings_keep))` truth ratings).
 
 ### Exclusions by phase and gender
