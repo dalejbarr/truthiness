@@ -114,61 +114,184 @@ ratings_pre <- import_tratings(params$subdir)
 cjudgments_pre <- import_cjudgments(params$subdir)
 ```
 
-## Participants who logged multiple sessions
+## Participant-level exclusions
 
-```{r excl1}
+```{r sess-excl}
+## THIS CODE CHUNK APPLIES ALL PARTICIPANT-LEVEL AND PHASE-LEVEL EXCLUSIONS
+
 ## check for participants who completed multiple times
 sess_mult <- sess %>% 
   count(PID, name = "sessions") %>%
-  filter(sessions > 1L) 
+  filter(sessions > 1L) %>%
+  mutate(chk_noduplicates = FALSE,
+         excl_reason = "Duplicate sessions",
+         excl_phase = "1")
 
-There were `r nrow(sess_mult)` total participants who logged multiple sessions in the system.
+## remove participants who logged multiple sessions
+sess_nodups <- sess %>%
+  anti_join(sess_mult, "PID") %>%
+  full_join(sess_mult %>% select(-sessions), "PID") %>%
+  replace_na(list(chk_noduplicates = TRUE))
 
-```{r sess-excl}
+## remove duplicates for phase data
+phase_mult <- semi_join(phase, sess_mult, "PID") %>%
+  count(PID, phase_id) %>%
+  filter(n > 1L)
+
+phase_nodups <-
+  bind_rows(anti_join(phase, phase_mult, c("PID", "phase_id")),
+            phase %>%
+            semi_join(phase_mult, c("PID", "phase_id")) %>%
+            arrange(PID, phase_id, desc(Finished), desc(Progress)) %>%
+            group_by(PID, phase_id) %>%
+            slice(1L)%>%
+            ungroup())
+
+## remove duplicates for ratings data
+ratings_mult <- ratings_pre %>%
+  count(PID, phase_id, stim_id) %>%
+  filter(n > 1L) %>%
+  select(-n)
+
+ratings_nodups <-
+  bind_rows(anti_join(ratings_pre, ratings_mult,
+                      c("PID", "phase_id", "stim_id")),
+            ratings_mult)
+
+## remove duplicate for category judgment data
+cjudgments_mult <- cjudgments_pre %>%
+  count(PID, stim_id) %>%
+  filter(n > 1L) %>%
+  select(-n)
+
+cjudgments_nodups <-
+  bind_rows(anti_join(cjudgments_pre, cjudgments_mult,
+                      c("PID", "stim_id")),
+            cjudgments_mult)
+
 ## destroy data from non-consenting participants
-sess_consent <- sess %>%
-  mutate(chk_consent_all = grepl("^Yes", ConsentAll, ignore.case = TRUE))
+sess_consent <- sess_nodups %>%
+  mutate(chk_consent_all = grepl("^Yes", ConsentAll, ignore.case = TRUE),
+         excl_reason = if_else(
+           is.na(excl_reason) & !chk_consent_all,
+           "Did not consent to all phases, or consent missing",
+           excl_reason),
+         excl_phase = if_else(
+           is.na(excl_phase) & !chk_consent_all,
+           "1", excl_phase))
 
-phase2 <- semi_join(phase,
-                    sess_consent %>%
-                    filter(chk_consent_all),
-                    "PID")
-
-phase_consent <- phase2 %>%
-  mutate(chk_consent = grepl("^Yes", Consent, ignore.case = TRUE))
-
-ratings <- semi_join(ratings_pre,
-                     sess_consent %>%
-                     filter(chk_consent_all),
-                     "PID")
-
-cjudgments <- semi_join(cjudgments_pre,
-                        sess_consent %>%
-                        filter(chk_consent_all),
-                        "PID")
 
 ## remove non-native speakers
 sess_native <- sess_consent %>%
   mutate(chk_native = grepl("English", NativeLang,
-                                   ignore.case = TRUE))
+                            ignore.case = TRUE),
+         excl_reason = if_else(is.na(excl_reason) & !chk_native,
+                               "Non-native English speaker",
+                               excl_reason),
+         excl_phase = if_else(is.na(excl_phase) & !chk_native,
+                              "1",
+                              excl_phase))
+
+###########################################################################
+## phase-level exclusion
+
+## remove data from phase where consent was not given
+## either consent to all missing/not given or
+## phase-level consent missing/not given
+phase_consent <- phase_nodups %>%
+  mutate(chk_consent = grepl("^Yes", Consent),
+         p_excl_reason = if_else(!chk_consent, "Did not give consent for phase (or consent missing)",
+                                 NA_character_))
+
+## was the phase completed?
+phase_finished <- phase_consent %>%
+  mutate(chk_finished = toupper(Finished) == "TRUE",
+         p_excl_reason = if_else(is.na(p_excl_reason) & !chk_finished,
+                                 "Did not complete phase",
+                                 p_excl_reason))
 
 ###########################################################################
 ## check whether to delete entire participant data due to phase-level performance
 
-## was the phase completed?
-phase_finished <- phase_consent %>%
-  mutate(chk_finished = toupper(Finished) == "TRUE")
-
 ## identify anyone who looked up answers; remove them from all phases
 cheaters <- phase_finished %>%
   filter(grepl("^Yes", Cheat, ignore.case = TRUE)) %>%
-  distinct(PID) %>%
-  mutate(chk_nocheat = FALSE)
+  arrange(PID, phase_id) %>%
+  group_by(PID) %>%
+  slice(1L) %>%
+  ungroup() %>%
+  select(PID, phase_id) %>%
+  mutate(chk_nocheat = FALSE,
+         phase_id = as.character(phase_id)) %>%
+  select(PID, excl_phase_id2 = phase_id, chk_nocheat)
 
 sess_cheat <- sess_native %>%
   left_join(cheaters, "PID") %>%
-  replace_na(list(chk_nocheat = TRUE))
+  replace_na(list(chk_nocheat = TRUE)) %>%
+  mutate(excl_reason = if_else(is.na(excl_reason) & !chk_nocheat,
+                               "Looked up answers",
+                               excl_reason),
+         excl_phase = if_else(is.na(excl_phase) & !chk_nocheat,
+                              excl_phase_id2,
+                              excl_phase)) %>%
+  select(-excl_phase_id2)
 
+## now find any flatliners
+## cjudgments scores
+ispt <- split(cjudgments_nodups[["category"]], cjudgments_nodups[["PID"]])
+res <- sapply(ispt, function(.x) {length(unique(.x)) == 1L})
+flat_cjudgments <- names(res)[res]
+
+phs_flat_c <- 
+  tibble(PID = names(res),
+         phase_id = factor("1", levels = 1:4),
+         chk_noflat_c = !res)
+
+## truth ratings
+tspt <- split(ratings_nodups[["trating"]],
+              list(ratings_nodups[["PID"]], as.character(ratings_nodups[["phase_id"]])),
+              sep = ",")
+res <- sapply(tspt, function(.x) {length(unique(.x)) == 1L})
+flat_truth <- unique(sapply(names(res)[res],
+                            function(.x) {strsplit(.x, ",")[[1]][1]},
+                            USE.NAMES = FALSE))
+flatliners <- union(flat_cjudgments, flat_truth)
+
+phs_flat_t <- 
+  tibble(PID = sapply(strsplit(names(res), ","), function(.x) {.x[[1]]}),
+         phase_id = factor(
+           sapply(strsplit(names(res), ","), function(.x) {.x[[2]]}),
+           levels = 1:4),
+         chk_noflat_t = !res)
+
+## first phase with flatlining
+first_phs_flat <- left_join(phs_flat_t, phs_flat_c,
+                      c("PID", "phase_id")) %>%
+  replace_na(list(chk_noflat_c = TRUE)) %>%
+  mutate(chk_noflatline = chk_noflat_t & chk_noflat_c) %>%
+  select(-chk_noflat_t, -chk_noflat_c) %>%
+  filter(!chk_noflatline) %>%
+  arrange(PID, phase_id) %>%
+  group_by(PID) %>%
+  slice(1) %>%
+  ungroup()
+
+## note: some flatliners were invited back (!)
+## ^^ above table gives the phase at which they *should* have been excluded
+
+sess_noflat <- sess_cheat %>%
+  left_join(first_phs_flat %>%
+            rename(excl_phase2 = phase_id), "PID") %>%
+  replace_na(list(chk_noflatline = TRUE)) %>%
+  mutate(excl_reason = if_else(is.na(excl_reason) & !chk_noflatline,
+                               "Flatlining",
+                               excl_reason),
+         excl_phase = if_else(is.na(excl_phase) & !chk_noflatline,
+                              as.character(excl_phase2),
+                              excl_phase)) %>%
+  select(-excl_phase2)
+
+## too fast or too slow
 dur_cutoffs <-
   tibble(phase_id = factor(1:4, levels = 1:4),
          min_dur = c(3L * 60L, rep(1L * 60L, 3)),
@@ -192,153 +315,239 @@ phase_man <- phase_speed %>%
   replace_na(list(chk_notmanex = TRUE,
                   reason_for_manual_exclusion = NA_character_))
 
-sess_dur <- sess_cheat %>%
-  left_join(phase_man %>%
-                   filter(!chk_dur_phase) %>%
-                   distinct(PID) %>%
-                   mutate(chk_dur_all = FALSE), "PID") %>%
-  replace_na(list(chk_dur_all = TRUE))
+## get first phase where there is a duration outside the acceptable range
+first_dur_excl <- phase_man %>%
+  filter(!chk_dur_phase) %>%
+  arrange(PID, phase_id) %>%
+  group_by(PID) %>%
+  slice(1) %>%
+  ungroup() %>%
+  mutate(excl_phase2 = as.character(phase_id)) %>%
+  select(PID, chk_dur_all = chk_dur_phase, excl_phase2)
 
-## now find any flatliners
-## cjudgments scores
-ispt <- split(cjudgments[["category"]], cjudgments[["PID"]])
-res <- sapply(ispt, function(.x) {length(unique(.x)) == 1L})
-flat_cjudgments <- names(res)[res]
+sess_dur <- sess_noflat %>%
+  left_join(first_dur_excl, "PID") %>%
+  replace_na(list(chk_dur_all = TRUE)) %>%
+  mutate(excl_reason = if_else(
+           is.na(excl_reason) & !chk_dur_all,
+           "Phase duration was outside acceptable range",
+           excl_reason),
+         excl_phase = if_else(
+           is.na(excl_phase) & !chk_dur_all,
+           excl_phase2,
+           excl_phase)) %>%
+  select(-excl_phase2)
 
-phs_flat_c <- 
-  tibble(PID = names(res),
-         phase_id = factor("1", levels = 1:4),
-         chk_noflat_c = !res)
+## manual exclusions
+sess_notmanex <- bind_rows(anti_join(sess_dur,
+                    man_exclude_part, "PID") %>%
+          mutate(chk_notmanex = TRUE),
+          man_exclude_part) %>%
+  replace_na(list(chk_notmanex = FALSE)) %>%
+  mutate(excl_reason = if_else(
+           is.na(excl_reason) & !chk_notmanex,
+           paste0("Other: ", reason), excl_reason),
+         excl_phase = if_else(
+           is.na(excl_phase) & !chk_notmanex,
+           "1", excl_phase)) %>%
+  select(-reason)
 
-## truth ratings
-tspt <- split(ratings[["trating"]],
-              list(ratings[["PID"]], as.character(ratings[["phase_id"]])),
-              sep = ",")
-res <- sapply(tspt, function(.x) {length(unique(.x)) == 1L})
-flat_truth <- unique(sapply(names(res)[res],
-                            function(.x) {strsplit(.x, ",")[[1]][1]},
-                            USE.NAMES = FALSE))
-flatliners <- union(flat_cjudgments, flat_truth)
-
-phs_flat_t <- 
-  tibble(PID = sapply(strsplit(names(res), ","), function(.x) {.x[[1]]}),
-         phase_id = factor(
-           sapply(strsplit(names(res), ","), function(.x) {.x[[2]]}),
-           levels = 1:4),
-         chk_noflat_t = !res)
-
-phs_flat <- left_join(phs_flat_t, phs_flat_c,
+## exclude phases missing consent (or with manual exclusion) by filling with NAs
+phase_zap <- phase_man %>%
+  filter(chk_consent & chk_notmanex) %>%
+  bind_rows(phase_man %>%
+            filter(!chk_consent | !chk_notmanex) %>%
+            select(PID, list_id, phase_id, chk_consent, p_excl_reason, chk_finished,
+                   chk_dur_phase, chk_notmanex, reason_for_manual_exclusion))
+                     
+## eliminate truth ratings / category judgments for phases where
+## consent was not given or where there was manual exclusion
+## this may not really be necessary because I think prolific terminated
+## sessions where consent was not given...
+ratings_zap <- ratings_nodups %>%
+  semi_join(phase_zap %>% filter(chk_consent & chk_notmanex),
+            c("PID", "phase_id")) %>%
+  bind_rows(semi_join(ratings_nodups,
+                      phase_zap %>%
+                      filter(!chk_consent | !chk_notmanex),
                       c("PID", "phase_id")) %>%
-  replace_na(list(chk_noflat_c = TRUE)) %>%
-  mutate(chk_noflatline = chk_noflat_t & chk_noflat_c) %>%
-  select(-chk_noflat_t, -chk_noflat_c)
+            select(-trating))
 
-sess_noflat <- sess_dur %>%
-  mutate(chk_noflatline = !(PID %in% flatliners))
+cjudgments_zap <- cjudgments_nodups %>%
+  semi_join(phase_zap %>% filter(chk_consent, phase_id == "1"), "PID") %>%
+  bind_rows(semi_join(cjudgments_nodups,
+                      phase_zap %>% filter(!chk_consent, phase_id == "1"),
+                      "PID") %>%
+            select(-category))
 
-sess_keep <- sess_noflat %>%
-  left_join(man_exclude_part %>%
-            mutate(chk_notmanex = FALSE) %>%
-            rename(reason_for_manual_exclusion = reason) %>%
-            select(PID, chk_notmanex, reason_for_manual_exclusion),
-            "PID") %>%
-  replace_na(list(chk_notmanex = TRUE,
-                  reason_for_manual_exclusion = NA_character_)) %>%
-  mutate(keep = chk_consent_all & chk_native & chk_nocheat & chk_dur_all &
-           chk_noflatline & chk_notmanex) %>%
-  select(!starts_with("reason_for_manual_exclusion"),
-         reason_for_manual_exclusion)
+## zap all data to NA for the *sessions* where consent is absent or manually excluded
+sess_discard <- sess_notmanex %>%
+  filter(!chk_consent_all | !chk_notmanex)
 
-phase_keep <- semi_join(phase_man,
-                        sess_keep %>% filter(chk_consent_all), "PID") %>%
-  mutate(keep = chk_consent & chk_finished & chk_notmanex) %>%
-  select(!starts_with("reason_for_manual_exclusion"),
-         reason_for_manual_exclusion) %>%
-  select(-chk_dur_phase)
+phase_zap2 <- anti_join(phase_zap, sess_discard, "PID") %>%
+  bind_rows(semi_join(phase_zap, sess_discard, "PID") %>%
+            select(PID, list_id, phase_id,
+                   chk_consent, p_excl_reason, chk_finished,
+                   chk_dur_phase, chk_notmanex, reason_for_manual_exclusion))
+
+## zap ratings where consent not given
+ratings <- ratings_zap %>%
+  anti_join(sess_discard, "PID") %>%
+  bind_rows(semi_join(ratings_zap, sess_discard, "PID") %>%
+            select(-trating))
+
+## zap cjudgments where consent not given
+cjudgments <- cjudgments_zap %>%
+  anti_join(sess_discard, "PID") %>%
+  bind_rows(semi_join(cjudgments_zap, sess_discard, "PID") %>%
+            select(-category))
+
+## which sessions do we have ratings data for?
+have_ratings_data <-
+  semi_join(ratings %>% filter(!is.na(trating)),
+            phase_zap2 %>%
+            semi_join(sess_notmanex %>%
+                      filter(chk_noduplicates & chk_consent_all &
+                             chk_native & chk_nocheat & chk_noflatline &
+                             chk_dur_all & chk_notmanex), "PID") %>%
+            filter(chk_consent & chk_finished & chk_dur_phase & chk_notmanex),
+            c("PID", "phase_id")) %>%
+  distinct(PID)
+            
+missing_data <- anti_join(sess_notmanex %>%
+          filter(chk_noduplicates & chk_consent_all &
+                             chk_native & chk_nocheat & chk_noflatline &
+                             chk_dur_all & chk_notmanex),
+          have_ratings_data, "PID") %>%
+  mutate(chk_anydata = FALSE,
+         excl_reason = if_else(is.na(excl_reason) & !chk_anydata,
+                               "No ratings data remaining",
+                               excl_reason),
+         excl_phase = if_else(is.na(excl_phase) & !chk_anydata,
+                              "1", excl_phase))
+
+sess_keep <- bind_rows(anti_join(sess_notmanex, missing_data, "PID"),
+          missing_data) %>%
+  replace_na(list(chk_anydata = TRUE)) %>%
+  mutate(keep = chk_noduplicates & chk_consent_all & chk_native & chk_nocheat & chk_dur_all &
+           chk_noflatline & chk_anydata & chk_notmanex,
+         excl_reason = factor(excl_reason) %>%
+           fct_relevel("Duplicate sessions",
+                       "Did not consent to all phases, or consent missing",
+                       "Non-native English speaker",
+                       "Looked up answers",
+                       "Flatlining",
+                       "Phase duration was outside acceptable range",
+                       "No ratings data remaining"))  
+
+phase_keep <- phase_zap2 %>%
+  inner_join(sess_keep %>% select(PID, keep), "PID") %>%
+  rename(sess_keep = keep) %>%
+  mutate(p_excl_reason = if_else(is.na(p_excl_reason) & !sess_keep,
+                                 "Session was excluded", p_excl_reason),
+         keep = chk_consent & chk_finished & chk_dur_phase &
+           chk_notmanex & sess_keep) %>%
+  select(-sess_keep)
+
 
 ## done with participant level + phase level exclusions
-## from here on, use phase_keep and sess_keep
-n_item <- nrow(distinct(ratings, stim_id))
+## from here on, use phase_keep, sess_keep, ratings_zap2, and cjudgments_zap2
+n_item <- nrow(stimulus_materials)
 ```
 
-`r warn(params$subdir)`
-
 The raw data files contain `r .pi(nrow(ratings))` truth ratings of 
-`r .pi(n_item)` statements from `r .pi(nrow(sess))` participants.
+`r .pi(n_item)` statements from `r .pi(nrow(sess_keep))` participants.
 
-## Participant-level exclusions
+There were eight exclusion criteria for participants, applied in the following order, and indicated in the data by the value of the corresponding logical data variable (`TRUE` = not excluded, `FALSE` = excluded):
 
-First, we excluded anyone who did not give consent for the entire study. 
-
-There were four additional exclusion criteria for participants, applied in the following order:
-
-1. Not being a (self-reported) native speaker of English;
-2. Reporting having looked up answers in at least one phase of the study;
-3. Flat lining; i.e., using only one response category across an entire phase of the study;
-4. Failing to complete all phases in a reasonable amount of time (for Phase 1, between 3 and 40 minutes; for all other phases, between 1 and 30 minutes).
-
-Particpants are excluded if one or more of these variables is `FALSE`:
-
-- `chk_consent_all` : gave consent for all phases
-- `chk_native` : is native speaker
-- `chk_nocheat` : never reported looking up answers
-- `chk_dur_all` : never completed a phase too quickly or too slowly
-- `chk_noflatline` : never produced a 'flatline' response
-- `chk_notmanex` : not manually excluded (see `reason_for_manual_exclusion`)
+1. Duplicate sessions recorded, i.e., subjects started two sessions at once for a single phase (`chk_noduplicates`);
+2. Consent to data collection across all phases was absent (`chk_consent_all`);
+3. Not being a (self-reported) native speaker of English (`chk_native`);
+4. Reporting having looked up answers in at least one phase of the study (`chk_nocheat`);
+5. Flat lining; i.e., using only one response category across an entire phase of the study (`chk_noflatline`);
+6. Failing to complete all phases in a reasonable amount of time---for Phase 1, between 3 and 40 minutes; for all other phases, between 1 and 30 minutes (`chk_dur_all`);
+7. No ratings data, usually due to phase-level exclusions (`chk_anydata`);
+8. Any other reason determined by the researcher (`chk_notmanex`).
 
 ### Summary of participant-level exclusions
 
-Note: `n` is the number of participants excluded for that combination of reasons:
+Note: `n` is the number of participants excluded for the stated reason:
 
 ```{r part-exclusion-summary}
-excluded_part <- sess_keep %>%
+tots <- sess_keep %>%
   filter(!keep) %>%
-  select(PID, list_id, starts_with("chk_"),
-         reason_for_manual_exclusion)
-
-tots <- count(excluded_part, chk_consent_all, chk_native, chk_nocheat, chk_dur_all,
-              chk_noflatline, chk_notmanex)
+  count(excl_reason)
 
 tots
 ```
 
-- **STARTING NUMBER OF PARTICIPANTS: `r .pi(nrow(sess))`**
+- **STARTING NUMBER OF PARTICIPANTS: `r .pi(nrow(sess_keep))`**
 - **TOTAL PARTICIPANTS EXCLUDED FOR ALL REASONS: `r .pi(sum(pull(tots, n)))`**
-- **NUMBER OF REMAINING PARTICIPANTS: `r .pi(nrow(sess) - nrow(excluded_part))`**
+- **NUMBER OF REMAINING PARTICIPANTS: `r .pi(nrow(sess_keep) - sum(pull(tots, n)))`**
 
 ### List of excluded participants
 
 ```{r part-exclusion-list}
-DT::datatable(excluded_part)
+DT::datatable(sess_keep %>% filter(!keep) %>% select(PID, excl_phase, excl_reason))
 ```
 
 ## Phase-level exclusions
 
 Phase-level exclusions apply *after* any participant-level exclusions; i.e., they apply only on any phases that remain after removing subjects.
 
-The only automatically applied exclusion criteria applied at the phase-level were (1) failure to give consent (`chk_consent`) and (2) failure to complete all of the ratings in the phase (`chk_finished`). Manual exclusions are listed in the file ``r man_exclude_phs_fname`` and tagged by the variable `chk_notmanex`.
+The only automatically applied exclusion criteria applied at the phase-level were:
+1. failure to give consent (`chk_consent`);
+2. failure to complete all of the ratings in the phase (`chk_finished`);
+3. any other reason determined by the researcher.
+
+Manual exclusions are listed in the file ``r man_exclude_phs_fname`` and tagged by the variable `chk_notmanex`.
 
 ### Summary of phase-level exclusions
 
 ```{r phase-exclusion-summary}
-excluded_phs <- phase_keep %>%
-  filter(!keep) %>%
-  select(PID, phase_id, chk_consent, chk_finished, chk_notmanex)
+phase1_excl <- phase_keep %>%
+  filter(phase_id == "1") %>%
+  anti_join(sess_keep %>% filter(excl_phase == "1"), "PID") %>%
+  filter(!(chk_consent & chk_finished & chk_notmanex))
 
-tots_phs <- count(excluded_phs, chk_consent, chk_finished, chk_notmanex)
+phase2_excl <- phase_keep %>%
+  filter(phase_id == "2") %>%
+  anti_join(sess_keep %>% filter(excl_phase == "2"), "PID") %>%
+  filter(!(chk_consent & chk_finished & chk_notmanex))
+
+phase3_excl <- phase_keep %>%
+  filter(phase_id == "3") %>%
+  anti_join(sess_keep %>% filter(excl_phase == "3"), "PID") %>%
+  filter(!(chk_consent & chk_finished & chk_notmanex))
+
+phase4_excl <- phase_keep %>%
+  filter(phase_id == "4") %>%
+  anti_join(sess_keep %>% filter(excl_phase == "4"), "PID") %>%
+  filter(!(chk_consent & chk_finished & chk_notmanex))
+
+excluded_p <- bind_rows(phase1_excl, phase2_excl,
+                          phase3_excl, phase4_excl)
+
+tots_phs <- excluded_p %>%
+  mutate(p_excl_reason = factor(p_excl_reason) %>%
+           fct_relevel("Did not give consent for phase (or consent missing)",
+                       "Did not complete phase")) %>%
+  count(p_excl_reason)
 
 tots_phs
 ```
 
-- **STARTING NUMBER OF PHASES: `r .pi(nrow(phase))`**
-- **PHASES DROPPED DUE TO SUBJECT EXCLUSIONS: `r .pi(nrow(phase) - nrow(phase %>% semi_join(sess_keep %>% filter(keep), "PID")))`**
+- **STARTING NUMBER OF PHASES: `r .pi(nrow(phase_keep))`**
+- **PHASES DROPPED DUE TO SUBJECT EXCLUSIONS: `r .pi(phase_keep %>% semi_join(sess_keep %>% filter(!keep), "PID") %>% nrow())`**
 - **REMAINING PHASES EXCLUDED FOR ALL REASONS: `r .pi(sum(pull(tots_phs, n)))`**
 - **NUMBER OF REMAINING PHASES: `r .pi(nrow(phase_keep %>% filter(keep)))`**
 
-### List of phase-level exclusions
+### List of excluded phases
 
-```{r phase-exclusion-list}
-DT::datatable(excluded_phs)
+```{r phs-excl-list}
+DT::datatable(phase_keep %>% 
+              filter(!keep, p_excl_reason != "Session was excluded") %>%
+              select(PID, phase_id, p_excl_reason))
 ```
 
 ## Comments
@@ -346,7 +555,7 @@ DT::datatable(excluded_phs)
 ### Comments in the TechDiff field
 
 ```{r techdiff-comments}
-phase %>%
+phase_nodups %>%
   filter(!is.na(TechDiff)) %>%
   select(phase_id, PID, TechDiff) %>%
   arrange(desc(phase_id), TechDiff, PID) %>%
@@ -368,161 +577,119 @@ if ("Comments" %in% names(sess_keep)) {
 }
 ```
 
-<!-- check dropouts -->
+## Dropouts and exclusions by phase
 
-## Dropouts
+```{r excl-drop}
+n_starting <- phase_keep %>%
+  distinct(phase_id, PID) %>%
+  count(phase_id, name = "n_attempted")
 
-```{r dropouts-sum, message=FALSE, results = 'asis'}
-phases <- as.integer(phase %>% distinct(phase_id) %>% pull() %>% sort())
-.this_phase <- max(phases)
+n_excluded_s <- sess_keep %>%
+  filter(!is.na(excl_phase)) %>%
+  mutate(excl_phase = factor(excl_phase, levels = as.character(1:4))) %>%
+  count(phase_id = excl_phase, .drop = FALSE, name = "n_subjects_excl")
 
-.s2 <- sess_keep %>%
-  group_by(PID) %>%
-  summarize(chk_consent_all = all(chk_consent_all),
-            chk_notmanex_sess = all(chk_notmanex),
-            chk_native = all(chk_native), .groups = "drop")
+phase1_excl <- phase_keep %>%
+  filter(phase_id == "1") %>%
+  anti_join(sess_keep %>% filter(excl_phase == "1"), "PID") %>%
+  filter(!(chk_consent & chk_finished & chk_notmanex)) %>%
+  nrow()
 
-phase_man %>%
-  semi_join(.s2 %>%
-            filter(chk_consent_all & chk_notmanex_sess & chk_native), "PID") %>%
-  filter(!(chk_dur_phase & chk_finished)) %>%
-  count(phase_id)
+phase2_excl <- phase_keep %>%
+  filter(phase_id == "2") %>%
+  anti_join(sess_keep %>% filter(excl_phase == "2"), "PID") %>%
+  filter(!(chk_consent & chk_finished & chk_notmanex)) %>%
+  nrow()
 
-.p2 <- phase_man %>%
-  mutate(chk_nocheat = !grepl("^Yes", Cheat, ignore.case = TRUE)) %>%
-  left_join(phs_flat, c("PID", "phase_id")) %>%
-  replace_na(list(chk_noflatline = FALSE)) %>%
-  group_by(PID, phase_id) %>%
-  summarize(chk_consent = all(chk_consent),
-            chk_finished = all(chk_finished),
-            chk_notmanex = all(chk_notmanex),
-            chk_dur_phase = all(chk_dur_phase),
-            chk_nocheat = all(chk_nocheat),
-            chk_noflatline = all(chk_noflatline),
-            .groups = "drop")
+phase3_excl <- phase_keep %>%
+  filter(phase_id == "3") %>%
+  anti_join(sess_keep %>% filter(excl_phase == "3"), "PID") %>%
+  filter(!(chk_consent & chk_finished & chk_notmanex)) %>%
+  nrow()
 
-.sp <- left_join(.s2, .p2, "PID") %>%
-  replace_na(list(phase_id = "1",
-                  chk_consent = FALSE,
-                  chk_finished = FALSE,
-                  chk_notmanex = FALSE)) %>%
-  mutate(phase_keep = chk_consent & chk_finished & chk_notmanex &
-           chk_nocheat & chk_noflatline & chk_dur_phase,
-         sess_keep = chk_consent_all & chk_notmanex_sess & chk_native,
-         keep = phase_keep & sess_keep)
+phase4_excl <- phase_keep %>%
+  filter(phase_id == "4") %>%
+  anti_join(sess_keep %>% filter(excl_phase == "4"), "PID") %>%
+  filter(!(chk_consent & chk_finished & chk_notmanex)) %>%
+  nrow()
 
-.drop1 <- .sp %>%
-  group_by(phase_id) %>%
-  summarise(n_attempted = n(),
-            n_retained = sum(keep),
-            n_excluded = n_attempted - n_retained,
-            .groups = "drop") %>%
-  select(phase_id, n_attempted, n_excluded, n_retained)
+n_excluded_p <- phase_keep %>%
+  distinct(phase_id) %>%
+  mutate(n_phase_excl = c(phase1_excl, phase2_excl,
+                          phase3_excl, phase4_excl))
 
-.drop1 %>%
-  inner_join(bind_rows(tibble(phase_id = factor("1", levels = 1:4),
-                              n_invited = NA_integer_),
-                       .drop1 %>%
-                       mutate(phase_id = factor(as.integer(phase_id) + 1L,
-                                                levels = 1:4)) %>%
-                       select(phase_id, n_invited = n_retained)),
-             "phase_id") %>%
-  select(phase_id, n_invited, n_attempted, n_excluded, n_retained) %>%
-  mutate(dropout = sprintf("%0.1f%%",
-                           100 * (n_invited - n_attempted) / n_invited),
-         exclusions = sprintf("%0.1f%%",
-                              100 * (n_excluded / n_attempted))) %>%
-  DT::datatable()
+n_remain <- inner_join(n_starting, n_excluded_s, "phase_id") %>%
+  inner_join(n_excluded_p, "phase_id") %>%
+  mutate(n_retained_phases = n_attempted - n_subjects_excl - n_phase_excl,
+         n_invited = lag(n_attempted - n_subjects_excl),
+         dropout = sprintf(
+           "%0.1f%%",
+           100 * ((n_invited - n_attempted) / n_invited)),
+         exclusion = sprintf(
+           "%0.1f%%",
+           100 * ((n_subjects_excl + n_phase_excl) / n_attempted)),
+         attrition = sprintf(
+           "%0.1f%%",
+           100 * (n_invited - n_retained_phases) / n_invited)) %>%
+  select(phase_id, n_invited, n_attempted,
+         n_subj_ex = n_subjects_excl,
+         n_phase_ex = n_phase_excl,
+         n_retained = n_retained_phases,
+         dropout, exclusion, attrition)
+
+##%>%        
+##  select(phase_id, n_invited, n_attempted, n_subjects_excl,
+##n_phase_excl, n_retained_phases,
+##         dropout, exclusion, attrition)
+
+n_remain
 ```
 
-```{r recruit-txt, results = 'asis'}
-## only run this if we have more phases to run
-if (.this_phase < 4L) {
-  next_phase <- .this_phase + 1L
-
-  cat("\n## Recruitment for phase ", next_phase, "\n\n", sep = "")
-
-  .np1 <- phase_keep %>%
-    filter(phase_id == max(phases), keep) %>%
-    semi_join(sess_keep %>% filter(keep), "PID") %>%
-    select(PID, list_id) %>%
-    arrange(list_id, PID)
-
-  .np2 <- .sp %>%
-    filter(phase_id == .this_phase, keep) %>%
-    inner_join(sess %>% select(PID, list_id), "PID") %>%
-    select(PID, list_id)
-
-  .np <- .np2
-  ## old algorithm vs new
-  ## if there are people that wouldn't be excluded, check multiples
-  if (nrow(setdiff(.np1, .np2)) > 0L) {
-    .in_common <- semi_join(setdiff(.np1, .np2), sess_mult, "PID")
-    ## see if we can explain the difference
-    if (nrow(.in_common) != nrow(setdiff(.np1, .np2, "PID"))) {
-      warning("old and new exclusion algorithms don't match; using old algorithm")
-      .np <- .np1
-    }
-  }
-  
-  .of <- paste0("recruitment_phase_", next_phase, ".csv")
-  
-  .np %>%
-    write_csv(.of)
-
-  cat("**List of prolific IDs written to file `", .of, "`**\n", sep = "")
-}
-```
-
-```{r recruit}
-## only run this if we have more phases to run
-if (.this_phase < 4L) {
-  DT::datatable(.np)
-}
-```
-
+## Anonymized data
 <!-- rest of this file writes out the anonymized data -->
+
+**TODO: load in the data from the RDS files and run `usethis::use_data()` to add to the `{truthiness}` package.**
 
 ```{r anonymize, results = 'asis'}
 ## if we have all phase data, anonymize
-sess_keep[["ID"]] <- sprintf("S%04d", sample(seq_len(nrow(sess_consent))))
+sess_keep[["ID"]] <- sprintf("S%04d", sample(seq_len(nrow(sess_keep))))
+
 share_cols <- c("list_id",
                 "Age", "Gender", "Nationality", "NativeLang",
-                "chk_consent_all", "chk_native", "chk_nocheat",
-                "chk_dur_all", "chk_noflatline", "chk_notmanex",
                 "keep",
-                "reason_for_manual_exclusion")
+                "excl_phase",
+                "excl_reason",
+                "chk_noduplicates",
+                "chk_consent_all", "chk_native", "chk_nocheat",
+                "chk_dur_all", "chk_noflatline", "chk_anydata",
+                "chk_notmanex")
+
 sess_private <- sess_keep[, c("PID", "ID",
                               setdiff(names(sess_keep),
                                       c("PID", "ID", "ConsentAll",
                                         share_cols)))]
 
-sess_no_dups <- sess_keep %>%
-  count(PID) %>%
-  filter(n == 1L) %>%
-  select(-n) %>%
-  inner_join(sess_keep %>% select(PID, ID, chk_consent_all), "PID") %>%
-  filter(chk_consent_all) %>%
-  select(-chk_consent_all)
-
 sess_share <- sess_keep[, c("ID", share_cols)] %>%
   arrange(ID) %>%
-  filter(chk_consent_all) %>%
-  select(-chk_consent_all)
+  mutate(Gender = fct_relevel(Gender,
+                              c("Female", "Male", "Gender variant",
+                                "Prefer not to say")) %>%
+           fct_explicit_na(),
+         list_id = fct_relevel(list_id,
+                               levels(stimulus_conditions[["list_id"]])))
 
 pshare_cols <- c("phase_id", "Duration (in seconds)",
+                 "keep",
+                 "p_excl_reason",
                  "chk_consent", "chk_finished",
-                 "chk_notmanex", "keep",
+                 "chk_notmanex", 
                  "reason_for_manual_exclusion")
 
 pkeep <- phase_keep %>%
   inner_join(sess_private[, c("ID", "PID")], "PID")
 
 phase_share <- pkeep[, c("ID", pshare_cols)] %>%
-  semi_join(sess_no_dups, "ID") %>%
-  arrange(ID, phase_id) %>%
-  filter(chk_consent) %>%
-  select(-chk_consent)
+  arrange(ID, phase_id)
 
 colnames(phase_share)[colnames(phase_share) == "Duration (in seconds)"] <-
   "duration_secs"
@@ -534,7 +701,7 @@ phase_private <- pkeep[, c("PID", "ID", "phase_id",
                                      pshare_cols)))]
 
 ratings2 <- ratings %>%
-  inner_join(sess_no_dups, "PID") %>%
+  inner_join(sess_keep %>% select(PID, ID), "PID") %>%
   select(-PID) %>%
   select(ID, everything())
   
@@ -543,7 +710,7 @@ ratings_share <-
   arrange(ID, phase_id, stim_id)
 
 cjudgments2 <- cjudgments %>%
-  inner_join(sess_no_dups, "PID") %>%
+  inner_join(sess_keep %>% select(PID, ID), "PID") %>%
   select(-PID) %>%
   select(ID, everything())
 
@@ -558,11 +725,22 @@ cat("\nWrote non-anonymized pre-processed phase data to `",
     private_phase_fname, "`\n", sep = "")  
 
 readr::write_csv(sess_share, file.path(anondir, "ANON_sessions.csv"))
-readr::write_csv(phase_share, file.path(anondir, "ANON_phases.csv"))
-readr::write_csv(ratings_share, file.path(anondir, "ANON_ratings.csv"))
-readr::write_csv(cjudgments_share, file.path(anondir, "ANON_categories.csv"))
+saveRDS(sess_share, file.path(anondir, "ANON_sessions.rds"))
 
-cat("\nWrote anonymized data to files ",
+readr::write_csv(phase_share, file.path(anondir, "ANON_phases.csv"))
+saveRDS(phase_share, file.path(anondir, "ANON_phases.rds"))
+
+readr::write_csv(ratings_share, file.path(anondir, "ANON_ratings.csv"))
+saveRDS(ratings_share, file.path(anondir, "ANON_ratings.rds"))
+
+readr::write_csv(cjudgments_share, file.path(anondir, "ANON_categories.csv"))
+saveRDS(cjudgments_share, file.path(anondir, "ANON_categories.rds"))
+
+cat("\nWrote anonymized data to text files ",
     "`ANON_sessions.csv`, `ANON_phases.csv`, `ANON_ratings.csv`, and ",
     "`ANON_categories.csv` in subdirectory `", anondir, "`.\n", sep = "")
+
+cat("\nWrote anonymized data to binary files ",
+    "`ANON_sessions.rds`, `ANON_phases.rds`, `ANON_ratings.rds`, and ",
+    "`ANON_categories.rds` in subdirectory `", anondir, "`.\n", sep = "")
 ```

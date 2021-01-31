@@ -8,22 +8,15 @@ output:
     code_folding: hide
     df_print: paged
 params:
-  subdir: NULL
   recipe: FALSE
 bibliography: '`r system.file("refs.bib", package = "truthiness")`'
 ---
-
-<style>
-div.warn { background-color:#ff8888; border-radius: 5px; padding: 20px; }
-div.note { background-color:#e6f0ff; border-radius: 5px; padding: 20px; }
-</style>
 
 ```{r setup, echo = FALSE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 ## shortcut for pretty printing for integers
 .pi <- function(x) prettyNum(x, big.mark=',')
-
 
 ## write out results of statistical test
 report <- function(betas, ser, chisq, df, p, eff, alpha = .05) {
@@ -79,16 +72,6 @@ parallel_installed <-
     warning("You can speed up computation by installing the 'parallel' package.")
     FALSE
   }
-
-if (is.null(params$subdir)) {
-  stop("You need to specify the subdirectory containing the anonymized data")
-}
-
-if (!dir.exists(params$subdir)) {
-  stop("subdirectory '", params$subdir, "' does not exist")
-}
-
-cache_dir <- paste0(basename(params$subdir), "/cache/")
 ```
 
 # Import and preprocess
@@ -103,262 +86,184 @@ library("truthiness")
 library("tidyverse")
 ```
 
-Importing data from files in subdirectory ``r params$subdir``.
+For information about the structure of the anonymized data files and stimulus materials, please see the documentation in the truthiness package for the data objects `sessions`, `phases`, `ratings`, and `cjudgments`.
 
-For information about the structure of the anonymized data files and stimulus materials, either run `truthiness::codebook()` in the R console, or download and view the file [codebook.html](https://osf.io/2gmds/) in the OSF repository for this project.
-
-`r warn(params$subdir)`
-
-```{r import, cache=TRUE, cache.path=(cache_dir)}
-sess <- read_csv(file.path(params$subdir, "ANON_sessions.csv"),
-                 col_types = "cfccccllllllc") %>%
-  mutate(list_id = fct_relevel(list_id,
-                               levels(stimulus_conditions[["list_id"]])),
-         gender = fct_relevel(Gender,
-                              c("Female", "Male"))) %>%
-  select(-Gender)
-
-phase <- read_csv(file.path(params$subdir, "ANON_phases.csv"),
-                  col_types = "cfilllc") %>%
-  mutate(phase_id = fct_relevel(phase_id, as.character(1:4)))
-
-cjudgments <- read_csv(file.path(params$subdir, "ANON_categories.csv"),
-                     col_types = "cfc") %>%
-  mutate(stim_id = fct_relevel(stim_id,
-                               levels(stimulus_conditions[["stim_id"]])))
-
-ratings <- read_csv(file.path(params$subdir, "ANON_ratings.csv"),
-                    col_types = "cffi") %>%
-  mutate(phase_id = fct_relevel(phase_id, as.character(1:4)),
-         stim_id = fct_relevel(stim_id,
-                               levels(stimulus_conditions[["stim_id"]])))
-
-n_item <- ratings %>% distinct(stim_id) %>% nrow()
-```
-
-## Pre-registered Exclusions
+## Exclusions
 
 The anonymized files contain `r .pi(nrow(ratings))` truth ratings of
-`r .pi(n_item)` statements from `r .pi(nrow(sess))` participants. Any
-participants who did not provide consent for the entire study will
-already have had their data removed during the pre-processing
-stage. Also any phases of the study where a participant withheld
-consent (despite consenting overall) will also have already been
-removed before this stage.
+`r .pi(nrow(stimulus_materials))` statements from `r .pi(nrow(sessions))` 
+participants.
 
 ### Participant-level exclusions
 
-There were four main exclusion criteria for removing participants, applied in the following order:
+There were eight main exclusion criteria for removing participants, applied in the following order:
 
-1. Not being a (self-reported) native speaker of English;
-2. Reporting having looked up answers in at least one phase of the study;
-3. Flat lining; i.e., using only one response category across an entire phase of the study;
-4. Failing to complete all phases in a reasonable amount of time (for Phase 1, between 3 and 40 minutes; for all other phases, between 1 and 30 minutes).
+1. Attempting to start more than one session during a given phase;
+2. Not granting consent for data collection across all phases;
+3. Not being a (self-reported) native speaker of English;
+4. Reporting having looked up answers in at least one phase of the study;
+5. Flat lining; i.e., using only one response category across an entire phase of the study;
+6. Failing to complete all phases in a reasonable amount of time (for Phase 1, between 3 and 40 minutes; for all other phases, between 1 and 30 minutes);
+7. Having no remaining data after any phase exclusions;
+8. Other reasons specified by the experimenter (manual exclusions).
 
-```{r remove-nonnative, cache=TRUE, cache.path=(cache_dir), dependson = "import"}
-sess_native <- sess %>%
-  filter(chk_native)
+```{r remove-nonnative}
+n_total <- sessions %>% filter(!keep) %>% nrow()
 
-n_nonnative <- nrow(sess) - nrow(sess_native)
-
-sess_nocheat <- sess_native %>%
-  filter(chk_nocheat)
-
-n_cheat <- nrow(sess_native) - nrow(sess_nocheat)
-
-sess_noflat <- sess_nocheat %>%
-  filter(chk_noflatline)
-
-n_flatline <- nrow(sess_nocheat) - nrow(sess_noflat)
-
-sess_dur_all <- sess_noflat %>%
-  filter(chk_dur_all)
-
-n_dur_out_range <- nrow(sess_noflat) - nrow(sess_dur_all)
-
-## manual exclusions at the participant level should be stored in the file
-## 'manually_exclusions_participants.csv' in the raw data directory
-sess_keep0 <- sess_dur_all %>%
-  filter(chk_notmanex)
-
-n_other_participant <- nrow(sess_dur_all) - nrow(sess_keep0)
-
-n_total <- n_nonnative + n_cheat + n_flatline + n_dur_out_range +
-    n_other_participant
-```
-
-Applying these criteria resulted in the removal of:
-
-* `r .pi(n_nonnative)` non-native English speaking participants;
-* `r .pi(n_cheat)` participants who reported looking up answers;
-* `r .pi(n_flatline)` participants who flat-lined in at least one phase; and
-* `r .pi(n_dur_out_range)` participants who had at least one phase with completion times outside the acceptable range.
-* `r if (.pi(n_other_participant > 0L)) paste0(n_other_participant, " participants were excluded manually, for the reasons listed below.") else "No participants were excluded for any other reasons."`
-
-```{r manual-excl1, echo = FALSE, eval = (n_other_participant > 0L)}
-sess_keep0 %>%
-  filter(!chk_notmanex) %>%
-  select(ID, reason_for_manual_exclusion) %>%
-    knitr::kable()
+sessions %>%
+  filter(!keep) %>%
+  count(excl_reason)
 ```
 
 In total, the exclusion criteria resulted in the removal of 
 `r .pi(n_total)` participants.
 
-```{r exclude, cache=TRUE, cache.path=(cache_dir), dependson = c("import", "remove-nonnative")}
+```{r exclude}
 ## remove truth ratings from excluded participants
 ratings2 <- ratings %>%
-  semi_join(sess_keep0 %>% filter(keep), "ID")
+  semi_join(sessions %>% filter(keep), "ID")
 
 ## remove category judgments while we're at it
 cjudgments2 <- cjudgments %>%
-  semi_join(sess_keep0, "ID")
+  semi_join(sessions %>% filter(keep), "ID")
 ```
 
 Removing data from these 
 `r .pi(n_total)`
 participants resulted in the removal of 
-`r .pi(nrow(ratings) - nrow(ratings2))` truth ratings.
+`r .pi(nrow(ratings) - nrow(ratings2))` truth ratings
+and 
+`r .pi(nrow(cjudgments) - nrow(cjudgments2))` category judgments.
 
 ```{r excl-demo}
-sess_na <- sess %>%
-  mutate(gender = fct_explicit_na(gender))
-
-excluded <- sess_na %>%
+excluded <- sessions %>%
   filter(!keep) %>%
-  count(gender, .drop = FALSE) %>%
+  count(Gender, .drop = FALSE) %>%
   rename(excluded = n)
 
-recruited <- sess_na %>%
-  count(gender, .drop = FALSE) %>%
+recruited <- sessions %>%
+  count(Gender, .drop = FALSE) %>%
   rename(recruited = n)
 
 .r1 <- recruited %>%
-  inner_join(excluded, "gender") %>%
+  inner_join(excluded, "Gender") %>%
   mutate(analyzed = recruited - excluded,
-         gender = as.character(gender))
+         Gender = as.character(Gender))
 
 .rtot <- summarize(.r1,
                    recruited = sum(recruited),
                    excluded = sum(excluded),
                    analyzed = sum(analyzed)) %>%
-  mutate(gender = "**TOTAL**") %>%
-  select(gender, everything())
+  mutate(Gender = "**TOTAL**") %>%
+  select(Gender, everything())
 
 bind_rows(.r1, .rtot) %>%
   knitr::kable()
 ```
 
+
 ### Phase-level exclusions
 
-The only exclusion criterion applied at the phase-level was failure to complete all of the ratings in the phase.
+The only exclusion criteria applied at the phase-level were (1) lack of consent for that phase; (2) failure to complete all of the ratings in the phase; (3) any other reason specified by the researcher (manual exclusion).
 
-```{r phase-finished, cache=TRUE, cache.path=(cache_dir), dependson = c("import", "remove-nonnative", "exclude")}
-phase_trim <- phase %>%
-  semi_join(sess_keep0, "ID")
+```{r phase-exclusions}
+phase1_excl <- phases %>%
+  filter(phase_id == "1") %>%
+  anti_join(sessions %>% filter(excl_phase == "1"), "ID") %>%
+  filter(!(chk_consent & chk_finished & chk_notmanex))
 
-phase_fin <- phase_trim %>%
-  filter(chk_finished)
+phase2_excl <- phases %>%
+  filter(phase_id == "2") %>%
+  anti_join(sessions %>% filter(excl_phase == "2"), "ID") %>%
+  filter(!(chk_consent & chk_finished & chk_notmanex))
 
-n_incomplete <- nrow(phase_trim) - nrow(phase_fin)
+phase3_excl <- phases %>%
+  filter(phase_id == "3") %>%
+  anti_join(sessions %>% filter(excl_phase == "3"), "ID") %>%
+  filter(!(chk_consent & chk_finished & chk_notmanex))
 
-phase_keep <- phase_fin %>%
-  filter(chk_notmanex)
+phase4_excl <- phases %>%
+  filter(phase_id == "4") %>%
+  anti_join(sessions %>% filter(excl_phase == "4"), "ID") %>%
+  filter(!(chk_consent & chk_finished & chk_notmanex))
 
-n_other_phase <- nrow(phase_fin) - nrow(phase_keep)
+excluded_p <- bind_rows(phase1_excl, phase2_excl,
+                          phase3_excl, phase4_excl)
+
+tots_phs <- excluded_p %>%
+  mutate(p_excl_reason = factor(p_excl_reason) %>%
+           fct_relevel("Did not give consent for phase (or consent missing)",
+                       "Did not complete phase")) %>%
+  count(p_excl_reason)
+
+n_phs_removed  <- tots_phs %>%
+  summarize(n = sum(n)) %>%
+  pull()
 
 ## now remove the truth ratings
 ratings_keep <- ratings2 %>%
-  semi_join(phase_keep, c("ID", "phase_id")) 
+  anti_join(excluded_p, c("ID", "phase_id")) 
 
 ## also remove the category judgments
 cjudgments_keep <- cjudgments2 %>%
-  semi_join(phase_keep %>% filter(phase_id == "1"), "ID")
+  anti_join(excluded_p %>% filter(phase_id == "1"), "ID")
+
+tots_phs %>%
+  rename(reason = p_excl_reason)
 ```
 
-This criterion resulted in the removal of 
-`r .pi(n_incomplete)` phases
+Applying these criteria resulted in the removal of 
+`r .pi(n_phs*removed)` phases
 (`r .pi(nrow(ratings2) - nrow(ratings_keep))` truth ratings).
 
-`r if (n_other_phase) paste0("An additional ", n_other_phase, " phases were excluded manually for the following reasons: ")`
+### Exclusions by phase and gender
 
-```{r manual-excl2, echo = FALSE, eval = (n_other_phase > 0L)}
-phase_fin %>%
-  filter(!chk_notmanex) %>%
-  select(ID, phase_id, reason_for_manual_exclusion) %>%
-  knitr::kable()
+```{r excl-phase-and-gender}
+subj_excl <- sessions %>%
+  filter(!keep) %>%
+  mutate(phase_id = factor(excl_phase, levels = 1:4)) %>%
+  count(phase_id, Gender, .drop = FALSE, name = "n_subj_excluded")
+
+n_excluded_p <- excluded_p %>%
+  inner_join(sessions %>% select(ID, Gender), "ID") %>%
+  count(phase_id, Gender, .drop = FALSE) %>%
+  rename(n_phases_excluded = n)
+
+n_starting <- phases %>%
+  inner_join(sessions %>% select(ID, Gender), "ID") %>%
+  count(phase_id, Gender, .drop = FALSE, name = "n_recruited")
+
+tots <- inner_join(n_starting, subj_excl, c("phase_id", "Gender")) %>%
+  inner_join(n_excluded_p, c("phase_id", "Gender")) %>%
+  mutate(n_retained = n_recruited - n_subj_excluded - n_phases_excluded)
+
+tots2 <- tots %>%
+  group_by(phase_id) %>%
+  summarize(n_recruited = sum(n_recruited),
+            n_subj_excluded = sum(n_subj_excluded),
+            n_phases_excluded = sum(n_phases_excluded),
+            n_retained = sum(n_retained)) %>%
+  mutate(Gender = "**TOTAL**")
+
+bind_rows(tots %>%
+          mutate(Gender = factor(Gender,
+                                 levels = c(levels(Gender), "**TOTAL**"))),
+          tots2) %>%
+  mutate(Gender = fct_relevel(Gender,
+                              "Female", "Male", "Gender variant",
+                              "Prefer not to say", "(Missing)",
+                              "**TOTAL**")) %>%
+  arrange(phase_id, Gender) %>%
+  knitr::kable(caption = "Participants and Phases Recruited, Excluded, and Retained by Experimental Phase and Gender")
 ```
 
 # Descriptive statistics
 
-`r warn(params$subdir)`
-
-```{r final-prep, cache=TRUE, cache.path=(cache_dir), dependson = c("import", "remove-nonnative", "exclude", "phase-finished")}
+```{r final-prep}
 ## do the final stages of pre-processing and
 ## prepare the data for modeling
 
-## make sure there are no entries in sess_keep0 for subjects
-## who have lost all of their phase data.
-sess_keep <- semi_join(sess_keep0, ratings, "ID") %>%
-  semi_join(phase_keep, "ID")
-
 ## lookup which condition each rating belongs to
-ratecond <- ratings %>%
-  inner_join(sess_keep %>% select(ID, list_id), "ID") %>%
-  inner_join(stimulus_conditions, c("list_id", "stim_id"))
-
-n_orphaned <- nrow(sess_keep0) - nrow(sess_keep)
-```
-
-```{r orph-txt, echo = FALSE, results = "asis"}
-if (n_orphaned) {
-  cat("The phase exclusions above combined with dropouts meant ",
-      "that an additional ",
-      n_orphaned,
-      if (n_orphaned == 1L) " participant was " else " participants were ",
-      "left with no ratings data.", sep = "")
-}
-```
-
-Dropouts and the application of exclusion criteria left
-`r .pi(nrow(sess_keep))` participants remaining for analysis, who
-contributed a total of `r .pi(nrow(ratings_keep))` ratings.
-
-## Exclusions by Phase and Gender
-
-```{r gender-tbl}
-included <- phase_keep %>%
-  inner_join(sess_keep %>%
-             select(ID, gender), "ID") %>%
-  count(phase_id, gender, .drop = FALSE) %>%
-  rename(n_analysed = n)
-
-excluded <- anti_join(phase,
-                      phase_keep, c("ID", "phase_id")) %>%
-  inner_join(sess %>%
-             select(ID, gender), "ID") %>%
-  count(phase_id, gender, .drop = FALSE) %>%
-  rename(n_excluded = n)
-
-.p1 <- inner_join(excluded, included, c("phase_id", "gender")) %>%
-  mutate(n_recruited = n_excluded + n_analysed) %>%
-  select(phase_id, gender,
-         n_recruited, n_excluded, n_analysed)
-
-.psum <- .p1 %>%
-  group_by(phase_id) %>%
-  summarize(n_recruited = sum(n_recruited),
-            n_excluded = sum(n_excluded),
-            n_analysed = sum(n_analysed)) %>%
-  ungroup() %>%
-  mutate(gender = factor("**TOTAL**",
-                         levels = c(levels(.p1$gender), "**TOTAL**")))
-
-levels(.p1$gender) <- levels(.psum$gender)
-
-bind_rows(.p1, .psum) %>%
-  arrange(phase_id, gender) %>%
-  knitr::kable(caption = "Participants Recruited, Excluded, and Analysed, Separated by Experimental Phase and Gender")
 ```
 
 ## Means and standard deviations
@@ -366,6 +271,10 @@ bind_rows(.p1, .psum) %>%
 First, let's collapse over interval and look at the means and SDs for repetition.
 
 ```{r rep-means-sd, message=FALSE}
+ratecond <- ratings_keep %>%
+  inner_join(sessions %>% select(ID, list_id), "ID") %>%
+  inner_join(stimulus_conditions, c("list_id", "stim_id"))
+
 ratecond %>%
   group_by(repetition) %>%
   summarise(mean = round(mean(trating), 2),

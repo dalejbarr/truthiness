@@ -1,7 +1,5 @@
 #' Reproduce the Master Data Analysis on Raw Data
 #'
-#' @param path Path to the anonymized data files.
-#'
 #' @param outfile Path to the HTML output file.
 #'
 #' @param recipe Include instructions on how to reproduce the analysis.
@@ -17,26 +15,23 @@
 #'                        "illusory-truth-analysis", "truthiness")}
 #' 
 #' @export
-reproduce_analysis <- function(path,
-                               outfile = "analysis.html",
+reproduce_analysis <- function(outfile = "analysis.html",
                                recipe = FALSE,
                                infile = NULL) {
 
-  path <- normalize_path(path)
-  if (!dir.exists(path)) {stop("directory '", path, "' does not exist")}
   if (is.null(infile)) {
     tf <- tempfile(fileext = ".Rmd")
     infile <- rmarkdown::draft(tf, "illusory-truth-analysis", "truthiness",
                                FALSE, FALSE)
-    message("Processing built-in script against data in '", path, "'")
+    message("Processing built-in analysis script")
   } else {
-    message("Processing '", infile, "' against data in '", path, "'")
+    message("Processing '", infile, "'")
   }
   ofile <- rmarkdown::render(infile, output_file = basename(outfile),
                              knit_root_dir = getwd(),
+                             envir = new.env(),
                              output_dir = dirname(outfile),
-                             params = list(subdir = path,
-                                           recipe = recipe))
+                             params = list(recipe = recipe))
   invisible(ofile)
 }
 

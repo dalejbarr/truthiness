@@ -1,38 +1,33 @@
 # Appendix: Instructions for reproducing these analyses
 
-Note that to re-run this analysis you'll need an anonymized copy of the data available in a subdirectory of the working directory. You can obtain the anonymized data from the project repository at <https://osf.io/nvugt/>.
+Re-running the analysis requires only the truthiness package, which has the anonymized data included in the built-in data objects `sessions`, `phases`, `ratings`, and `cjudgments`. The package can be obtained from the project repository at <https://osf.io/nvugt/>.
 
 You can re-run the analysis either with or without a software container that encapsulates all the software needed for analysis. Using the software container is the only method guaranteed to exactly match the results obtained by the authors. Instructions are provided below for both methods.
 
 ## Reproducing the analysis with the singularity software container
 
-Make sure you have installed [Singularity version 3.5](https://sylabs.io/guides/3.5/user-guide/) and are at a command prompt in a directory containing the subdirectory with the anonymous data.
+Make sure you have installed [Singularity version 3.5](https://sylabs.io/guides/3.5/user-guide/.
 
-To re-run the full analysis, including the inferential statistics, use the `makeit analysis` command.  The command requires specifying the subdirectory containing the anonymized data through the shell variable `SUBDIR`.
-
-Here is the main command to reproduce the analysis:
+To re-run the full analysis, including the inferential statistics, use the `makeit analysis` command.
 
 ```
-singularity exec library://dalejbarr/talklab/illusory-truth \ 
-    makeit analysis SUBDIR=path-to-anonymized-data
+singularity exec library://dalejbarr/talklab/illusory-truth makeit analysis
 ```
 
-where `path-to-anonymized-data` is replaced with the name of the subdirectory with the anonymous data (or one of the simulated versions of the data). Note that the inferential statistics can take very long (~24 hours) to run. This will save a file `analysis.html` with the analysis report and a binary image `analysis.RData` containing the analysis data.
+This will save a file `analysis.html` with the analysis report, a binary image `fitted_models.rds` containing the fitted models, and two PNG plots. *Note that the inferential statistics can take very long to run (~24 hours on a multi-core system, several days on a single core system).*
 
 ### Copying and editing the master R Markdown script
 
 If you want to edit the master R Markdown script, the following command copies the script from the package into the file `my_analysis.Rmd` in the current working directory.
 
 ```
-singularity exec library://dalejbarr/talklab/illusory-truth \
-    makeit draft OUT=my_analysis.Rmd
+singularity exec library://dalejbarr/talklab/illusory-truth makeit draft OUT=my_analysis.Rmd
 ```
 
 You can then render the script via the container using:
 
 ```
-singularity exec library://dalejbarr/talklab/illusory-truth \
-    makeit render INFILE=my_analysis.Rmd SUBDIR=path-to-anonymized-data
+singularity exec library://dalejbarr/talklab/illusory-truth makeit render INFILE=my_analysis.Rmd
 ```
 
 altering `path-to-anonymized-data` as required.
@@ -41,13 +36,11 @@ altering `path-to-anonymized-data` as required.
 
 The [R Markdown](https://rmarkdown.rstudio.com/index.html) source document used to create this file is included with the [truthiness](https://github.com/dalejbarr/truthiness) package (`devtools::install_github("dalejbarr/truthiness")`) that accompanies this project.  The software versions required are shown in the [Session Info](#sessinfo) section of this document. If any of your software does not match these versions, you are not guaranteed to match the results obtained by the authors.
 
-If your only interest is in re-running the analysis, simply issue the following command within the R console.
+If your only interest is in re-running the analysis, simply issue the following command within the R console. *On a multi-core system, it is recommended that you install the R package `{parallel}` to speed up computation time.*
 
 ```
-truthiness::reproduce_analysis(path = "path-to-anonymized-data")
+truthiness::reproduce_analysis()
 ```
-
-Replace `path-to-anonymized-data` with the name of the subdirectory containing the data. As noted in the above section, inferential stats may require a very long processing time.
 
 ### Accessing the master R Markdown script through RStudio
 
@@ -55,14 +48,6 @@ If you are using RStudio, simply go to the pull down menu
 `File -> New File... -> R Markdown...`, choose "From Template" in the left-hand options box and then choose "Illusory Truth Analysis" from the list of available templates.
 
 Compile the R Markdown document to HTML using the 'Knit' button in RStudio. 
-
-You can control where the process looks for the anonymized data by setting the value of `subdir` in the YAML header. See the example of YAML values below.
-
-```
-params:
-  subdir: "path-to-anonymized-data"
-  recipe: FALSE
-```
 
 ### Accessing the master R Markdown script Without RStudio
 
@@ -77,7 +62,7 @@ This command will create the file `my_analysis.Rmd` in the working directory, wh
 Render to HTML using the following command from *`truthiness`*:
 
 ```
-reproduce_analysis("path-to-anonymized-data", infile = "my_analysis.Rmd")
+reproduce_analysis(infile = "my_analysis.Rmd")
 ```
 
 See `?truthiness::reproduce_analysis` for further options.

@@ -11,15 +11,18 @@ params:
 
 # Codebook
 
-Below is information about the structure of the anonymized data
-files. These files are:
+Below is information about the structure of the anonymized data included in the `{truthiness}` package. The data is divided into four separate tables:
 
-* **`ANON_sessions.csv`** : Information about the experimental sessions.
-* **`ANON_phases.csv`** : Information about the individual phases of data collection.
-* **`ANON_ratings.csv`** : Truth ratings.
-* **`ANON_categories.csv`** : Categorization judgments from the exposure phase.
+* **`sessions`** : Information about the experimental sessions.
+* **`phases`** : Information about the individual phases of data collection.
+* **`ratings`** : Truth ratings.
+* **`cjudgments`** : Categorization judgments from the exposure phase.
 
-## Session information (`ANON_sessions.csv`)
+These objects are also documented in the R package help files (e.g., `?sessions`).
+
+For non-R users, CSV versions of these data files are also available at the [project repository](https://osf.io/nvugt/).
+
+## Session information (`sessions`)
 
 ```{r sess, echo = FALSE}
 library("tibble")
@@ -32,30 +35,36 @@ tribble(~Variable, ~Description,
         "`Gender`", "Participant gender (Female, Male, Gender variant, or Prefer not to say)",
         "`Nationality`", "Participant nationality",
         "`NativeLang`", "Participant native language",
+        "`keep`", "Whether to retain participant's data in the analysis.",
+        "`excl_phase`", "Phase in which exclusion occurred (or NA).",
+        "`excl_reason`", "Reason for exclusion (or NA).",
+        "`chk_noduplicates`", "Whether there were no duplicated sessions.",
+        "`chk_consent_all`", "Whether participant gave consent for all phases.",
         "`chk_native`", "Whether participant self-identified as a native English speaker",
         "`chk_nocheat`", "Whether participant did not report looking up answer during any phase",
         "`chk_dur_all`", "Whether participant completed all phases within reasonable limits",
         "`chk_noflatline`", "Whether participant did not produce any 'flatline' responses for a single phase (e.g., all ratings of the same response category)",
-        "`chk_notmanex`", "Whether the participant was manually excluded.",
-        "`keep`", "Whether to retain participant's data in the analysis.",
-        "`reason_for_manual_exclusion`", "If the participant has been manually excluded, the reason for doing so; otherwise `NA`")
+        "`chk_anydata`","Whether there is any ratings data for this participant.",
+        "`chk_notmanex`", "Whether the participant was manually excluded.")
 ```
 
-## Phase information (`ANON_phases.csv`)
+## Phase information (`phases`)
 
 ```{r phase, echo = FALSE}
 tribble(~Variable, ~Description,
         "`ID`", "Unique participant identifier",
         "`phase_id`", "Which phase (1 = immediate, 2 = 1 day, 3 = 1 week, 4 = 1 month)",
         "`duration_secs`", "Total duration of the phase for specific participant/phase combination",
+        "`keep`", "Whether to retain this phase data for this participant in the analysis.",
+        "`p_excl_reason`", "Reason phase is excluded (or NA).",
+        "`chk_consent`", "Whether participant gave consent for this phase.",
         "`chk_finished`", "Whether all responses were filled in",
         "`chk_dur_phase`", "Whether the phase was completed within reasonable time limits.",
         "`chk_notmanex`", "Whether the phase for this participant was manually excluded.",
-        "`keep`", "Whether to retain this phase data for this participant in the analysis.",
         "`reason_for_manual_exclusion`", "If the phase has been manually excluded, the reason for doing so; otherwise `NA`")
 ```
 
-## Truth ratings (`ANON_ratings.csv`)
+## Truth ratings (`ratings`)
 
 ```{r truth, echo = FALSE}
 tribble(~Variable, ~Description,
@@ -66,7 +75,7 @@ tribble(~Variable, ~Description,
         )
 ```
 
-## Categorization judgments (`ANON_categories.csv`)
+## Categorization judgments (`cjudgments`)
 
 ```{r interest, echo = FALSE}
 tribble(~Variable, ~Description,
@@ -81,5 +90,5 @@ tribble(~Variable, ~Description,
 `r if (!params$show_stim) {"Stimuli have been withheld from the repository until the completion of data collection. This has been done to avoid the possibility that potential participants will find them online. You can access them using the truthiness::codebook() function in R."}`
 
 ```{r stim, echo = FALSE, eval = params$show_stim}
-  stimulus_materials
+DT::datatable(stimulus_materials)
 ```
