@@ -340,7 +340,7 @@ g
 
 We analyzed the data using cumulative logit mixed models via the `clmm()` function from the **`ordinal`** package [@ordinal]. We tested the repetition main effect and the repetition-by-interval interaction using likelihood ratio tests (LRTs), using the `anova()` function. Each test consisted of a comparison of two models, a base model containing the fixed effect (or effects) of interest and a comparison model identical to the base model except that the fixed effect (or effects) of interest had been removed. Each test was conducted with an $\alpha$ level of .05.
 
-```{r mod-setup, echo=FALSE, cache=TRUE, cache.path=(cache_dir), dependson=c(3:4, 6, 8, 10)}
+```{r mod-setup, echo=FALSE}
 mod1 <- T ~ R + I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
   (R | subj_id) + (R | stim_id)
 mod2 <- T ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3 + (R | subj_id) + (R | stim_id)
@@ -406,7 +406,7 @@ where:
 The comparison of models 1 and 2 test the significance of the main effect of repetition (`R`). The comparison of models 3 and 4 test the significance of the repetition-by-interval interaction (coded by `R:I1`, `R:I2`, and `R:I3`).
 
 
-```{r fit-clmm-no-parallel, eval = (!parallel_installed), echo = (!parallel_installed), cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(3:4, 6, 8, 10, 16)}
+```{r fit-clmm-no-parallel, eval = (!parallel_installed), echo = (!parallel_installed)}
 ## fit models using serial version (no multi-core)
 mods <- list()
 
@@ -452,7 +452,7 @@ cat("* Total computation time: ",
     sprintf("%0.2f minutes", dur / 60), "\n")
 ```
 
-```{r fit-clmm-parallel, eval = parallel_installed, echo = parallel_installed, cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(3:4, 6, 8, 10, 16), results = 'asis'}
+```{r fit-clmm-parallel, eval = parallel_installed, echo = parallel_installed, results = 'asis'}
 ## fit models using parallelized version (multi-core)
 ncores <- parallel::detectCores() - 1L
 ncores <- if (ncores < 1L) 1L else ncores
