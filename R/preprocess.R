@@ -441,10 +441,13 @@ import_sessions <- function(path) {
                                          function(x) x[, unique_cols])
       pdat2[[i]] <- tidyr::unnest(pdat[[i]][, c("data2")], c("data2"))    
     }
-    has_data <- purrr::map_lgl(pdat2,
-                               ~ !(is.null(.x[["PID"]]) | is.null(.x[["list_id"]])))
+    has_data <- purrr::map_lgl(
+                         pdat2,
+                         ~ !(is.null(.x[["PID"]]) | is.null(.x[["list_id"]])))
     
-    df2 <- purrr::reduce(pdat2[has_data], dplyr::full_join, by = c("PID", "list_id"))
+    df2 <- purrr::reduce(pdat2[has_data],
+                         dplyr::full_join, by = c("PID", "list_id"))
+    df2[["Age"]] <- as.integer(df2[["Age"]])
     
     df2[, c("PID", "list_id", setdiff(names(df2), c("PID", "list_id")))]
   }
