@@ -545,9 +545,8 @@ tots_phs
 ### List of excluded phases
 
 ```{r phs-excl-list}
-DT::datatable(phase_keep %>% 
-              filter(!keep, p_excl_reason != "Session was excluded") %>%
-              select(PID, phase_id, p_excl_reason))
+DT::datatable(excluded_p %>%
+  select(PID, phase_id, StartDate, EndDate, p_excl_reason))
 ```
 
 ## Comments
