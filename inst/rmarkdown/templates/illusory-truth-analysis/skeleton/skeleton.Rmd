@@ -506,8 +506,6 @@ se_i <- sqrt(diag(vcov(mods[["ix_base"]])))[c("R:I1", "R:I2", "R:I3")]
 
 ## Main effect
 
-`r warn(params$subdir)`
-
 ```{r report-main, echo = FALSE, results='asis'}
 cat(report(b_m, se_m, chisq_m, df_m, p_m, "main effect of repetition"), "\n")
 ```
@@ -529,8 +527,6 @@ test(main_emm, delta = .14, side = "equivalence")$contrasts %>%
 ```
 
 ## Interaction
-
-`r warn(params$subdir)`
 
 ```{r report-ix, echo = FALSE, results='asis'}
 cat(report(b_i, se_i, chisq_i, df_i, p_i, "repetition-by-interval interaction"),
@@ -671,8 +667,6 @@ g
 # ANOVA
 
 Most of the literature on the illusory truth effect uses the analysis of variance as the primary inferential approach. For comparison with the existing literature, we perform an ANOVA on our data. The ANOVA analysis treats stimuli as fixed effects and violates the assumption of a continuous DV with variance proportional to the mean, so we provide this only for illustrative purposes, and only draw our conclusions from the results of the cumulative logit mixed model analysis above.
-
-`r warn(params$subdir)`
 
 ```{r anova, message=FALSE}
 ## convert DV to an integer
