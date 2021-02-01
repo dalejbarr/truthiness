@@ -12,11 +12,6 @@ params:
   anondir: "anon"
 ---
 
-<style>
-div.warn { background-color:#ff8888; border-radius: 5px; padding: 20px; }
-div.note { background-color:#e6f0ff; border-radius: 5px; padding: 20px; }
-</style>
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
