@@ -495,6 +495,8 @@ import_phase_info <- function(path) {
                                   c("data2"))
     }
     df2 <- dplyr::bind_rows(pdat2)
+    df2[["Duration (in seconds)"]] <- as.integer(df2[["Duration (in seconds)"]])
+    
     df2[, c("PID", "list_id", "phase_id",
             setdiff(names(df2), c("PID", "list_id", "phase_id")))]
   }
