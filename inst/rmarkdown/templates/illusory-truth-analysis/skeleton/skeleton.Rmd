@@ -589,6 +589,11 @@ test(mod_emm, delta = .14, side = "equivalence")$contrasts %>%
                                                  knitr::kable(digits = 3)
 ```
 
+```{r save-image, include=FALSE}
+saveRDS(mods, "fitted_models.rds")
+```
+
+
 ## Model validation
 
 To validate the model, we simulate data based on the model fit and plot the distribution of the simulated data against the raw data and cell means. 
@@ -636,7 +641,9 @@ simdat <- function(md, sdat, rdat, mdat) {
     select(ID, stim_id, repetition, interval, eta, trating)
 }
 
-dsim <- simdat(mods[["ix2"]], sess_keep, ratings_keep, moddata2)
+dsim <- simdat(mods[["ix2"]],
+               sessions %>% filter(keep),
+	       ratings_keep, moddata2)
 
 sim_subj_means <- dsim %>%
   group_by(ID, repetition, interval) %>%
@@ -650,7 +657,8 @@ sim_stim_means <- dsim %>%
   ungroup() %>%
   mutate(unit = "stimulus")
   
-g <- ggplot(rcagg_both, aes(repetition, mean, color = repetition, fill = repetition)) +
+g <- ggplot(rcagg_both, aes(repetition, mean, color = repetition,
+                            fill = repetition)) +
   geom_violin(data = bind_rows(sim_subj_means, sim_stim_means), alpha = .2) +
   geom_jitter(alpha = .1) +
   geom_point(data = rcagg, color = "black", size = 3, alpha = .5) +
@@ -692,10 +700,6 @@ ez::ezANOVA(adata2, dv = mean_rating,
 ```
 
 # Session information {#sessinfo}
-
-```{r save-image, include=FALSE}
-saveRDS(mods, "fitted_models.rds")
-```
 
 ```{r exit}
 ## before exiting, print out session info
