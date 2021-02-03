@@ -9,6 +9,7 @@ output:
     df_print: paged
 params:
   recipe: FALSE
+  modfits: NULL
 bibliography: '`r system.file("refs.bib", package = "truthiness")`'
 ---
 
@@ -218,7 +219,7 @@ Applying these criteria resulted in the removal of
 
 ### Exclusions by phase and gender
 
-```{r excl-phase-and-gender}
+```{r excl-phase-and-gender, message=FALSE}
 subj_excl <- sessions %>%
   filter(!keep) %>%
   mutate(phase_id = factor(excl_phase, levels = 1:4)) %>%
@@ -233,19 +234,26 @@ n_starting <- phases %>%
   inner_join(sessions %>% select(ID, Gender), "ID") %>%
   count(phase_id, Gender, .drop = FALSE, name = "n_recruited")
 
+analyzed_gender <- phases %>%
+  filter(keep) %>%
+  inner_join(sessions, "ID") %>%
+  count(phase_id, Gender, .drop = FALSE, name = "n_analysed")
+
 tots <- inner_join(n_starting, subj_excl, c("phase_id", "Gender")) %>%
   inner_join(n_excluded_p, c("phase_id", "Gender")) %>%
-  mutate(n_retained = n_recruited - n_subj_excluded - n_phases_excluded)
+  mutate(n_retained = n_recruited - n_subj_excluded - n_phases_excluded) %>%
+  inner_join(analyzed_gender, c("phase_id", "Gender"))
 
 tots2 <- tots %>%
   group_by(phase_id) %>%
   summarize(n_recruited = sum(n_recruited),
             n_subj_excluded = sum(n_subj_excluded),
             n_phases_excluded = sum(n_phases_excluded),
-            n_retained = sum(n_retained)) %>%
+            n_retained = sum(n_retained),
+            n_analysed = sum(n_analysed)) %>%
   mutate(Gender = "**TOTAL**")
 
-bind_rows(tots %>%
+alltots <- bind_rows(tots %>%
           mutate(Gender = factor(Gender,
                                  levels = c(levels(Gender), "**TOTAL**"))),
           tots2) %>%
@@ -253,6 +261,10 @@ bind_rows(tots %>%
                               "Female", "Male", "Gender variant",
                               "Prefer not to say", "(Missing)",
                               "**TOTAL**")) %>%
+  mutate(n_excluded = n_subj_excluded + n_phases_excluded) %>%
+  select(phase_id, Gender, n_recruited, n_excluded, n_retained, n_analysed)
+
+alltots %>%
   arrange(phase_id, Gender) %>%
   knitr::kable(caption = "Participants and Phases Recruited, Excluded, and Retained by Experimental Phase and Gender")
 ```
@@ -405,8 +417,16 @@ where:
 
 The comparison of models 1 and 2 test the significance of the main effect of repetition (`R`). The comparison of models 3 and 4 test the significance of the repetition-by-interval interaction (coded by `R:I1`, `R:I2`, and `R:I3`).
 
+```{r mods-included, include=FALSE}
+## load in the data if provided
+mods <- if (!is.null(params$modfits)) {
+          readRDS(params$modfits)
+        } else {
+          NULL
+        }
+```
 
-```{r fit-clmm-no-parallel, eval = (!parallel_installed), echo = (!parallel_installed)}
+```{r fit-clmm-no-parallel, eval = (!parallel_installed) & is.null(mods), echo = (!parallel_installed)}
 ## fit models using serial version (no multi-core)
 mods <- list()
 
@@ -452,7 +472,7 @@ cat("* Total computation time: ",
     sprintf("%0.2f minutes", dur / 60), "\n")
 ```
 
-```{r fit-clmm-parallel, eval = parallel_installed, echo = parallel_installed, results = 'asis'}
+```{r fit-clmm-parallel, eval = parallel_installed & is.null(mods), echo = parallel_installed, results = 'asis'}
 ## fit models using parallelized version (multi-core)
 ncores <- parallel::detectCores() - 1L
 ncores <- if (ncores < 1L) 1L else ncores
@@ -589,7 +609,7 @@ test(mod_emm, delta = .14, side = "equivalence")$contrasts %>%
                                                  knitr::kable(digits = 3)
 ```
 
-```{r save-image, include=FALSE}
+```{r save-image, eval=is.null(params$modfits), include=FALSE}
 saveRDS(mods, "fitted_models.rds")
 ```
 

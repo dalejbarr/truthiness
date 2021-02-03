@@ -4,6 +4,9 @@
 #'
 #' @param recipe Include instructions on how to reproduce the analysis.
 #'
+#' @param modfits Path to RDS file containing fitted model data, to skip
+#'   the time-consuming estimation process.
+#'
 #' @param infile Path to the R Markdown script; \code{NULL} to use the
 #'   built-in script.
 #' 
@@ -16,6 +19,7 @@
 #' 
 #' @export
 reproduce_analysis <- function(outfile = "analysis.html",
+                               modfits = NULL,
                                recipe = FALSE,
                                infile = NULL) {
 
@@ -31,7 +35,7 @@ reproduce_analysis <- function(outfile = "analysis.html",
                              knit_root_dir = getwd(),
                              envir = new.env(),
                              output_dir = dirname(outfile),
-                             params = list(recipe = recipe))
+                             params = list(recipe = recipe, modfits = modfits))
   invisible(ofile)
 }
 
