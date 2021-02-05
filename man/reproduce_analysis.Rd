@@ -2,7 +2,7 @@
 % Please edit documentation in R/reproduce.R
 \name{reproduce_analysis}
 \alias{reproduce_analysis}
-\title{Reproduce the Master Data Analysis on Raw Data}
+\title{Reproduce the Analysis for Longitudinal Illusory Truth Study}
 \usage{
 reproduce_analysis(
   outfile = "analysis.html",
@@ -30,20 +30,34 @@ built-in script.}
 }
 \value{
 Path to the rendered HTML report.
-
-\code{rmarkdown::draft("master_script.Rmd",
-                       "illusory-truth-analysis", "truthiness")}
 }
 \description{
-Reproduce the Master Data Analysis on Raw Data
+Re-run the analysis for the
+\insertCite{Henderson_Simons_Barr_2021;textual}{truthiness}
+longitudinal truth study.
 }
 \details{
-Runs R Markdown script on the data in the provided
-  subdirectory and renders the HTML report to \code{outfile}. The
-  master R Markdown script can be accessed using:
+Runs R Markdown script containing the analysis code. The
+  analysis is performed on the built-in preprocessed anonymized
+  data (documented in \code{\link{truth_trajectory_data}}). The
+  script output is rendered as an HTML report, specified by
+  \code{outfile}. Although it is not necessary to do so, the master
+  R Markdown script for processing real data can be accessed using
+
+\code{rmarkdown::draft("analysis.Rmd",
+                       "illusory-truth-analysis", "truthiness")}
 }
 \examples{
+tf <- tempfile(fileext = ".html")
 result <- reproduce_analysis(tf)
 \dontrun{browseURL(result)}
 
+\dontrun{
+## to re-fit the data (takes VERY long):
+result <- reproduce_analysis(refit = TRUE)
+}
+
+}
+\seealso{
+\code{\link{reproduce_analysis_simulated}}
 }

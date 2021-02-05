@@ -16,7 +16,7 @@ A six-element vector representing the thresholds on a seven-point scale.
 Convert Threshold Values from Six to Seven Point Scale
 }
 \details{
-The basic algorithm is to copy the top and bottom thresholds and then to shrink the spaces between the thresholds on the six-point scale to 80% of their size. The left over space is allocated to the middle category on the seven-point scale.
+The basic algorithm is to copy the top and bottom thresholds and then to shrink the spaces between the thresholds on the six-point scale to 80\% of their size. The left over space is allocated to the middle category on the seven-point scale.
 }
 \examples{
 clmm_maximal$alpha # original thresholds

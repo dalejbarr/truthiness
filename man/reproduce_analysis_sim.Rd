@@ -2,7 +2,7 @@
 % Please edit documentation in R/reproduce.R
 \name{reproduce_analysis_sim}
 \alias{reproduce_analysis_sim}
-\title{Reproduce the Master Data Analysis on Simulated Data}
+\title{Simulate the Analysis for Longitudinal Illusory Truth Study}
 \usage{
 reproduce_analysis_sim(
   path,
@@ -12,7 +12,9 @@ reproduce_analysis_sim(
 )
 }
 \arguments{
-\item{path}{Path to the anonymized data files.}
+\item{path}{Path to a subdirectory containing the preprocessed
+anonymized (simulated) data files (see
+\code{\link{simulate_resp_files}}).}
 
 \item{outfile}{Path to the HTML output file.}
 
@@ -22,13 +24,33 @@ reproduce_analysis_sim(
 built-in script.}
 }
 \description{
-Reproduce the Master Data Analysis on Simulated Data
+Runs the main analysis for
+\insertCite{Henderson_Simons_Barr_2021;textual}{truthiness} on
+simulated data.
 }
 \details{
 Runs R Markdown script on the data in the provided
   subdirectory and renders the HTML report to \code{outfile}. The
   master R Markdown script can be accessed using:
 
-\code{rmarkdown::draft("master_script.Rmd",
+\code{rmarkdown::draft("analysis.Rmd",
                        "illusory-truth-analysis-sim", "truthiness")}
+
+Note that this script can take *very* long to run, depending on the
+size of the simulated dataset, the number of processing cores, and
+the computational power of the hardware.
+}
+\examples{
+td_raw <- tempfile()  # temp dir for raw data
+td_anon <- tempfile() # temp dir for preprocessed data
+
+## simulate data and preprocess it
+
+set.seed(62)
+simulate_resp_files(40, path = td_raw, overwrite = TRUE)
+report preprocess_simulated(td_raw, td_anon)
+\dontrun{
+reproduce_analysis_sim(td_anon)
+}
+
 }

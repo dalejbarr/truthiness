@@ -4,3 +4,4 @@ pkg.org
 junk.R
 .bash_history
 ^LICENSE\.md$
+^README\.Rmd$
