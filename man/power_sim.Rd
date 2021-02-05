@@ -2,7 +2,7 @@
 % Please edit documentation in R/power.R
 \name{power_sim}
 \alias{power_sim}
-\title{Run power simulations}
+\title{Run Power Simulations}
 \usage{
 power_sim(
   model,
@@ -40,7 +40,7 @@ Either the name of the outfile (if \code{outfile} is
   results of \code{\link{fit_lmem}} or \code{\link{fit_clmm}}).
 }
 \description{
-Run power simulations
+Run Power Simulations
 }
 \examples{
 set.seed(62)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit.R
 \name{fit_gamm}
 \alias{fit_gamm}
-\title{Fit generalized additive mixed model to ratings data}
+\title{Fit Generalized Additive Mixed Model to Ratings Data}
 \usage{
 fit_gamm(.data, main_effect = FALSE)
 }
@@ -38,14 +38,17 @@ A vector, with the following elements.
 }
 }
 \description{
-Fit generalized additive mixed model to ratings data
+Fit Generalized Additive Mixed Model to Ratings Data
 }
 \details{
 Fits a generalized additive mixed model to the data and
   tests the specified effect (interaction or main effect) using a
   likelihood-ratio test using \code{mgcv::bam()}. If the
   interaction is to be tested, the following two models are
-  compared.
+  compared. Note that despite using Generalized Additive Mixed
+  Models, no wiggly function is being estimated; the function is
+  just being used as an alternative way to fit a linear mixed
+  effects model.
 
 \code{trating ~ R * (I1 + I2 + I3) +
    s(subj_id, bs = "re") +
@@ -89,5 +92,5 @@ fit_gamm(dat, TRUE) # test main effect
 
 }
 \seealso{
-\code{\link{gen_data}}
+\code{\link{gen_data}}, \code{\link{power_sim}}.
 }

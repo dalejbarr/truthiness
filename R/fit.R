@@ -3,6 +3,62 @@
 #' @importFrom stats pchisq
 NULL
 
+#' Get Ratings Data with Model Predictors
+#'
+#' Apply participant/phase-level exclusions and then add numeric and
+#' factor predictors to the ratings data.
+#'
+#' @return A data frame, with columns:
+#' 
+#' \describe{
+#'   \item{subj_id}{Unique subject identifier.}
+#'   \item{stim_id}{Unique stimulus identifier.}
+#'   \item{repetition}{Whether the statement was repeated or new.}
+#'   \item{interval}{Presentation interval.}
+#'   \item{R}{Deviation-coded numerical predictor for repetition.}
+#'   \item{I1}{Deviation-coded numerical predictor for interval (1 day vs. immediate).}
+#'   \item{I2}{Deviation-coded numerical predictor for interval (1 week vs. immediate).}
+#'   \item{I3}{Deviation-coded numerical predictor for interval (1 month vs. immediate).}
+#'   \item{Rep}{Deviation-coded factor for repetition.}
+#'   \item{Int}{Deviation-coded factor for interval.}
+#' }
+#'
+#' @examples
+#' get_model_data()
+#' 
+#' @seealso \code{\link{truth_trajectory_data}}
+#' 
+get_model_data <- function() {
+  ratings %>%
+    dplyr::inner_join(phases %>%
+                      dplyr::filter(keep), c("ID", "phase_id")) %>%
+    dplyr::inner_join(sessions %>%
+                      dplyr::select(ID, list_id), "ID") %>%
+    dplyr::inner_join(stimulus_conditions, c("list_id", "stim_id")) %>%
+    dplyr::mutate(subj_id = factor(ID),
+           T = factor(trating, levels = 1:7, ordered = TRUE),
+           R = dplyr::if_else(repetition == "repeated", 1/2, -1/2),
+           I1 = dplyr::if_else(interval == "1 day", 3/4, -1/4),
+           I2 = dplyr::if_else(interval == "1 week", 3/4, -1/4),
+           I3 = dplyr::if_else(interval == "1 month", 3/4, -1/4),
+           Rep = C(repetition,
+                   matrix(c(.5, -.5), nrow = 2,
+                          dimnames = list(c("repeated", "new")))),
+           Int = C(interval,
+                   matrix(c(-1/4, -1/4, -1/4,
+                            3/4, -1/4, -1/4,
+                            -1/4,  3/4, -1/4,
+                            -1/4, -1/4,  3/4),
+                          nrow = 4, byrow = TRUE,
+                          dimnames = list(c("immediate", "1 day",
+                                            "1 week", "1 month"),
+                                          c("I1", "I2", "I3"))))) %>%
+    dplyr::select(subj_id, stim_id, repetition, interval,
+                  R, I1, I2, I3, T,
+                  Rep, Int)  
+}
+
+## run lme4::lmer with error trapping
 tryFit <- function(tf.formula, tf.data, ...) {
   converged <- TRUE
   w.handler <- function(w) {
@@ -17,7 +73,109 @@ tryFit <- function(tf.formula, tf.data, ...) {
        converged=converged)
 }
 
-#' Fit generalized additive mixed model to ratings data
+#' Fit Linear Mixed-Effects Model to Ratings Data
+#'
+#' @param .data Data frame, with the format as resulting from a call
+#'   to \code{\link{gen_data}}.
+#' 
+#' @param main_effect Whether to test the main effect of repetition
+#'   (TRUE) or the repetition-by-interval interaction (FALSE; the
+#'   default).
+#'
+#' @details Fits a linear-mixed effects model to the data and tests
+#'   the specified effect (interaction or main effect) using a
+#'   likelihood-ratio test (with lme4 \code{REML = FALSE}).  using
+#'   \code{lme4::lmer()}. If the interaction is to be tested, the
+#'   following two models are compared.
+#'
+#' \code{trating ~ R * (I1 + I2 + I3) +
+#'    (1 + R:I1 + R:I2 + R:I3 || subj_id) +
+#'    (1 + R:I1 + R:I2 + R:I3 || stim_id)}
+#'
+#' \code{trating ~ R + I1 + I2 + I3 +
+#'    (1 + R:I1 + R:I2 + R:I3 || subj_id) +
+#'    (1 + R:I1 + R:I2 + R:I3 || stim_id)}.
+#'
+#' If the main effect is to be tested, then the following two models
+#' are compared.
+#'
+#' \code{trating ~ R * (I1 + I2 + I3) +
+#'    (1 + R || subj_id) +
+#'    (1 + R || stim_id)}
+#'
+#' \code{trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3) +
+#'    (1 + R || subj_id) +
+#'    (1 + R || stim_id)}.
+#' 
+#' @return A vector, with the following elements.
+#' \describe{
+#'   \item{\code{(Intercept)}}{Fixed-effects estimate of the intercept.}
+#'   \item{\code{R}}{Fixed-effects estimate of the main effect of repetition.}
+#'   \item{\code{I1}}{Fixed-effects estimate of the main effect of interval (1).}
+#'   \item{\code{I2}}{Fixed-effects estimate of the main effect of interval (2).}
+#'   \item{\code{I3}}{Fixed-effects estimate of the main effect of interval (3).}
+#'   \item{\code{R:I1}}{Fixed-effects estimate of the interaction (1).}
+#'   \item{\code{R:I2}}{Fixed-effects estimate of the interaction (2).}
+#'   \item{\code{R:I3}}{Fixed-effects estimate of the interaction (3).}
+#'   \item{dev1}{Deviance for the model including the effect(s) of interest.}
+#'   \item{dev2}{Deviance for the model excluding the effect(s) of interest.}
+#'   \item{chisq_RI}{Chi-square value for the likelihood ratio test.}
+#'   \item{p_RI}{Associated p-value.}
+#'   \item{m1_singular}{Whether the covariance matrix for model 1 was singular.}
+#'   \item{m2_singular}{Whether the covariance matrix for model 2 was singular.}
+#'   \item{m1_conv}{Whether model 1 converged.}
+#'   \item{m2_conv}{Whether model 2 converged.}
+#' }
+#'
+#' @seealso \code{\link{gen_data}}, \code{\link{power_sim}}.
+#' 
+#' @examples
+#' set.seed(62)
+#' dat <- gen_data(40) 
+#' fit_lmem(dat, TRUE) # test main effect
+#' 
+#' @export
+fit_lmem <- function(.data, main_effect = FALSE) {
+  form <- form2 <- NULL
+
+  .data[["trating"]] <- as.integer(.data[["trating"]])
+  
+  if (main_effect) {
+    form <- trating ~ R + I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
+      (1 + R || subj_id) +
+      (1 + R || stim_id)
+    
+    form2 <- trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
+      (1 + R || subj_id) +
+      (1 + R || stim_id)
+  } else {
+    form <- trating ~ R * (I1 + I2 + I3) +
+      (1 + R:I1 + R:I2 + R:I3 || subj_id) +
+      (1 + R:I1 + R:I2 + R:I3 || stim_id)
+    
+    form2 <- trating ~ R + I1 + I2 + I3 +
+      (1 + R:I1 + R:I2 + R:I3 || subj_id) +
+      (1 + R:I1 + R:I2 + R:I3 || stim_id)
+  }
+
+  ## fit the model and print the results
+  el1 <- suppressMessages({tryFit(form, .data, REML = FALSE)})
+  el2 <- suppressMessages({tryFit(form2, .data, REML = FALSE)})
+
+  fef <- lme4::fixef(el1$value)
+
+  mychisq1 <- deviance(el2$value) - deviance(el1$value)
+  pval1 <- pchisq(abs(mychisq1), 3, lower.tail = FALSE)
+
+  c(fef, dev1 = deviance(el1$value), dev2 = deviance(el2$value), 
+    chisq_RI = mychisq1, p_RI = pval1,
+    m1_singular = lme4::isSingular(el1$value),
+    m2_singular = lme4::isSingular(el2$value),
+    m1_conv = el1$converged,
+    m2_conv = el2$converged)
+}
+
+#' Fit Generalized Additive Mixed Model to Ratings Data
 #'
 #' @param .data Data frame, with the format as resulting from a call
 #'   to \code{\link{gen_data}}.
@@ -30,7 +188,10 @@ tryFit <- function(tf.formula, tf.data, ...) {
 #'   tests the specified effect (interaction or main effect) using a
 #'   likelihood-ratio test using \code{mgcv::bam()}. If the
 #'   interaction is to be tested, the following two models are
-#'   compared.
+#'   compared. Note that despite using Generalized Additive Mixed
+#'   Models, no wiggly function is being estimated; the function is
+#'   just being used as an alternative way to fit a linear mixed
+#'   effects model.
 #'
 #' \code{trating ~ R * (I1 + I2 + I3) +
 #'    s(subj_id, bs = "re") +
@@ -89,7 +250,8 @@ tryFit <- function(tf.formula, tf.data, ...) {
 #'   \item{thresh.6|7}{Sixth cut-point.}
 #' }
 #'
-#' @seealso \code{\link{gen_data}}
+#' @seealso \code{\link{gen_data}}, \code{\link{power_sim}}.
+#' 
 #' @examples
 #' set.seed(62)
 #' dat <- gen_data(40) 
@@ -152,116 +314,18 @@ fit_gamm <- function(.data, main_effect = FALSE) {
     thetas)
 }
 
-#' Fit linear mixed-effects model to ratings data
-#'
-#' @param .data Data frame, with the format as resulting from a call
-#'   to \code{\link{gen_data}}.
-#' 
-#' @param main_effect Whether to test the main effect of repetition
-#'   (TRUE) or the repetition-by-interval interaction (FALSE; the
-#'   default).
-#'
-#' @details Fits a linear-mixed effects model to the data and tests
-#'   the specified effect (interaction or main effect) using a
-#'   likelihood-ratio test (with lme4 \code{REML = FALSE}).  using
-#'   \code{lme4::lmer()}. If the interaction is to be tested, the
-#'   following two models are compared.
-#'
-#' \code{trating ~ R * (I1 + I2 + I3) +
-#'    (1 + R:I1 + R:I2 + R:I3 || subj_id) +
-#'    (1 + R:I1 + R:I2 + R:I3 || stim_id)}
-#'
-#' \code{trating ~ R + I1 + I2 + I3 +
-#'    (1 + R:I1 + R:I2 + R:I3 || subj_id) +
-#'    (1 + R:I1 + R:I2 + R:I3 || stim_id)}.
-#'
-#' If the main effect is to be tested, then the following two models
-#' are compared.
-#'
-#' \code{trating ~ R * (I1 + I2 + I3) +
-#'    (1 + R || subj_id) +
-#'    (1 + R || stim_id)}
-#'
-#' \code{trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3) +
-#'    (1 + R || subj_id) +
-#'    (1 + R || stim_id)}.
-#' 
-#' @return A vector, with the following elements.
-#' \describe{
-#'   \item{\code{(Intercept)}}{Fixed-effects estimate of the intercept.}
-#'   \item{\code{R}}{Fixed-effects estimate of the main effect of repetition.}
-#'   \item{\code{I1}}{Fixed-effects estimate of the main effect of interval (1).}
-#'   \item{\code{I2}}{Fixed-effects estimate of the main effect of interval (2).}
-#'   \item{\code{I3}}{Fixed-effects estimate of the main effect of interval (3).}
-#'   \item{\code{R:I1}}{Fixed-effects estimate of the interaction (1).}
-#'   \item{\code{R:I2}}{Fixed-effects estimate of the interaction (2).}
-#'   \item{\code{R:I3}}{Fixed-effects estimate of the interaction (3).}
-#'   \item{dev1}{Deviance for the model including the effect(s) of interest.}
-#'   \item{dev2}{Deviance for the model excluding the effect(s) of interest.}
-#'   \item{chisq_RI}{Chi-square value for the likelihood ratio test.}
-#'   \item{p_RI}{Associated p-value.}
-#'   \item{m1_singular}{Whether the covariance matrix for model 1 was singular.}
-#'   \item{m2_singular}{Whether the covariance matrix for model 2 was singular.}
-#'   \item{m1_conv}{Whether model 1 converged.}
-#'   \item{m2_conv}{Whether model 2 converged.}
-#' }
-#'
-#' @seealso \code{\link{gen_data}}
-#' @examples
-#' set.seed(62)
-#' dat <- gen_data(40) 
-#' fit_lmem(dat, TRUE) # test main effect
-#' 
-#' @export
-fit_lmem <- function(.data, main_effect = FALSE) {
-  form <- form2 <- NULL
 
-  .data[["trating"]] <- as.integer(.data[["trating"]])
-  
-  if (main_effect) {
-    form <- trating ~ R + I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
-      (1 + R || subj_id) +
-      (1 + R || stim_id)
-    
-    form2 <- trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
-      (1 + R || subj_id) +
-      (1 + R || stim_id)
-  } else {
-    form <- trating ~ R * (I1 + I2 + I3) +
-      (1 + R:I1 + R:I2 + R:I3 || subj_id) +
-      (1 + R:I1 + R:I2 + R:I3 || stim_id)
-    
-    form2 <- trating ~ R + I1 + I2 + I3 +
-      (1 + R:I1 + R:I2 + R:I3 || subj_id) +
-      (1 + R:I1 + R:I2 + R:I3 || stim_id)
-  }
-
-  ## fit the model and print the results
-  el1 <- suppressMessages({tryFit(form, .data, REML = FALSE)})
-  el2 <- suppressMessages({tryFit(form2, .data, REML = FALSE)})
-
-  fef <- lme4::fixef(el1$value)
-
-  mychisq1 <- deviance(el2$value) - deviance(el1$value)
-  pval1 <- pchisq(abs(mychisq1), 3, lower.tail = FALSE)
-
-  c(fef, dev1 = deviance(el1$value), dev2 = deviance(el2$value), 
-    chisq_RI = mychisq1, p_RI = pval1,
-    m1_singular = lme4::isSingular(el1$value),
-    m2_singular = lme4::isSingular(el2$value),
-    m1_conv = el1$converged,
-    m2_conv = el2$converged)
-}
-
-#' Fit cumulative logit mixed-effects model to ratings data
+#' Fit Cumulative Logit Mixed-Effects Model to Ratings Data
 #'
 #' @inheritParams fit_lmem
 #' 
 #' @details Fits a cumulative logit mixed-effects model to the data
 #'   and tests the specified effect (interaction or main effect) using
-#'   a likelihood-ratio test using \code{ordinal::clmm()}.  If the
-#'   interaction is to be tested, the following two models are
-#'   compared.
+#'   a likelihood-ratio test using \code{ordinal::clmm()}. The
+#'   function's main purpose is to be used in power simulation.
+#'
+#' If the interaction is to be tested, the following two models are
+#'   compared:
 #'
 #' \code{trating ~ R * (I1 + I2 + I3) +
 #'    (1 + R:I1 + R:I2 + R:I3 | subj_id) +
@@ -303,7 +367,8 @@ fit_lmem <- function(.data, main_effect = FALSE) {
 #'   \item{thresh.6|7}{Sixth cut-point.}
 #' }
 #'
-#' @seealso \code{\link{gen_data}}
+#' @seealso \code{\link{gen_data}}, \code{\link{power_sim}}.
+#'
 #' @examples
 #' \dontrun{
 #'   set.seed(62)
@@ -350,7 +415,7 @@ fit_clmm <- function(.data, main_effect = FALSE) {
 
 
 strip <- function(x) {
-  ## Strip away all the unnecessary elements from a model to reduce memory size
+  ## Strip away all the unnecessary elements from a CLMM to reduce memory size
   nonessential <- c("L", "condVar", "Zt", "fitted.values", "model",
                     "gfList", "ranef", "u")
   res <- x[setdiff(names(x), nonessential)]
@@ -360,7 +425,7 @@ strip <- function(x) {
   res
 }
 
-#' Run equivalence test
+#' Fit CLMM and Run Equivalence Test
 #'
 #' @param .data Data frame.
 #'
@@ -368,6 +433,19 @@ strip <- function(x) {
 #'   (TRUE) or the interaction (FALSE).
 #'
 #' @param delta Smallest (raw) effect size of interest (log odds scale).
+#'
+#' @details This function is intended to be used in data simulation.
+#'
+#' @return A vector with p-values; the element(s) named \code{simple}
+#'   provide p-values for simple effects; the element(s) named
+#'   \code{equiv} provides the p-value for the corresponding
+#'   equivalence test.
+#' 
+#' @examples
+#' 
+#' set.seed(62)
+#' dat <- gen_data(24)
+#' \dontrun{run_equiv(dat, main_effect = TRUE)}
 #' 
 #' @export
 run_equiv <- function(.data, main_effect = FALSE, delta = .14) {
@@ -424,14 +502,23 @@ run_equiv <- function(.data, main_effect = FALSE, delta = .14) {
 }
 
 
-#' Run Equivalence Test or Tests on Existing clmm Object
+#' Run Equivalence Tests on Existing CLMM Object
 #'
 #' @param mod Fitted model object, result of call to \code{clmm}.
 #' @param .data Data frame containing source data.
 #' @param main_effect Whether to perform the test for the main effect (TRUE) or interaction (FALSE).
 #' @param delta Delta (SESOI) for the equivalence test, in raw log odds units.
 #'
-#' @return A vector with the result of the equivalence test(s).
+#' @return A vector with p-values from the equivalence test(s);
+#'   elements named \code{simple} test simple effects, while elements
+#'   named \code{equiv} contain the corresponding equivalence test
+#'   results.
+#'
+#' @examples
+#' moddata <- get_model_data()
+#' 
+#' equivtest(truth_trajectory_models[["main2"]], moddata,
+#'           main_effect = TRUE)
 #' 
 #' @export
 equivtest <- function(mod, .data, main_effect = FALSE, delta = .14) {

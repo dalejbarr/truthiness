@@ -13,5 +13,5 @@ read_cjudgments_simulated(path)
 A long table with the interest ratings.
 }
 \description{
-Reads in the interest ratings from a single response file.
+Reads in the category judgments ratings simulated phase data file.
 }

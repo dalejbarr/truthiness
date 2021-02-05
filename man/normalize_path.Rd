@@ -2,7 +2,7 @@
 % Please edit documentation in R/response_files.R
 \name{normalize_path}
 \alias{normalize_path}
-\title{Get rid of trailing slash}
+\title{Get Rid of Trailing Slash}
 \usage{
 normalize_path(path)
 }
@@ -10,8 +10,8 @@ normalize_path(path)
 \item{path}{Directory name.}
 }
 \value{
-Directory \code{name} without a trailing slash.
+Directory name without a trailing slash.
 }
 \description{
-Get rid of trailing slash
+Remove extra trailing slash from file path.
 }

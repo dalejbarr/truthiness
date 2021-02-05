@@ -2,7 +2,7 @@
 % Please edit documentation in R/preprocess.R
 \name{locate_data_files}
 \alias{locate_data_files}
-\title{Identify data files}
+\title{Locate Raw Data Files from Longitudinal Illusory Truth Study}
 \usage{
 locate_data_files(path, full.names = TRUE)
 }
@@ -13,7 +13,7 @@ locate_data_files(path, full.names = TRUE)
 A character vector with the paths to the files.
 }
 \description{
-Identify data files
+Look in a subdirectory and find files containing the raw data.
 }
 \details{
 Looks for files matching the regular expression

@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit.R
 \name{run_equiv}
 \alias{run_equiv}
-\title{Run equivalence test}
+\title{Fit CLMM and Run Equivalence Test}
 \usage{
 run_equiv(.data, main_effect = FALSE, delta = 0.14)
 }
@@ -14,6 +14,22 @@ run_equiv(.data, main_effect = FALSE, delta = 0.14)
 
 \item{delta}{Smallest (raw) effect size of interest (log odds scale).}
 }
+\value{
+A vector with p-values; the element(s) named \code{simple}
+  provide p-values for simple effects; the element(s) named
+  \code{equiv} provides the p-value for the corresponding
+  equivalence test.
+}
 \description{
-Run equivalence test
+Fit CLMM and Run Equivalence Test
+}
+\details{
+This function is intended to be used in data simulation.
+}
+\examples{
+
+set.seed(62)
+dat <- gen_data(24)
+\dontrun{run_equiv(dat, main_effect = TRUE)}
+
 }

@@ -9,6 +9,10 @@ check_fake(path)
 \arguments{
 \item{path}{Name of the subdirectory.}
 }
+\value{
+\code{TRUE} if the data in the subdirectory is tagged as
+  simulated, \code{FALSE} otherwise.
+}
 \description{
 Check whether the data in the subdirectory is flagged as simulated.
 }

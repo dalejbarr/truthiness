@@ -2,7 +2,7 @@
 % Please edit documentation in R/preprocess.R
 \name{preprocess_simulated}
 \alias{preprocess_simulated}
-\title{Pre-process and Anonymize Simulated Response Data}
+\title{Preprocess and Anonymize Simulated Response Data}
 \usage{
 preprocess_simulated(
   path,
@@ -21,7 +21,7 @@ preprocess_simulated(
 Path where the files were written (\code{outpath}).
 }
 \description{
-Pre-process and Anonymize Simulated Response Data
+Preprocess and Anonymize Simulated Response Data
 }
 \details{
 Loads in the data from the raw response files and writes
@@ -29,4 +29,13 @@ Loads in the data from the raw response files and writes
   directory, as well as anonymized versions to the directory
   specified by \code{outpath}. The structure of the files is
   described by the function \code{\link{codebook}}.
+}
+\examples{
+td_raw <- tempfile()  # temp dir for raw data
+td_anon <- tempfile() # temp dir for preprocessed data
+treport <- tempfile(fileext = ".html")
+simulate_resp_files(40, path = td_raw, overwrite = TRUE)
+preprocess_simulated(td_raw, td_anon, treport)
+\dontrun{browseURL(treport)}
+
 }

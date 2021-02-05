@@ -49,9 +49,10 @@ codebook <- function(show_stim = TRUE, browse = TRUE) {
   invisible(res)
 }
 
-#' Simulate ordinal responses choices from log odds
+#' Simulate Ordinal Response Choices from Log Odds
 #'
 #' @param eta Predicted response tendency or tendencies on log odds scale.
+#' 
 #' @param thresh Cut-points (thresholds).
 #'
 #' @return A vector of the same length as \code{eta} with simulated
@@ -78,7 +79,7 @@ eta2resp <- function(eta, thresh) {
   })
 }
 
-#' Convert threshold values from six to seven point scale
+#' Convert Threshold Values from Six to Seven Point Scale
 #'
 #' @param thresh Log-odds thresholds from a cumulative logit model fit. Should be a five-element vector.
 #' 
@@ -104,4 +105,3 @@ alpha_6_to_7 <- function(thresh = truthiness::clmm_maximal$alpha) {
   newthresh[4] <- newthresh[5] - (thresh[4] - thresh[3]) * .8
   newthresh
 }
-

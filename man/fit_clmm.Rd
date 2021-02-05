@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit.R
 \name{fit_clmm}
 \alias{fit_clmm}
-\title{Fit cumulative logit mixed-effects model to ratings data}
+\title{Fit Cumulative Logit Mixed-Effects Model to Ratings Data}
 \usage{
 fit_clmm(.data, main_effect = FALSE)
 }
@@ -37,14 +37,16 @@ A vector, with the following elements.
 }
 }
 \description{
-Fit cumulative logit mixed-effects model to ratings data
+Fit Cumulative Logit Mixed-Effects Model to Ratings Data
 }
 \details{
 Fits a cumulative logit mixed-effects model to the data
   and tests the specified effect (interaction or main effect) using
-  a likelihood-ratio test using \code{ordinal::clmm()}.  If the
-  interaction is to be tested, the following two models are
-  compared.
+  a likelihood-ratio test using \code{ordinal::clmm()}. The
+  function's main purpose is to be used in power simulation.
+
+If the interaction is to be tested, the following two models are
+  compared:
 
 \code{trating ~ R * (I1 + I2 + I3) +
    (1 + R:I1 + R:I2 + R:I3 | subj_id) +
@@ -73,5 +75,5 @@ are compared.
 }
 }
 \seealso{
-\code{\link{gen_data}}
+\code{\link{gen_data}}, \code{\link{power_sim}}.
 }

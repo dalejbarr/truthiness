@@ -29,4 +29,9 @@ Loads in the data from the raw response files and writes
   directory, as well as anonymized versions to the directory
   specified by \code{outpath}. The structure of the files is
   described by the function \code{\link{codebook}}.
+
+\dontrun{
+## assuming raw data files are stored in subdirectory 'data_raw':
+preprocess("data_raw", "data_anon", "preprocess.html")
+}
 }

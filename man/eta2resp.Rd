@@ -2,7 +2,7 @@
 % Please edit documentation in R/misc.R
 \name{eta2resp}
 \alias{eta2resp}
-\title{Simulate ordinal responses choices from log odds}
+\title{Simulate Ordinal Response Choices from Log Odds}
 \usage{
 eta2resp(eta, thresh)
 }
@@ -16,7 +16,7 @@ A vector of the same length as \code{eta} with simulated
   integer response values, one for each \code{eta} value.
 }
 \description{
-Simulate ordinal responses choices from log odds
+Simulate Ordinal Response Choices from Log Odds
 }
 \examples{
 # N=10 with eta = 0 and 6 point scale from N&E

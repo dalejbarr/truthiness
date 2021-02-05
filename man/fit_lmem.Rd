@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit.R
 \name{fit_lmem}
 \alias{fit_lmem}
-\title{Fit linear mixed-effects model to ratings data}
+\title{Fit Linear Mixed-Effects Model to Ratings Data}
 \usage{
 fit_lmem(.data, main_effect = FALSE)
 }
@@ -36,7 +36,7 @@ A vector, with the following elements.
 }
 }
 \description{
-Fit linear mixed-effects model to ratings data
+Fit Linear Mixed-Effects Model to Ratings Data
 }
 \details{
 Fits a linear-mixed effects model to the data and tests
@@ -71,5 +71,5 @@ fit_lmem(dat, TRUE) # test main effect
 
 }
 \seealso{
-\code{\link{gen_data}}
+\code{\link{gen_data}}, \code{\link{power_sim}}.
 }

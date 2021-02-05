@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit.R
 \name{equivtest}
 \alias{equivtest}
-\title{Run Equivalence Test or Tests on Existing clmm Object}
+\title{Run Equivalence Tests on Existing CLMM Object}
 \usage{
 equivtest(mod, .data, main_effect = FALSE, delta = 0.14)
 }
@@ -16,8 +16,18 @@ equivtest(mod, .data, main_effect = FALSE, delta = 0.14)
 \item{delta}{Delta (SESOI) for the equivalence test, in raw log odds units.}
 }
 \value{
-A vector with the result of the equivalence test(s).
+A vector with p-values from the equivalence test(s);
+  elements named \code{simple} test simple effects, while elements
+  named \code{equiv} contain the corresponding equivalence test
+  results.
 }
 \description{
-Run Equivalence Test or Tests on Existing clmm Object
+Run Equivalence Tests on Existing CLMM Object
+}
+\examples{
+moddata <- get_model_data()
+
+equivtest(truth_trajectory_models[["main2"]], moddata,
+          main_effect = TRUE)
+
 }

@@ -1,5 +1,7 @@
-#' Identify data files
+#' Locate Raw Data Files from Longitudinal Illusory Truth Study
 #'
+#' Look in a subdirectory and find files containing the raw data.
+#' 
 #' @param path Path to data files.
 #'
 #' @details Looks for files matching the regular expression
@@ -42,21 +44,16 @@ get_varnames <- function(path) {
 
 scrape_cols <- function(path, cols) {
   ## read in specified columns from the CSV file
-  df <- suppressWarnings({readr::read_csv(readLines(path)[-c(2:3)],
-                                          col_types = readr::cols(.default = readr::col_character()))})
-  df[, cols]
-}
-
-scrape_cols <- function(path, cols) {
-  ## read in specified columns from the CSV file
-  df <- suppressWarnings({readr::read_csv(readLines(path)[-c(2:3)],
-                                          col_types = readr::cols(.default = readr::col_character()))})
+  df <- suppressWarnings({
+    readr::read_csv(readLines(path)[-c(2:3)],
+                    col_types = readr::cols(.default = readr::col_character()))})
   df[, cols]
 }
 
 #' Read Category Judgments From Raw Data File
 #'
-#' Reads in the interest ratings from a single response file.
+#' Reads in the category judgments from a single response file
+#' containing phase data.
 #'
 #' @param path Path to the file.
 #'
@@ -91,7 +88,7 @@ read_cjudgments <- function(path) {
 
 #' Read Category Judgments From Simulated Data File
 #'
-#' Reads in the interest ratings from a single response file.
+#' Reads in the category judgments ratings simulated phase data file.
 #'
 #' @param path Path to the file.
 #'
@@ -516,7 +513,7 @@ import_phase_info_simulated <- function(path) {
   df <- tibble::tibble(fname = ifiles,
                        list_id = list_id,
                        phase_id = phase_id)
-  df[["data"]] <- purrr::map(df[["fname"]], read_sessions)
+  df[["data"]] <- purrr::map(df[["fname"]], read_sessions_simulated)
   ## lets figure out the columns that only appear in a single session
   cnames <- purrr::map(df[["data"]], names)
   by_phase <- split(cnames, df[["phase_id"]])
@@ -537,7 +534,7 @@ import_phase_info_simulated <- function(path) {
           setdiff(names(df2), c("PID", "list_id", "phase_id")))]
 }
 
-#' Pre-process and Anonymize Simulated Response Data
+#' Preprocess and Anonymize Simulated Response Data
 #'
 #' @param path Path to the directory containing simulated response files.
 #'
@@ -552,6 +549,14 @@ import_phase_info_simulated <- function(path) {
 #'   directory, as well as anonymized versions to the directory
 #'   specified by \code{outpath}. The structure of the files is
 #'   described by the function \code{\link{codebook}}.
+#'
+#' @examples
+#' td_raw <- tempfile()  # temp dir for raw data
+#' td_anon <- tempfile() # temp dir for preprocessed data
+#' treport <- tempfile(fileext = ".html")
+#' simulate_resp_files(40, path = td_raw, overwrite = TRUE)
+#' preprocess_simulated(td_raw, td_anon, treport)
+#' \dontrun{browseURL(treport)}
 #' 
 #' @export
 preprocess_simulated <- function(path,
@@ -566,9 +571,10 @@ preprocess_simulated <- function(path,
                              FALSE, FALSE)
   message("Pre-processing (simulated) data in '", path, "'")
   ofile <- rmarkdown::render(infile,
-                             output_file = file.path(getwd(), report),
+                             output_file = report,
                              knit_root_dir = getwd(),
                              output_dir = NULL,
+                             envir = new.env(),
                              params = list(subdir = path,
                                            anondir = outpath))
   file.copy(ofile, report)
@@ -590,6 +596,11 @@ preprocess_simulated <- function(path,
 #'   directory, as well as anonymized versions to the directory
 #'   specified by \code{outpath}. The structure of the files is
 #'   described by the function \code{\link{codebook}}.
+#'
+#' \dontrun{
+#' ## assuming raw data files are stored in subdirectory 'data_raw':
+#' preprocess("data_raw", "data_anon", "preprocess.html")
+#' }
 #' 
 #' @export
 preprocess <- function(path,

@@ -4,19 +4,7 @@
 \alias{power_equiv}
 \title{Power Simulation For Equivalence Test}
 \usage{
-power_equiv(
-  phase_eff,
-  delta,
-  target_effect,
-  nsubj,
-  nruns,
-  outfile = sprintf("\%s_\%s_\%s_\%04d_128_\%05d_\%s_\%d.rds", ifelse(is.null(delta),
-    "model", "equiv"), if (is.null(delta)) {    
-    sprintf("\%0.2f~\%0.2f~\%0.2f~\%0.2f~x.xx", phase_eff[1], phase_eff[2], phase_eff[3],
-    phase_eff[4]) } else {     sprintf("\%0.2f~\%0.2f~\%0.2f~\%0.2f~\%0.2f",
-    phase_eff[1], phase_eff[2], phase_eff[3], phase_eff[4], delta) }, target_effect,
-    nsubj, nruns, Sys.info()[["nodename"]], Sys.getpid())
-)
+power_equiv(phase_eff, delta, target_effect, nsubj, nruns, outfile = ".AUTO.")
 }
 \arguments{
 \item{phase_eff}{A four-element vector, each element of which
@@ -33,21 +21,23 @@ scale; \code{NULL} to store fitted model object.}
 
 \item{nruns}{How many simulations to run.}
 
-\item{outfile}{Name of output file; \code{NULL} to return the
-simulation results.}
+\item{outfile}{One of three options: (1) file name to save the
+results in (with extension .rds); (2) ".AUTO." to create a
+descriptive filename automatically; or (3) \code{NULL} to return
+the results of the simulation.}
 }
 \value{
-Either the name of the outfile (if \code{outfile} is
-  non-null) or the results of the simulation (a matrix containing
-  results of \code{\link{fit_lmem}} or \code{\link{fit_clmm}}).
+Either the name of the file where results are saved or a
+  matrix containing results of \code{\link{fit_lmem}} or
+  \code{\link{fit_clmm}}).
 }
 \description{
 Power Simulation For Equivalence Test
 }
 \examples{
 set.seed(62)
-power_equiv(c(0, .14, .14, .14), "main", 40, 1, NULL)
+\dontrun{power_equiv(c(0, .14, .14, .14), .1, "main", 40, 1, NULL)}
 \dontrun{
-power_equiv(c(0, .14, .14, .14), "main", 24, 1, NULL) # takes ~10 minutes
+power_equiv(c(0, .14, .14, .14), .1, "main", 24, 1, NULL) # takes ~10 minutes
 }
 }

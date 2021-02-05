@@ -1,17 +1,24 @@
-#' Get rid of trailing slash
+#' Get Rid of Trailing Slash
+#'
+#' Remove extra trailing slash from file path.
 #' 
 #' @param path Directory name.
 #' 
-#' @return Directory \code{name} without a trailing slash.
+#' @return Directory name without a trailing slash.
 #' 
 #' @export
 normalize_path <- function(path) {
   sub("/$", "", path)
 }
 
-#' Flag the subdirectory as having simulated data
+#' Flag Subdirectory as Having Simulated Data
 #' 
 #' @param path Path to subdirectory.
+#'
+#' @details This function tags data in a subdirectory as simulated so
+#'   that it is not confused with genuine data. When an analysis
+#'   report is compiled against data from that subdirectory, the
+#'   report will contain a warning that the data is not real.
 #' 
 #' @export
 flag_fake <- function(path) {
@@ -24,6 +31,9 @@ flag_fake <- function(path) {
 #' Check whether the data in the subdirectory is flagged as simulated.
 #'
 #' @param path Name of the subdirectory.
+#'
+#' @return \code{TRUE} if the data in the subdirectory is tagged as
+#'   simulated, \code{FALSE} otherwise.
 #'
 #' @export
 check_fake <- function(path) {
@@ -170,7 +180,7 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
   return(fname)
 }
 
-#' Simulate response data files from the rating study
+#' Simulate Response Data Files From Longitudinal Illusory Truth Study
 #'
 #' @param nsubj Number of subjects; must be a multiple of 8.
 #'
@@ -180,9 +190,11 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
 #'   value of .14 gives an effect of approximately 1/10 of a scale
 #'   point.
 #'
-#' @param path Path to subdirectory where files should be stored.
+#' @param path Path to subdirectory where resulting files will be
+#'   stored; will be created if it does not exist.
 #'
-#' @param overwrite Whether to overwrite the subdirectory.
+#' @param overwrite Whether to overwrite the subdirectory if it
+#'   exists.
 #'
 #' @param p_too_fast Probability that the respondent completed the
 #'   task faster than the cutoff time ('Duration (in seconds)' less
@@ -221,9 +233,19 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
 #'   to \code{path} in Qualtrics format. The file names are of the
 #'   format \code{PXLY.csv}, where X is the phase number (1-4) and Y
 #'   is the list number (1-8). So P2L6.csv is the file for phase 2 of
-#'   list 6.
+#'   list 6. When we ran a pilot study, we discovered that the data
+#'   files had a somewhat different structure from this, but we
+#'   nevertheless opted to retain this function rather than rewriting
+#'   it to match the new format.
 #' 
 #' @return A character vector with the names of the data files.
+#'
+#' @examples
+#' td <- tempdir()
+#' simulate_resp_files(40, path = td, overwrite = TRUE)
+#' dir(td) # show the response files
+#' unlink(td, TRUE, TRUE) # cleanup
+#' 
 #' @export
 simulate_resp_files <- function(nsubj,
                                 phase_eff = c(0, 0, 0, 0),
@@ -331,7 +353,7 @@ simulate_resp_files <- function(nsubj,
   tpres <-
     plists[plists[["task"]] == "truth",
                        c("phase_id", "list_id", "stim_id",
-                         "task_id", "order")]
+                         "task_id")]
 
   dat <- gen_data(nsubj, phase_eff) %>%
     dplyr::inner_join(pids, "subj_id")
@@ -345,7 +367,7 @@ simulate_resp_files <- function(nsubj,
 
   df1 <- dplyr::inner_join(dat, tpres,
                            c("list_id", "stim_id")) %>%
-    dplyr::arrange(list_id, subj_id, phase_id, order) %>%
+    dplyr::arrange(list_id, subj_id, phase_id, task_id) %>%
     dplyr::select(list_id, subj_id, phase_id, task_id, trating)
 
   df1 <- split(df1, list(df1[["list_id"]], df1[["phase_id"]]))
@@ -369,20 +391,29 @@ simulate_resp_files <- function(nsubj,
                             pids, ilists, path))
 }
 
-#' Simulate guessing during the categorization task.
+#' Simulate Guessing During the Categorization Task
 #'
-#' Run simulations tabulating the number correct under guessing in the categorization task.
-#'
+#' Run simulations tabulating the number of correct guesses assuming a
+#' participant is just guessing during the categorization task. This
+#' can be used to estimate a chance baseline on the 64 categorization
+#' trials.
+#' 
 #' @param nruns Number of simulation runs.
 #'
 #' @return A vector of length \code{nruns} with the number of correct guesses.
+#'
+#' @examples
+#' n_correct <- simulate_category_guess(1000)
+#' hist(n_correct)
+#' mean(n_correct)
+#' 
 #' @export
 simulate_category_guess <- function(nruns = 10000) {
   simcorr <- replicate(nruns, {
     categories <- levels(truthiness::stimulus_categories[["category"]])
     rtbl <- data.frame(
       stim_id = sort(unique(truthiness::stimulus_categories[["stim_id"]])))
-    rtbl[["response"]] <- sample(categories, nrow(rtbl), TRUE)
+    rtbl[["response"]] <- sample(categories, nrow(rtbl) / 2, TRUE)
     rtbl_chk <- dplyr::left_join(rtbl, stimulus_categories,
                                  c("stim_id", "response" = "category"))
     sum(!is.na(rtbl_chk[["choice"]]))

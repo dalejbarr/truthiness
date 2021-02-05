@@ -1,4 +1,4 @@
-#' Run power simulations
+#' Run Power Simulations
 #'
 #' @param model Which type of model to fit: use 'lmem' for linear
 #'   mixed-effects model, 'clmm' for cumulative logit mixed-effects
@@ -108,18 +108,20 @@ power_sim <- function(model,
 #'
 #' @param nruns How many simulations to run.
 #'
-#' @param outfile Name of output file; \code{NULL} to return the
-#'   simulation results.
+#' @param outfile One of three options: (1) file name to save the
+#'   results in (with extension .rds); (2) ".AUTO." to create a
+#'   descriptive filename automatically; or (3) \code{NULL} to return
+#'   the results of the simulation.
 #'
-#' @return Either the name of the outfile (if \code{outfile} is
-#'   non-null) or the results of the simulation (a matrix containing
-#'   results of \code{\link{fit_lmem}} or \code{\link{fit_clmm}}).
+#' @return Either the name of the file where results are saved or a
+#'   matrix containing results of \code{\link{fit_lmem}} or
+#'   \code{\link{fit_clmm}}).
 #'
 #' @examples
 #' set.seed(62)
-#' power_equiv(c(0, .14, .14, .14), "main", 40, 1, NULL)
+#' \dontrun{power_equiv(c(0, .14, .14, .14), .1, "main", 40, 1, NULL)}
 #' \dontrun{
-#' power_equiv(c(0, .14, .14, .14), "main", 24, 1, NULL) # takes ~10 minutes
+#' power_equiv(c(0, .14, .14, .14), .1, "main", 24, 1, NULL) # takes ~10 minutes
 #' }
 #' @export
 power_equiv <- function(phase_eff,
@@ -127,24 +129,27 @@ power_equiv <- function(phase_eff,
                         target_effect,
                         nsubj,
                         nruns,
-                        outfile =
-                          sprintf("%s_%s_%s_%04d_128_%05d_%s_%d.rds",
-                                  ifelse(is.null(delta), "model", "equiv"),
-                                  if (is.null(delta)) {
-                                    sprintf("%0.2f~%0.2f~%0.2f~%0.2f~x.xx",
-                                            phase_eff[1], phase_eff[2],
-                                            phase_eff[3], phase_eff[4])
-                                  } else {
-                                    sprintf("%0.2f~%0.2f~%0.2f~%0.2f~%0.2f",
-                                            phase_eff[1], phase_eff[2],
-                                            phase_eff[3], phase_eff[4], delta)
-                                  },
-                                  target_effect,
-                                  nsubj, nruns,
-                                  Sys.info()[["nodename"]],
-                                  Sys.getpid())) {
+                        outfile = ".AUTO.") {
   ## make sure the current directory is writeable
+  return_results <- FALSE
   if (!is.null(outfile)) {
+    if (outfile == ".AUTO.") {
+      outfile <- sprintf("%s_%s_%s_%04d_128_%05d_%s_%d.rds",
+                         ifelse(is.null(delta), "model", "equiv"),
+                         if (is.null(delta)) {
+                           sprintf("%0.2f~%0.2f~%0.2f~%0.2f~x.xx",
+                                   phase_eff[1], phase_eff[2],
+                                   phase_eff[3], phase_eff[4])
+                         } else {
+                           sprintf("%0.2f~%0.2f~%0.2f~%0.2f~%0.2f",
+                                   phase_eff[1], phase_eff[2],
+                                   phase_eff[3], phase_eff[4], delta)
+                         },
+                         target_effect,
+                         nsubj, nruns,
+                         Sys.info()[["nodename"]],
+                         Sys.getpid())
+    }
     writeLines("test", ".zzzxyztest")
     if (!file.exists(".zzzxyztest"))
       stop("current directory is not writeable")
@@ -152,6 +157,9 @@ power_equiv <- function(phase_eff,
 
     if (file.exists(outfile))
       stop("file '", outfile, "' already exists")
+  } else {
+    return_results <- TRUE
+    outfile <- tempfile(fileext = ".rds")
   }
 
   if (!(target_effect %in% c("main", "interaction")))
@@ -193,8 +201,11 @@ power_equiv <- function(phase_eff,
   message(nruns, " simulations completed in ", round(stime[[3]]),
           " seconds")
 
-  message("Results saved to: ")
-  cat(outfile, "\n", sep = "")
-  
-  invisible(NULL)
+  if (!return_results) {
+    message("Results saved to: ")
+    cat(outfile, "\n", sep = "")
+    outfile
+  } else {
+    readRDS(outfile)
+  }
 }

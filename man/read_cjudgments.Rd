@@ -13,5 +13,6 @@ read_cjudgments(path)
 A long table with the interest ratings.
 }
 \description{
-Reads in the interest ratings from a single response file.
+Reads in the category judgments from a single response file
+containing phase data.
 }

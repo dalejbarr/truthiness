@@ -2,7 +2,7 @@
 % Please edit documentation in R/response_files.R
 \name{simulate_resp_files}
 \alias{simulate_resp_files}
-\title{Simulate response data files from the rating study}
+\title{Simulate Response Data Files From Longitudinal Illusory Truth Study}
 \usage{
 simulate_resp_files(
   nsubj,
@@ -30,9 +30,11 @@ scale). Use \code{rep(0, 4)} for testing Type I error rate. A
 value of .14 gives an effect of approximately 1/10 of a scale
 point.}
 
-\item{path}{Path to subdirectory where files should be stored.}
+\item{path}{Path to subdirectory where resulting files will be
+stored; will be created if it does not exist.}
 
-\item{overwrite}{Whether to overwrite the subdirectory.}
+\item{overwrite}{Whether to overwrite the subdirectory if it
+exists.}
 
 \item{p_too_fast}{Probability that the respondent completed the
 task faster than the cutoff time ('Duration (in seconds)' less
@@ -71,12 +73,22 @@ acceptable task durations for Phases 2, 3, and 4.}
 A character vector with the names of the data files.
 }
 \description{
-Simulate response data files from the rating study
+Simulate Response Data Files From Longitudinal Illusory Truth Study
 }
 \details{
 Simulates response data and writes a set of CSV files out
   to \code{path} in Qualtrics format. The file names are of the
   format \code{PXLY.csv}, where X is the phase number (1-4) and Y
   is the list number (1-8). So P2L6.csv is the file for phase 2 of
-  list 6.
+  list 6. When we ran a pilot study, we discovered that the data
+  files had a somewhat different structure from this, but we
+  nevertheless opted to retain this function rather than rewriting
+  it to match the new format.
+}
+\examples{
+td <- tempdir()
+simulate_resp_files(40, path = td, overwrite = TRUE)
+dir(td) # show the response files
+unlink(td, TRUE, TRUE) # cleanup
+
 }

@@ -1,4 +1,4 @@
-#' truthiness: Longitudinal study of the Illusory Truth effect
+#' truthiness: Longitudinal Study of the Illusory Truth effect
 #'
 #' The truthiness package provides functions and data associated with
 #' a longitudinal study of the Illusory Truth effect conducted by
@@ -7,7 +7,7 @@
 #' @references
 #'   \insertAllCited{}
 #' @importFrom Rdpack reprompt
-#' @docType Package
+#' @docType package
 #' @name truthiness
 NULL
 #> NULL
