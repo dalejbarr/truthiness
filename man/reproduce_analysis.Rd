@@ -4,15 +4,35 @@
 \alias{reproduce_analysis}
 \title{Reproduce the Master Data Analysis on Raw Data}
 \usage{
-reproduce_analysis(outfile = "analysis.html", recipe = FALSE, infile = NULL)
+reproduce_analysis(
+  outfile = "analysis.html",
+  refit = FALSE,
+  savefig = FALSE,
+  recipe = FALSE,
+  infile = NULL
+)
 }
 \arguments{
 \item{outfile}{Path to the HTML output file.}
+
+\item{refit}{Whether to re-fit the cumulative link mixed model
+\code{TRUE} or to use the built-in model fits (\code{FALSE}). Due
+to the extremely time-consuming nature of model estimation, the
+default is set to \code{FALSE}.}
+
+\item{savefig}{Whether to save the two plots as separate PNG files
+(\code{means_plot.png} and \code{validation_plot.png}).}
 
 \item{recipe}{Include instructions on how to reproduce the analysis.}
 
 \item{infile}{Path to the R Markdown script; \code{NULL} to use the
 built-in script.}
+}
+\value{
+Path to the rendered HTML report.
+
+\code{rmarkdown::draft("master_script.Rmd",
+                       "illusory-truth-analysis", "truthiness")}
 }
 \description{
 Reproduce the Master Data Analysis on Raw Data
@@ -21,7 +41,9 @@ Reproduce the Master Data Analysis on Raw Data
 Runs R Markdown script on the data in the provided
   subdirectory and renders the HTML report to \code{outfile}. The
   master R Markdown script can be accessed using:
+}
+\examples{
+result <- reproduce_analysis(tf)
+\dontrun{browseURL(result)}
 
-\code{rmarkdown::draft("master_script.Rmd",
-                       "illusory-truth-analysis", "truthiness")}
 }

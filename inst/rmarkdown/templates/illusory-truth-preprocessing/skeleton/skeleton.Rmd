@@ -721,8 +721,10 @@ cat("\nWrote non-anonymized pre-processed phase data to `",
 readr::write_csv(sess_share, file.path(anondir, "ANON_sessions.csv"))
 saveRDS(sess_share, file.path(anondir, "ANON_sessions.rds"))
 
-readr::write_csv(phase_share, file.path(anondir, "ANON_phases.csv"))
-saveRDS(phase_share, file.path(anondir, "ANON_phases.rds"))
+readr::write_csv(phase_share %>% select(-reason_for_manual_exclusion),
+                 file.path(anondir, "ANON_phases.csv"))
+saveRDS(phase_share %>% select(-reason_for_manual_exclusion),
+        file.path(anondir, "ANON_phases.rds"))
 
 readr::write_csv(ratings_share, file.path(anondir, "ANON_ratings.csv"))
 saveRDS(ratings_share, file.path(anondir, "ANON_ratings.rds"))

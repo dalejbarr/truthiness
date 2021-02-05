@@ -3,20 +3,24 @@
 \docType{data}
 \name{NE_items}
 \alias{NE_items}
-\title{Item Information from Nadarevic & Erdfelder 2014}
+\title{Stimulus Information from Experiment 1 of Nadarevic and Erdfelder}
 \format{
 A data frame with 176 rows and 4 variables:
 \describe{
-  \item{item_id}{Unique stimulus (statement) identifier.}
-  \item{statement}{Statement (in German).}
-  \item{set}{Which set the statement belong to, used for counterbalancing.}
-  \item{status}{Actual truth of the statement.}
+  \item{\code{item_id}}{Unique stimulus (statement) identifier.}
+  \item{\code{statement}}{Statement (in German).}
+  \item{\code{set}}{Which set the statement belong to, used for counterbalancing.}
+  \item{\code{status}}{Actual truth of the statement.}
 }
 }
 \usage{
 NE_items
 }
 \description{
-A dataset describing the statements used as stimuli in Experiment 1 of Nadarevic & Erdfelder (2014).
+A dataset describing the statements used as stimuli in Experiment 1 of
+\insertCite{Nadarevic2014;textual}{truthiness}.
+}
+\references{
+\insertAllCited{}
 }
 \keyword{datasets}

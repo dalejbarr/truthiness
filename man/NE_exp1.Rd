@@ -3,27 +3,46 @@
 \docType{data}
 \name{NE_exp1}
 \alias{NE_exp1}
-\title{Data from Nadarevic & Erdfelder 2014}
+\title{Data from Experiment 1 of Nadarevic and Erdfelder}
 \format{
 A data frame with 14,950 observations on 7 variables:
 \describe{
-  \item{subj_id}{Unique subject identifier.}
-  \item{item_id}{Unique stimulus (statement) identifier.}
-  \item{repetition}{Whether the statement was repeated (\code{old}) or not (\code{new}).}
-  \item{delay}{Testing interval, ten minutes (\code{10m}) or one week (\code{1w}) after initial exposure.}
-  \item{trating}{Truth rating on a six-point scale, with higher values corresponding to greater perceived truth.}
-  \item{R}{Deviation-coded numerical predictor for \code{repetition}, with \code{old} = .5 and \code{new} = -.5.}
-  \item{D}{Deviation-coded numerical predictor for \code{delay}, with \code{10m} = .5 and \code{1w} = -.5.}
+  \item{\code{subj_id}}{Unique subject identifier.}
+
+  \item{\code{item_id}}{Unique stimulus (statement) identifier.}
+
+  \item{\code{repetition}}{Whether the statement was repeated (\code{old})
+  or not (\code{new}).}
+
+  \item{\code{delay}}{Testing interval, ten minutes (\code{10m}) or one
+  week (\code{1w}) after initial exposure.}
+
+  \item{\code{trating}}{Truth rating on a six-point scale, with higher
+  values corresponding to greater perceived truth.}
+
+  \item{\code{R}}{Deviation-coded numerical predictor for
+  \code{repetition}, with \code{old} = .5 and \code{new} = -.5.}
+
+  \item{\code{D}}{Deviation-coded numerical predictor for \code{delay},
+  with \code{10m} = .5 and \code{1w} = -.5.}
+
 }
+}
+\source{
+The source data is from
+  \insertCite{Nadarevic2014;textual}{truthiness}, which is freely
+  available for download from \url{https://osf.io/eut35/}. The data
+  included here has been reorganized for statistical modeling.
 }
 \usage{
 NE_exp1
 }
 \description{
-A dataset containing the trial data from Experiment 1 of Nadarevic & Erdfelder (2014).
+A dataset containing truth ratings from Experiment 1 of
+\insertCite{Nadarevic2014;textual}{truthiness}.
 }
-\details{
-The raw data file from which the dataset is derived is available using \code{system.file("data-raw", "Nadarevic_Erdfelder_2014_Exp1.csv", package = "truthiness")}, and the script for pre-processing the data can be assessed with \code{system.file("data-raw", "Nadarevic_Erdfelder_2014_Exp1.R")}. Note that to reduce the size of the stored object, elements \code{gfList}, \code{L}, and \code{condVar} have been removed from the fitted model data.
+\references{
+\insertAllCited{}
 }
 \seealso{
 \code{link{NE_items}}

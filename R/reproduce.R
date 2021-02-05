@@ -4,8 +4,13 @@
 #'
 #' @param recipe Include instructions on how to reproduce the analysis.
 #'
-#' @param modfits Path to RDS file containing fitted model data, to skip
-#'   the time-consuming estimation process.
+#' @param refit Whether to re-fit the cumulative link mixed model
+#'   \code{TRUE} or to use the built-in model fits (\code{FALSE}). Due
+#'   to the extremely time-consuming nature of model estimation, the
+#'   default is set to \code{FALSE}.
+#'
+#' @param savefig Whether to save the two plots as separate PNG files
+#'   (\code{means_plot.png} and \code{validation_plot.png}).
 #'
 #' @param infile Path to the R Markdown script; \code{NULL} to use the
 #'   built-in script.
@@ -14,12 +19,19 @@
 #'   subdirectory and renders the HTML report to \code{outfile}. The
 #'   master R Markdown script can be accessed using:
 #'
+#' @return Path to the rendered HTML report.
+#'
 #' \code{rmarkdown::draft("master_script.Rmd",
 #'                        "illusory-truth-analysis", "truthiness")}
+#'
+#' @examples
+#' result <- reproduce_analysis(tf)
+#' \dontrun{browseURL(result)}
 #' 
 #' @export
 reproduce_analysis <- function(outfile = "analysis.html",
-                               modfits = NULL,
+                               refit = FALSE,
+                               savefig = FALSE,
                                recipe = FALSE,
                                infile = NULL) {
 
@@ -35,7 +47,9 @@ reproduce_analysis <- function(outfile = "analysis.html",
                              knit_root_dir = getwd(),
                              envir = new.env(),
                              output_dir = dirname(outfile),
-                             params = list(recipe = recipe, modfits = modfits))
+                             params = list(recipe = recipe,
+                                           savefig = savefig,
+                                           refit = refit))
   invisible(ofile)
 }
 

@@ -9,9 +9,14 @@ output:
     df_print: paged
 params:
   recipe: FALSE
-  modfits: NULL
+  savefig: FALSE
+  refit: FALSE
 bibliography: '`r system.file("refs.bib", package = "truthiness")`'
 ---
+
+<style>
+div.warn { background-color:#ff8888; border-radius: 5px; padding: 20px; }
+</style>
 
 ```{r setup, echo = FALSE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -87,7 +92,7 @@ library("truthiness")
 library("tidyverse")
 ```
 
-For information about the structure of the anonymized data files and stimulus materials, please see the documentation in the truthiness package for the data objects `sessions`, `phases`, `ratings`, and `cjudgments`.
+For information about the structure of the anonymized data files please see `help("truth_trajectory_data", "truthiness")`, which documents the data objects `sessions`, `phases`, `ratings`, and `cjudgments`.
 
 ## Exclusions
 
@@ -343,7 +348,9 @@ g <- ggplot(rcagg_both, aes(repetition, mean, color = repetition, fill = repetit
   theme(legend.position = "none") +
   labs(y = "mean rating")
 
-ggsave("means_plot.png", g, width = 8, height = 6)
+if (params$savefig) {
+  ggsave("means_plot.png", g, width = 8, height = 6)
+}
 
 g
 ```
@@ -417,16 +424,15 @@ where:
 
 The comparison of models 1 and 2 test the significance of the main effect of repetition (`R`). The comparison of models 3 and 4 test the significance of the repetition-by-interval interaction (coded by `R:I1`, `R:I2`, and `R:I3`).
 
-```{r mods-included, include=FALSE}
-## load in the data if provided
-mods <- if (!is.null(params$modfits)) {
-          readRDS(params$modfits)
-        } else {
-          NULL
-        }
+```{r mods-included, eval=!params$refit, results='asis'}
+mods <- truth_trajectory_models
+cat("<div class=\"warn\">",
+    "**WARNING! Because of the computationally intensive nature of fitting ordinal models (with fitting times on a multicore machine of ~24 hours), the results below use fitted models data objects built into the truthiness package. To re-fit the models and re-compute the results, re-compile this script with the parameter `refit` set to `TRUE`.**",
+    "</div>",
+    sep = "\n")
 ```
 
-```{r fit-clmm-no-parallel, eval = (!parallel_installed) & is.null(mods), echo = (!parallel_installed)}
+```{r fit-clmm-no-parallel, eval = (!parallel_installed) & params$refit, echo = (!parallel_installed)}
 ## fit models using serial version (no multi-core)
 mods <- list()
 
@@ -472,7 +478,7 @@ cat("* Total computation time: ",
     sprintf("%0.2f minutes", dur / 60), "\n")
 ```
 
-```{r fit-clmm-parallel, eval = parallel_installed & is.null(mods), echo = parallel_installed, results = 'asis'}
+```{r fit-clmm-parallel, eval = parallel_installed & params$refit, echo = parallel_installed, results = 'asis'}
 ## fit models using parallelized version (multi-core)
 ncores <- parallel::detectCores() - 1L
 ncores <- if (ncores < 1L) 1L else ncores
@@ -507,7 +513,7 @@ cat("* Total computation time: ",
 ## run likelihood ratio tests
 ## main effect
 chisq_m <- as.numeric(-2 * logLik(mods[["main_comp"]]) -
-                         -2 * logLik(mods[["main_base"]]))
+                      -2 * logLik(mods[["main_base"]]))
 df_m <- length(coefficients(mods[["main_base"]])) -
   length(coefficients(mods[["main_comp"]]))
 p_m <- pchisq(chisq_m, df_m, lower.tail = FALSE)
@@ -609,8 +615,17 @@ test(mod_emm, delta = .14, side = "equivalence")$contrasts %>%
                                                  knitr::kable(digits = 3)
 ```
 
-```{r save-image, eval=is.null(params$modfits), include=FALSE}
-saveRDS(mods, "fitted_models.rds")
+```{r save-image, eval=params$refit, include=FALSE}
+## restructure the output to reduce size and save
+mods2 <- lapply(mods, function(.x) {
+  .x[["gfList"]] <- .x[["L"]] <- .x[["condVar"]] <-
+    .x[["model"]] <- .x[["Zt"]] <- .x[["fitted.values"]] <- NULL
+  attr(.x[["terms"]], ".Environment") <- NULL
+  attr(.x[["formula"]], ".Environment") <- NULL
+  .x
+})
+
+saveRDS(mods2, "fitted_models.rds")
 ```
 
 
@@ -687,7 +702,9 @@ g <- ggplot(rcagg_both, aes(repetition, mean, color = repetition,
   theme(legend.position = "none") +
   labs(y = "mean rating")
 
-ggsave("validation_plot.png", g, width=8, height=6)
+if (params$savefig) {
+  ggsave("validation_plot.png", g, width=8, height=6)
+}
 
 g
 ```

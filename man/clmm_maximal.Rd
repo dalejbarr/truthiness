@@ -3,18 +3,20 @@
 \docType{data}
 \name{clmm_maximal}
 \alias{clmm_maximal}
-\title{Fitted Cumulative Link Mixed Model for Nadarevic & Erdfelder Data}
+\title{Fitted Cumulative Link Mixed Model for Nadarevic and Erdfelder Data}
 \format{
-An object of class "clmm", resulting from a call to the \code{clmm} function in the ordinal package.
+An object of class "clmm", resulting from a call to the
+\code{\link[ordinal]{clmm}} function.
 }
 \usage{
 clmm_maximal
 }
 \description{
-Fitted Cumulative Link Mixed Model for Nadarevic & Erdfelder Data
+Fitted Cumulative Link Mixed Model for Nadarevic and Erdfelder Data
 }
 \details{
 The object is the result of the function call
+
 \code{ordinal::clmm(trating ~ R * D + (R * D | subj_id) +
                                       (R * D | item_id), NE_exp1)}.
 

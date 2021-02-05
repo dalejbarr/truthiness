@@ -3,3 +3,4 @@ pkg.org
 ^data-raw$
 junk.R
 .bash_history
+^LICENSE\.md$
