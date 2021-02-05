@@ -2,36 +2,193 @@
 % Please edit documentation in R/preprocess.R
 \name{preprocess}
 \alias{preprocess}
-\title{Pre-process and Anonymize Raw Response Data}
+\alias{preprocess_simulated}
+\alias{import_sessions}
+\alias{import_sessions_simulated}
+\alias{import_phase_info}
+\alias{import_phase_info_simulated}
+\alias{import_cjudgments_simulated}
+\alias{import_cjudgments}
+\alias{import_tratings}
+\alias{import_tratings_simulated}
+\alias{read_sessions}
+\alias{read_sessions_simulated}
+\alias{read_cjudgments}
+\alias{read_cjudgments_simulated}
+\alias{read_tratings}
+\alias{read_tratings_simulated}
+\title{Importing and Preprocessing Longitudinal Illusory Truth Data}
 \usage{
-preprocess(
-  path,
-  outpath = paste0("anon-", Sys.Date()),
-  report = paste0(basename(outpath), "-preprocessing.html")
-)
+preprocess(path, outpath = NULL, report = NULL)
+
+preprocess_simulated(path, outpath = NULL, report = NULL)
+
+import_sessions(path)
+
+import_sessions_simulated(path)
+
+import_phase_info(path)
+
+import_phase_info_simulated(path)
+
+import_cjudgments_simulated(path)
+
+import_cjudgments(path)
+
+import_tratings(path)
+
+import_tratings_simulated(path)
+
+read_sessions(path)
+
+read_sessions_simulated(path)
+
+read_cjudgments(path)
+
+read_cjudgments_simulated(path)
+
+read_tratings(path)
+
+read_tratings_simulated(path)
 }
 \arguments{
-\item{path}{Path to the directory containing raw response files.}
+\item{path}{Path to the directory containing raw data files.}
 
 \item{outpath}{Path to the directory where anonymized data will be saved.}
 
 \item{report}{Filename of the HTML preprocessing report.}
 }
-\value{
-Path where the files were written (\code{outpath}).
-}
 \description{
-Pre-process and Anonymize Raw Response Data
+Functions to import and preprocess raw (or simulated) data.
 }
 \details{
-Loads in the data from the raw response files and writes
-  out non-anonymized, pre-processed versions to the current working
-  directory, as well as anonymized versions to the directory
-  specified by \code{outpath}. The structure of the files is
-  described by the function \code{\link{codebook}}.
+The purpose of these functions are to import, transform,
+  and anonymize raw data files from the Truth Trajectory study by
+  \insertCite{Henderson_Simons_Barr_2021;textual}{truthiness}. As
+  few users other than the researchers will have access to the
+  original non-anonymized data, functions are also supplied to
+  perform the same set of actions on simulated data. There are two
+  versions of each function, an original version (e.g.,
+  \code{preprocess}) and a simulated version (e.g.,
+  \code{preprocess_simulated}). We include two sets of functions
+  because the simulated functions were built during the planning
+  stage of the study, based on assumptions about the structure of
+  the raw data files that turned out to be incorrect once we
+  obtained pilot data. Rather than laboriously re-write the
+  simulation functions to match the new data structure, we decided
+  to preserve the old functions and split them off from the new
+  versions. They perform the same set of actions and yield the same
+  end products, but import and transform the data differently
+  because of the differing nature of the raw data files.
 
-\dontrun{
-## assuming raw data files are stored in subdirectory 'data_raw':
-preprocess("data_raw", "data_anon", "preprocess.html")
+The "preprocessing" functions are the high-level functions and the
+only ones that most users will need. The "import" and "read" are
+lower-level functions that are called by the "preprocess"
+functions, and are described here for completeness.
 }
+\section{Preprocessing}{
+
+
+Generally, users will not have access to the non-anonymized raw
+data and so will not need to use any of these functions, except
+when working with simulated data. The data objects resulting from
+the preprocessing of the original raw data are available as
+built-in data objects documented in
+\code{\link{truth_trajectory_data}}. Users interested in
+reproducing the results from the anonymized data should start with
+the documentation for \code{\link{reproduce_analysis}}.
+
+The \code{preprocess} functions load in the data from the raw data
+files and writes out (1) non-anonymized, preprocessed data files;
+(2) anonymized, preprocessed data files; and (3) an HTML report. It
+performs these actions by running scripts derived from R Markdown
+templates included in the package. It is not necessary to view
+these scripts, but if you wish to do so, use
+\code{\link[rmarkdown]{draft}}; R Studio users can also access the
+templates from "New File > R Markdown" pull down menu, and then
+select the appropriate template in the dialog box.
+
+To access this preprocessing script for simulated data:
+
+\code{rmarkdown::draft("preprocessing-simulated.Rmd",
+                       "illusory-truth-preprocessing-sim", "truthiness")}
+
+and the preprocessing script for real data:
+
+\code{rmarkdown::draft("preprocessing.Rmd",
+                       "illusory-truth-preprocessing", "truthiness")}
+
+The processing script generates four anonymized data files output
+from the preprocessing script which are stored in the subdirectory
+named in the \code{outpath} argument. Each file is stored in two
+versions for maximum portability binary (RDS) format as well as
+comma-separated values (CSV). These files are called
+\code{ANON_sessions}, \code{ANON_phases}, \code{ANON_categories},
+and \code{ANON_ratings} and the data they contain is described in
+the \code{\link{codebook}}.
+
+These scripts output two files with non-anonymized data. The names
+of these files are prefixed with the called
+\code{NOT_ANONYMIZED_sessions.rds} and
+\code{NOT_ANONYMIZED_phases.rds}, containing sensitive information
+(Prolific IDs) and answers to open-ended questions. These files are
+stored in the "target directory", which is the directory just above
+the subdirectory with the anonymized data (as specified by
+\code{outpath}; if \code{outpath} is \code{NULL}, then a
+subdirectory is created in the working directory to contain the
+anonymized files and the target directory will be the working
+directory). The compiled HTML report is also stored in the target
+directory. If the filename is not specified by the user
+(\code{NULL}), then one is generated, with a prefix corresponding
+to the name of the subdirectory where the anonymized data is
+stored, and the suffix "-preprocessing.html". The return value of
+the preprocessing function is the file path to this report.
+
+Users can manually add exclusions by editing the files
+\code{manually_exclude_participants.csv} and
+\code{manually_exclude_phases.csv} in the target directory; if they
+don't exist, then they will be written to the target directory when
+the script is first run. Thus, it is wise to run the preprocessing
+script twice: once to create the files so that the user can see how
+the entries in these files should be structured, and once again
+after filling in the data to apply the manual exclusions.
+}
+
+\section{Import and Read Functions}{
+
+
+The \code{import_*} and \code{read_*} functions are not
+intended to be called directly; instead, the user will typically
+call the \code{preprocess} or \code{preprocess_simulated}
+function, or render the R Markdown preprocessing template (using
+\code{\link[rmarkdown]{draft}}). These lower-level functions are invoked by
+these higher-level functions, and are documented here for
+completeness.
+
+The \code{import_*} functions extract session, phase, category
+judgments, or ratings data from the full set of raw data files in
+subdirectory \code{path} and return a (non-anonymized) data frame
+with the corresponding data. It does this by calling the
+corresponding \code{read_*} function for each of the single input
+files in the subdirectory, and transforming and combining the
+information as required.
+}
+
+\examples{
+td_raw <- tempfile()  # temp dir for raw data
+td_anon <- tempfile() # temp dir for preprocessed data
+
+## simulate data and preprocess it
+
+set.seed(62)
+simulate_resp_files(40, path = td_raw, overwrite = TRUE)
+report preprocess_simulated(td_raw, td_anon)
+\dontrun{browseURL(report) # view the preprocessing report}
+
+sess <- import_sessions_simulated(td_raw)
+sess_p1 <- read_sessions_simulated(file.path(td_raw, "P1L1.csv"))
+
+}
+\references{
+\insertAllCited{}
 }

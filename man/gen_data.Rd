@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulate.R
 \name{gen_data}
 \alias{gen_data}
-\title{Simulate truth rating data}
+\title{Simulate Truth Rating Data}
 \usage{
 gen_data(
   nsubj,
@@ -84,7 +84,7 @@ baseline (immediate) to 1 month.}
 }
 }
 \description{
-Simulate truth rating data
+Simulate Truth Rating Data
 }
 \details{
 By default, the thresholds and parameter estimates for

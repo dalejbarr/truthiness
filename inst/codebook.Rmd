@@ -60,8 +60,7 @@ tribble(~Variable, ~Description,
         "`chk_consent`", "Whether participant gave consent for this phase.",
         "`chk_finished`", "Whether all responses were filled in",
         "`chk_dur_phase`", "Whether the phase was completed within reasonable time limits.",
-        "`chk_notmanex`", "Whether the phase for this participant was manually excluded.",
-        "`reason_for_manual_exclusion`", "If the phase has been manually excluded, the reason for doing so; otherwise `NA`")
+        "`chk_notmanex`", "Whether the phase for this participant was manually excluded.")
 ```
 
 ## Truth ratings (`ratings`)

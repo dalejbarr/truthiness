@@ -34,16 +34,17 @@ library("tidyverse")
 Importing data from files in subdirectory ``r params$subdir``.
 
 ```{r preprocess-manual-exclusions, results = 'asis'}
+anondir <- normalize_path(params$anondir) # no trailing slash
 
 ## pretty print big integers
 .pi <- function(x) prettyNum(x, big.mark=',')
 
 ## check for manual exclusions
-## man_exclude_part_fname <- paste0(basename(params$anondir),
-man_exclude_part_fname <- "manually_exclude_participants.csv"
+man_exclude_part_fname <- file.path(dirname(anondir),
+                                    "manually_exclude_participants.csv")
 
-## man_exclude_phs_fname <- paste0(basename(params$anondir),
-man_exclude_phs_fname <- "manually_exclude_phases.csv"
+man_exclude_phs_fname <- file.path(dirname(anondir),
+                                   "manually_exclude_phases.csv")
 
 if (file.exists(man_exclude_part_fname)) {
   man_exclude_part <- read_csv(man_exclude_part_fname, col_types = "cc")
@@ -91,13 +92,14 @@ Importing data from the following data files: `r .allfiles`
 
 ```{r preprocess-all}
 ## all the pre-processing is done in this chunk
-private_sess_fname <- paste0(basename(params$anondir),
-                             "_NOT_ANONYMIZED_sessions.rds")
-private_phase_fname <- paste0(basename(params$anondir),
-                              "_NOT_ANONYMIZED_phases.rds")
-report_fname <- paste0(basename(params$anondir), "_preprocessing_report.html")
+private_sess_fname <- file.path(dirname(anondir),
+                                paste0(basename(params$anondir),
+                                       "_NOT_ANONYMIZED_sessions.rds"))
 
-anondir <- normalize_path(params$anondir) # no trailing slash
+private_phase_fname <- file.path(dirname(anondir),
+                                 paste0(basename(params$anondir),
+                                        "_NOT_ANONYMIZED_phases.rds"))
+
 if (dir.exists(anondir)) {
   unlink(anondir, TRUE, TRUE)
 }

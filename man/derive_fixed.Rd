@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulate.R
 \name{derive_fixed}
 \alias{derive_fixed}
-\title{Derive fixed effects parameters from phase-by-phase effects}
+\title{Derive Fixed-Effects Parameters from Phase-by-Phase Effects}
 \usage{
 derive_fixed(phase_eff)
 }
@@ -16,5 +16,5 @@ Vector with eight elements containing the fixed effects
   coefficients for deviation-coded predictors.
 }
 \description{
-Derive fixed effects parameters from phase-by-phase effects
+Derive Fixed-Effects Parameters from Phase-by-Phase Effects
 }

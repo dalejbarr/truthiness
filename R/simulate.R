@@ -2,7 +2,7 @@
 #' @importFrom stats rnorm
 NULL
 
-#' Derive fixed effects parameters from phase-by-phase effects
+#' Derive Fixed-Effects Parameters from Phase-by-Phase Effects
 #'
 #' @param phase_eff A four-element vector specifying the illusory
 #'   truth effect at each of the four testing phases (in log odds
@@ -31,7 +31,7 @@ derive_fixed <- function(phase_eff) {
     `R:I3`        = (d - a))
 }
 
-#' Simulate truth rating data
+#' Simulate Truth Rating Data
 #'
 #' @param nsubj Number of subjects. Because of counterbalancing, must
 #'   be a multiple of 8.
