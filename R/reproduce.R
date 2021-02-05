@@ -1,5 +1,9 @@
-#' Reproduce the Master Data Analysis on Raw Data
+#' Reproduce the Analysis for Longitudinal Illusory Truth Study
 #'
+#' Re-run the analysis for the
+#' \insertCite{Henderson_Simons_Barr_2021;textual}{truthiness}
+#' longitudinal truth study. 
+#' 
 #' @param outfile Path to the HTML output file.
 #'
 #' @param recipe Include instructions on how to reproduce the analysis.
@@ -14,19 +18,30 @@
 #'
 #' @param infile Path to the R Markdown script; \code{NULL} to use the
 #'   built-in script.
-#' 
-#' @details Runs R Markdown script on the data in the provided
-#'   subdirectory and renders the HTML report to \code{outfile}. The
-#'   master R Markdown script can be accessed using:
 #'
+#' @details Runs R Markdown script containing the analysis code. The
+#'   analysis is performed on the built-in preprocessed anonymized
+#'   data (documented in \code{\link{truth_trajectory_data}}). The
+#'   script output is rendered as an HTML report, specified by
+#'   \code{outfile}. Although it is not necessary to do so, the master
+#'   R Markdown script for processing real data can be accessed using
+#'
+#' \code{rmarkdown::draft("analysis.Rmd",
+#'                        "illusory-truth-analysis", "truthiness")}
+#' 
 #' @return Path to the rendered HTML report.
 #'
-#' \code{rmarkdown::draft("master_script.Rmd",
-#'                        "illusory-truth-analysis", "truthiness")}
+#' @seealso \code{\link{reproduce_analysis_simulated}}
 #'
 #' @examples
+#' tf <- tempfile(fileext = ".html")
 #' result <- reproduce_analysis(tf)
 #' \dontrun{browseURL(result)}
+#'
+#' \dontrun{
+#' ## to re-fit the data (takes VERY long):
+#' result <- reproduce_analysis(refit = TRUE)
+#' }
 #' 
 #' @export
 reproduce_analysis <- function(outfile = "analysis.html",
@@ -53,9 +68,15 @@ reproduce_analysis <- function(outfile = "analysis.html",
   invisible(ofile)
 }
 
-#' Reproduce the Master Data Analysis on Simulated Data
+#' Simulate the Analysis for Longitudinal Illusory Truth Study
 #'
-#' @param path Path to the anonymized data files.
+#' Runs the main analysis for
+#' \insertCite{Henderson_Simons_Barr_2021;textual}{truthiness} on
+#' simulated data.
+#' 
+#' @param path Path to a subdirectory containing the preprocessed
+#'   anonymized (simulated) data files (see
+#'   \code{\link{simulate_resp_files}}).
 #'
 #' @param outfile Path to the HTML output file.
 #'
@@ -68,14 +89,31 @@ reproduce_analysis <- function(outfile = "analysis.html",
 #'   subdirectory and renders the HTML report to \code{outfile}. The
 #'   master R Markdown script can be accessed using:
 #'
-#' \code{rmarkdown::draft("master_script.Rmd",
+#' \code{rmarkdown::draft("analysis.Rmd",
 #'                        "illusory-truth-analysis-sim", "truthiness")}
+#'
+#' Note that this script can take *very* long to run, depending on the
+#' size of the simulated dataset, the number of processing cores, and
+#' the computational power of the hardware.
+#'
+#' @examples
+#' td_raw <- tempfile()  # temp dir for raw data
+#' td_anon <- tempfile() # temp dir for preprocessed data
+#'
+#' ## simulate data and preprocess it
+#'
+#' set.seed(62)
+#' simulate_resp_files(40, path = td_raw, overwrite = TRUE)
+#' report preprocess_simulated(td_raw, td_anon)
+#' \dontrun{
+#' reproduce_analysis_sim(td_anon)
+#' }
 #' 
 #' @export
 reproduce_analysis_sim <- function(path,
-                               outfile = "analysis.html",
-                               recipe = FALSE,
-                               infile = NULL) {
+                                   outfile = "analysis.html",
+                                   recipe = FALSE,
+                                   infile = NULL) {
 
   path <- normalize_path(path)
   if (!dir.exists(path)) {stop("directory '", path, "' does not exist")}

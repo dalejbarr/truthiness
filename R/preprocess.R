@@ -152,10 +152,13 @@ preprocess <- function(path,
   infile <- rmarkdown::draft(tf, "illusory-truth-preprocessing", "truthiness",
                              FALSE, FALSE)
   message("Pre-processing raw data in '", path, "'")
+  if (dirname(outpath) == ".") {
+    this_wd <- getwd()
+  }
   ofile <- rmarkdown::render(infile,
-                             output_file = file.path(dirname(outpath), report),
-                             output_dir = dirname(outpath),
-                             knit_root_dir = dirname(outpath),
+                             output_file = file.path(this_wd, report),
+                             output_dir = this_wd,
+                             knit_root_dir = this_wd,
                              envir = new.env(),
                              params = list(subdir = path,
                                            anondir = outpath))
@@ -182,10 +185,13 @@ preprocess_simulated <- function(path,
   infile <- rmarkdown::draft(tf, "illusory-truth-preprocessing-sim",
                              "truthiness", FALSE, FALSE)
   message("Pre-processing (simulated) raw data in '", path, "'")
+  if (dirname(outpath) == ".") {
+    this_wd <- getwd()
+  }
   ofile <- rmarkdown::render(infile,
-                             output_file = file.path(dirname(outpath), report),
-                             output_dir = dirname(outpath),
-                             knit_root_dir = dirname(outpath),
+                             output_file = file.path(this_wd, report),
+                             output_dir = this_wd,
+                             knit_root_dir = this_wd,
                              envir = new.env(),
                              params = list(subdir = path,
                                            anondir = outpath))
