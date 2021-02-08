@@ -49,27 +49,14 @@ report <- function(betas, ser, chisq, df, p, eff, alpha = .05) {
   paste(part1, part2, part3, part4, sep = ", ")
 }
 
-## make sure truthiness is installed
-if (!requireNamespace("truthiness")) {
-  stop("You must install the 'truthiness' package to run this analysis. \n",
-       "devtools::install_github('dalejbarr/truthiness')")
-}
+needed_pkgs <- c("truthiness", "ez", "emmeans", "ordinal",
+                 "dplyr", "tibble", "tidyr", "readr", "ggplot2", "forcats")
 
-if (!requireNamespace("ordinal")) {
-  stop("You must install the 'ordinal' package to run this analysis.")
-}
-
-if (!requireNamespace("tidyverse")) {
-  stop("You must install the 'tidyverse' package to run this analysis.")
-}
-
-if (!requireNamespace("emmeans")) {
-  stop("You must install the 'emmeans' package to run this analysis.")
-}
-
-if (!requireNamespace("ez")) {
-  stop("You must install the 'ez' package to run this analysis.")
-}
+.junk <- lapply(needed_pkgs, function(.x) {
+  if (!requireNamespace(.x)) {
+    stop("You must install the '", .x, "' package to run this analysis.")
+  }
+})
 
 parallel_installed <-
   if (requireNamespace("parallel")) {
@@ -89,7 +76,12 @@ library("ez")
 library("emmeans")
 library("ordinal")
 library("truthiness")
-library("tidyverse")
+library("dplyr")
+library("tibble")
+library("tidyr")
+library("readr")
+library("ggplot2")
+library("forcats")
 ```
 
 For information about the structure of the anonymized data files please see `help("truth_trajectory_data", "truthiness")`, which documents the data objects `sessions`, `phases`, `ratings`, and `cjudgments`.

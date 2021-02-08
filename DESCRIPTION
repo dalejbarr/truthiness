@@ -29,7 +29,10 @@ Imports:
     rmarkdown,
     emmeans,
     DT,
-    Rdpack
+    Rdpack,
+    ggplot2,
+    forcats,
+    ez
 RdMacros: Rdpack
 RoxygenNote: 7.1.1
 Suggests: 

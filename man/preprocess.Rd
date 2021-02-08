@@ -99,14 +99,14 @@ reproducing the results from the anonymized data should start with
 the documentation for \code{\link{reproduce_analysis}}.
 
 The \code{preprocess} functions load in the data from the raw data
-files and writes out (1) non-anonymized, preprocessed data files;
+files and write out (1) non-anonymized, preprocessed data files;
 (2) anonymized, preprocessed data files; and (3) an HTML report. It
 performs these actions by running scripts derived from R Markdown
 templates included in the package. It is not necessary to view
 these scripts, but if you wish to do so, use
 \code{\link[rmarkdown]{draft}}; R Studio users can also access the
-templates from "New File > R Markdown" pull down menu, and then
-select the appropriate template in the dialog box.
+templates from the "New File > R Markdown" pull down menu and then
+selecting the appropriate template in the dialog box.
 
 To access this preprocessing script for simulated data:
 
@@ -118,31 +118,30 @@ and the preprocessing script for real data:
 \code{rmarkdown::draft("preprocessing.Rmd",
                        "illusory-truth-preprocessing", "truthiness")}
 
-The processing script generates four anonymized data files output
-from the preprocessing script which are stored in the subdirectory
-named in the \code{outpath} argument. Each file is stored in two
-versions for maximum portability binary (RDS) format as well as
-comma-separated values (CSV). These files are called
-\code{ANON_sessions}, \code{ANON_phases}, \code{ANON_categories},
-and \code{ANON_ratings} and the data they contain is described in
-the \code{\link{codebook}}.
+The processing script outputs four anonymized data files into the
+subdirectory named in the \code{outpath} argument. For maximum
+portability, each file is stored in two versions: binary (RDS)
+format as well as comma-separated values (CSV). These files are
+called \code{ANON_sessions}, \code{ANON_phases},
+\code{ANON_categories}, and \code{ANON_ratings} and the data they
+contain is described in the \code{\link{codebook}}.
 
-These scripts output two files with non-anonymized data. The names
-of these files are prefixed with the called
-\code{NOT_ANONYMIZED_sessions.rds} and
-\code{NOT_ANONYMIZED_phases.rds}, containing sensitive information
-(Prolific IDs) and answers to open-ended questions. These files are
-stored in the "target directory", which is the directory just above
-the subdirectory with the anonymized data (as specified by
+In addition to the anonymized data, the preprocessing scripts
+output two files with non-anonymized data. These files contain
+sensitive information (Prolific IDs and answers to open-ended
+questions) and are named \code{NOT_ANONYMIZED_sessions.rds} and
+\code{NOT_ANONYMIZED_phases.rds}. They are written to the
+"target directory", which is the directory just above the
+subdirectory with the anonymized data as specified by
 \code{outpath}; if \code{outpath} is \code{NULL}, then a
-subdirectory is created in the working directory to contain the
-anonymized files and the target directory will be the working
-directory). The compiled HTML report is also stored in the target
-directory. If the filename is not specified by the user
-(\code{NULL}), then one is generated, with a prefix corresponding
-to the name of the subdirectory where the anonymized data is
-stored, and the suffix "-preprocessing.html". The return value of
-the preprocessing function is the file path to this report.
+subdirectory is created in the working directory for the anonymized
+files and the target directory will be the working directory. The
+compiled HTML report is also stored in the target directory. If the
+filename is not specified by the user (\code{NULL}), then one is
+generated, with a prefix corresponding to the name of the
+subdirectory where the anonymized data is stored, and the suffix
+"-preprocessing.html". The return value of the preprocessing
+function is the file path to this report.
 
 Users can manually add exclusions by editing the files
 \code{manually_exclude_participants.csv} and
@@ -168,7 +167,7 @@ completeness.
 The \code{import_*} functions extract session, phase, category
 judgments, or ratings data from the full set of raw data files in
 subdirectory \code{path} and return a (non-anonymized) data frame
-with the corresponding data. It does this by calling the
+with the corresponding data. They do this by calling the
 corresponding \code{read_*} function for each of the single input
 files in the subdirectory, and transforming and combining the
 information as required.
@@ -182,11 +181,20 @@ td_anon <- tempfile() # temp dir for preprocessed data
 
 set.seed(62)
 simulate_resp_files(40, path = td_raw, overwrite = TRUE)
-report preprocess_simulated(td_raw, td_anon)
-\dontrun{browseURL(report) # view the preprocessing report}
+
+report <- preprocess_simulated(td_raw, td_anon)
+
+\dontrun{
+  browseURL(report) # view the preprocessing report
+}
 
 sess <- import_sessions_simulated(td_raw)
 sess_p1 <- read_sessions_simulated(file.path(td_raw, "P1L1.csv"))
+
+# just clean up
+file.remove(report)
+unlink(td_raw, TRUE, TRUE)
+unlink(td_anon, TRUE, TRUE)
 
 }
 \references{

@@ -1,8 +1,8 @@
 #' Run Power Simulations
 #'
 #' @param model Which type of model to fit: use 'lmem' for linear
-#'   mixed-effects model, 'clmm' for cumulative logit mixed-effects
-#'   model, and 'gamm' for generalized additive mixed model.
+#'   mixed-effects model and 'clmm' for cumulative link mixed-effects
+#'   model.
 #'
 #' @param phase_eff A four-element vector, each element of which
 #'   specifies the illusory truth effect at the corresponding phase,
@@ -55,8 +55,8 @@ power_sim <- function(model,
       stop("file '", outfile, "' already exists")
   }
 
-  if (!(model %in% c("lmem", "clmm", "gamm")))
-    stop("'model' must be one of 'lmem', 'clmm', 'gamm'")
+  if (!(model %in% c("lmem", "clmm")))
+    stop("'model' must be one of 'lmem', 'clmm'")
 
   if (!(target_effect %in% c("main", "interaction")))
     stop("'effect' must be either 'main' or 'interaction'")

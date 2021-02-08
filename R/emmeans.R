@@ -11,14 +11,15 @@
 #' the two-level factor. For use with the emmeans package.
 #'
 #' @examples
-#' library(dplyr)
+#' library(ordinal)
+#' library(emmeans)
 #' 
 #' ## create data frame with predictor codings
 #' moddata <- get_model_data()
 #' 
 #' ## use 'allsimp' with emmeans for equivalence test
-#' mod_emm <- emmeans::emmeans(truth_trajectory_models[["ix2"]],
-#'                             allsimp ~ Rep * Int, data = moddata)
+#' mod_emm <- emmeans(truth_trajectory_models[["ix2"]],
+#'                    allsimp ~ Rep * Int, data = moddata)
 #' 
 #' mod_emm
 #' 

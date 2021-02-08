@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit.R
 \name{fit_lmem}
 \alias{fit_lmem}
-\title{Fit Linear Mixed-Effects Model to Ratings Data}
+\title{Fit Linear Mixed-Effects Model to Simulated Ratings}
 \usage{
 fit_lmem(.data, main_effect = FALSE)
 }
@@ -36,13 +36,14 @@ A vector, with the following elements.
 }
 }
 \description{
-Fit Linear Mixed-Effects Model to Ratings Data
+Fit a linear mixed-effects model (LMM) to simulated ratings data.
 }
 \details{
-Fits a linear-mixed effects model to the data and tests
+This function is used to estimate parameters for power
+  analysis with simulated data. \code{fit_lmem} fits a linear-mixed
+  effects model to the data with \code{\link[lme4]{lmer}} and tests
   the specified effect (interaction or main effect) using a
-  likelihood-ratio test (with lme4 \code{REML = FALSE}).  using
-  \code{lme4::lmer()}. If the interaction is to be tested, the
+  likelihood-ratio test. If the interaction is to be tested, the
   following two models are compared.
 
 \code{trating ~ R * (I1 + I2 + I3) +

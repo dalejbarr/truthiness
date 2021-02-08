@@ -9,9 +9,10 @@
 warn <- function(subdir) {
   if (truthiness::check_fake(subdir)) {
     extra_text <-
-      case_when(basename(subdir) == "all_null" ~ "**This document demonstrates a null main effect and null interaction.**",
-                basename(subdir) == "main_effect" ~ "**This document demonstrates a significant main effect and null interaction.**",
-                basename(subdir) == "interaction" ~ "**This document demonstrates a significant main effect and significant interaction.**",
+      dplyr::case_when(
+               basename(subdir) == "all_null" ~ "**This document demonstrates a null main effect and null interaction.**",
+               basename(subdir) == "main_effect" ~ "**This document demonstrates a significant main effect and null interaction.**",
+               basename(subdir) == "interaction" ~ "**This document demonstrates a significant main effect and significant interaction.**",
                 TRUE ~ "")
     paste("\n<div class=\"warn\">",
           "*WARNING! Results in this document are based on **simulated** data*.",
@@ -26,6 +27,8 @@ warn <- function(subdir) {
 #' Compile and display the codebook for anonymized data and stimulus
 #' materials.
 #'
+#' @importFrom utils browseURL
+#' 
 #' @param show_stim Whether to include the stimulus materials.
 #'
 #' @param browse Whether to open the codebook in a browser. Otherwise, it just prints the filename.

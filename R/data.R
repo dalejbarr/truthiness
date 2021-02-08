@@ -232,7 +232,7 @@ NULL
 #' after the exposure phase; (2) one day after exposure; (3) one week
 #' after exposure; and (4) one month after exposure. The \code{chk_*}
 #' variables in this data frame represent exclusion criteria, and
-#' code{keep} is a boolean "AND" of those criteria, along with the
+#' \code{keep} is a boolean "AND" of those criteria along with the
 #' \code{keep} variable from the \code{sessions} table. In other
 #' words, to apply the full set of participant-level and phase-level
 #' exclusion criteria for the study, simply include those rows in

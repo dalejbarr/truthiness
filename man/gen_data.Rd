@@ -47,8 +47,8 @@ day later. The second element represents the proportion of the
 remaining participants dropping out after 1 day and before 1
 week. The third and final element represents the proportion of
 remaining participants dropping out after 1 week and before 1
-month. For example, the default values of .05, .1, and 1 encode
-dropout rates of 5\%, 10\%, and 10\%.}
+month. For example, the default values of \code{c(.05, .1, .1)}
+encode dropout rates of 5\%, 10\%, and 10\%.}
 }
 \value{
 A data frame, with \code{nsubj * 128} rows and 11 variables, where:
@@ -89,7 +89,7 @@ Simulate Truth Rating Data
 \details{
 By default, the thresholds and parameter estimates for
   variance components used in the simulation are from the
-  cumulative logit mixed model fit to the Nadarevic and Erdfelder
+  cumulative link mixed model fit to the Nadarevic and Erdfelder
   data. Only the variances from the by-subject and by-item
   covariance matrices are used. Unlike Nadarevic and Erdfelder, who
   only had two testing intervals, the simulated study assumes four

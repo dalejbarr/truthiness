@@ -28,7 +28,11 @@ if (is.null(params$anondir) || (params$anondir == "")) {
 }
 
 library("truthiness")
-library("tidyverse")
+library("dplyr")
+library("tibble")
+library("tidyr")
+library("readr")
+library("forcats")
 ```
 
 Importing data from files in subdirectory ``r params$subdir``.

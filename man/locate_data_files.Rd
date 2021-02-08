@@ -8,6 +8,10 @@ locate_data_files(path, full.names = TRUE)
 }
 \arguments{
 \item{path}{Path to data files.}
+
+\item{full.names}{If ‘TRUE’, the directory path is prepended to the
+file names to give a relative file path.  If ‘FALSE’, the file
+names (rather than paths) are returned.}
 }
 \value{
 A character vector with the paths to the files.

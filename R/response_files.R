@@ -182,6 +182,8 @@ make_response_file <- function(data, segment_id, subj_data, idata, path) {
 
 #' Simulate Response Data Files From Longitudinal Illusory Truth Study
 #'
+#' @importFrom stats rbinom
+#' 
 #' @param nsubj Number of subjects; must be a multiple of 8.
 #'
 #' @param phase_eff A four-element vector giving the size of the

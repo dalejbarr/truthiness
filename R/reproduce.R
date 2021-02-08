@@ -31,14 +31,16 @@
 #' 
 #' @return Path to the rendered HTML report.
 #'
-#' @seealso \code{\link{reproduce_analysis_simulated}}
+#' @seealso \code{\link{reproduce_analysis_sim}}
 #'
 #' @examples
 #' tf <- tempfile(fileext = ".html")
-#' result <- reproduce_analysis(tf)
-#' \dontrun{browseURL(result)}
+#'
+#' result <- reproduce_analysis(tf) # without re-fitting; default
 #'
 #' \dontrun{
+#' browseURL(result)
+#'
 #' ## to re-fit the data (takes VERY long):
 #' result <- reproduce_analysis(refit = TRUE)
 #' }
@@ -104,10 +106,16 @@ reproduce_analysis <- function(outfile = "analysis.html",
 #'
 #' set.seed(62)
 #' simulate_resp_files(40, path = td_raw, overwrite = TRUE)
-#' report preprocess_simulated(td_raw, td_anon)
+#' report <- preprocess_simulated(td_raw, td_anon)
+#' 
 #' \dontrun{
 #' reproduce_analysis_sim(td_anon)
 #' }
+#'
+#' ## clean up
+#' file.remove(report)
+#' unlink(td_raw, TRUE, TRUE)
+#' unlink(td_anon, TRUE, TRUE)
 #' 
 #' @export
 reproduce_analysis_sim <- function(path,

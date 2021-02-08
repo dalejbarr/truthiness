@@ -48,9 +48,15 @@ td_anon <- tempfile() # temp dir for preprocessed data
 
 set.seed(62)
 simulate_resp_files(40, path = td_raw, overwrite = TRUE)
-report preprocess_simulated(td_raw, td_anon)
+report <- preprocess_simulated(td_raw, td_anon)
+
 \dontrun{
 reproduce_analysis_sim(td_anon)
 }
+
+## clean up
+file.remove(report)
+unlink(td_raw, TRUE, TRUE)
+unlink(td_anon, TRUE, TRUE)
 
 }

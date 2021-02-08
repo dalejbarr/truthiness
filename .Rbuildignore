@@ -3,5 +3,7 @@ pkg.org
 ^data-raw$
 junk.R
 .bash_history
+^LICENSE$
 ^LICENSE\.md$
 ^README\.Rmd$
+^README\.html$

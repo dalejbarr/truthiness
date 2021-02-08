@@ -49,15 +49,17 @@ Runs R Markdown script containing the analysis code. The
 }
 \examples{
 tf <- tempfile(fileext = ".html")
-result <- reproduce_analysis(tf)
-\dontrun{browseURL(result)}
+
+result <- reproduce_analysis(tf) # without re-fitting; default
 
 \dontrun{
+browseURL(result)
+
 ## to re-fit the data (takes VERY long):
 result <- reproduce_analysis(refit = TRUE)
 }
 
 }
 \seealso{
-\code{\link{reproduce_analysis_simulated}}
+\code{\link{reproduce_analysis_sim}}
 }

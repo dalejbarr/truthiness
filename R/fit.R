@@ -27,12 +27,15 @@ NULL
 #' get_model_data()
 #' 
 #' @seealso \code{\link{truth_trajectory_data}}
-#' 
+#'
+#' @export
 get_model_data <- function() {
-  ratings %>%
-    dplyr::inner_join(phases %>%
+  keep <- ID <- list_id <- trating <- repetition <- interval <-
+    subj_id <- stim_id <- R <- I1 <- I2 <- I3 <- Rep <- Int <- NULL
+  truthiness::ratings %>%
+    dplyr::inner_join(truthiness::phases %>%
                       dplyr::filter(keep), c("ID", "phase_id")) %>%
-    dplyr::inner_join(sessions %>%
+    dplyr::inner_join(truthiness::sessions %>%
                       dplyr::select(ID, list_id), "ID") %>%
     dplyr::inner_join(stimulus_conditions, c("list_id", "stim_id")) %>%
     dplyr::mutate(subj_id = factor(ID),
@@ -73,8 +76,10 @@ tryFit <- function(tf.formula, tf.data, ...) {
        converged=converged)
 }
 
-#' Fit Linear Mixed-Effects Model to Ratings Data
+#' Fit Linear Mixed-Effects Model to Simulated Ratings
 #'
+#' Fit a linear mixed-effects model (LMM) to simulated ratings data.
+#' 
 #' @param .data Data frame, with the format as resulting from a call
 #'   to \code{\link{gen_data}}.
 #' 
@@ -82,10 +87,11 @@ tryFit <- function(tf.formula, tf.data, ...) {
 #'   (TRUE) or the repetition-by-interval interaction (FALSE; the
 #'   default).
 #'
-#' @details Fits a linear-mixed effects model to the data and tests
+#' @details This function is used to estimate parameters for power
+#'   analysis with simulated data. \code{fit_lmem} fits a linear-mixed
+#'   effects model to the data with \code{\link[lme4]{lmer}} and tests
 #'   the specified effect (interaction or main effect) using a
-#'   likelihood-ratio test (with lme4 \code{REML = FALSE}).  using
-#'   \code{lme4::lmer()}. If the interaction is to be tested, the
+#'   likelihood-ratio test. If the interaction is to be tested, the
 #'   following two models are compared.
 #'
 #' \code{trating ~ R * (I1 + I2 + I3) +
@@ -106,7 +112,7 @@ tryFit <- function(tf.formula, tf.data, ...) {
 #' \code{trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3) +
 #'    (1 + R || subj_id) +
 #'    (1 + R || stim_id)}.
-#' 
+#'
 #' @return A vector, with the following elements.
 #' \describe{
 #'   \item{\code{(Intercept)}}{Fixed-effects estimate of the intercept.}
@@ -128,12 +134,12 @@ tryFit <- function(tf.formula, tf.data, ...) {
 #' }
 #'
 #' @seealso \code{\link{gen_data}}, \code{\link{power_sim}}.
-#' 
+#'
 #' @examples
 #' set.seed(62)
 #' dat <- gen_data(40) 
 #' fit_lmem(dat, TRUE) # test main effect
-#' 
+#'
 #' @export
 fit_lmem <- function(.data, main_effect = FALSE) {
   form <- form2 <- NULL
@@ -175,151 +181,11 @@ fit_lmem <- function(.data, main_effect = FALSE) {
     m2_conv = el2$converged)
 }
 
-#' Fit Generalized Additive Mixed Model to Ratings Data
-#'
-#' @param .data Data frame, with the format as resulting from a call
-#'   to \code{\link{gen_data}}.
-#'
-#' @param main_effect Whether to test the main effect of repetition
-#'   (TRUE) or the repetition-by-interval interaction (FALSE; the
-#'   default).
-#'
-#' @details Fits a generalized additive mixed model to the data and
-#'   tests the specified effect (interaction or main effect) using a
-#'   likelihood-ratio test using \code{mgcv::bam()}. If the
-#'   interaction is to be tested, the following two models are
-#'   compared. Note that despite using Generalized Additive Mixed
-#'   Models, no wiggly function is being estimated; the function is
-#'   just being used as an alternative way to fit a linear mixed
-#'   effects model.
-#'
-#' \code{trating ~ R * (I1 + I2 + I3) +
-#'    s(subj_id, bs = "re") +
-#'    s(subj_id, R, I1, bs = "re") +
-#'    s(subj_id, R, I2, bs = "re") +
-#'    s(subj_id, R, I3, bs = "re") +
-#'    s(stim_id, bs = "re") +
-#'    s(stim_id, R, I1, bs = "re") +
-#'    s(stim_id, R, I2, bs = "re") +
-#'    s(stim_id, R, I3, bs = "re")}
-#'
-#' \code{trating ~ R + I1 + I2 + I3 +
-#'    s(subj_id, bs = "re") +
-#'    s(subj_id, R, I1, bs = "re") +
-#'    s(subj_id, R, I2, bs = "re") +
-#'    s(subj_id, R, I3, bs = "re") +
-#'    s(stim_id, bs = "re") +
-#'    s(stim_id, R, I1, bs = "re") +
-#'    s(stim_id, R, I2, bs = "re") +
-#'    s(stim_id, R, I3, bs = "re")}
-#' 
-#' If the main effect is to be tested, then the following two models
-#' are compared.
-#'
-#' \code{trating ~ R * (I1 + I2 + I3) +
-#'    s(subj_id, bs = "re") +
-#'    s(subj_id, R, bs = "re") +
-#'    s(stim_id, bs = "re") +
-#'    s(stim_id, R, bs = "re")}
-#'
-#' \code{trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
-#'    s(subj_id, bs = "re") +
-#'    s(subj_id, R, bs = "re") +
-#'    s(stim_id, bs = "re") +
-#'    s(stim_id, R, bs = "re")}
-#' 
-#' @return A vector, with the following elements.
-#'
-#' \describe{
-#'   \item{\code{R}}{Fixed-effects estimate of the main effect of repetition.}
-#'   \item{\code{I1}}{Fixed-effects estimate of the main effect of interval (1).}
-#'   \item{\code{I2}}{Fixed-effects estimate of the main effect of interval (2).}
-#'   \item{\code{I3}}{Fixed-effects estimate of the main effect of interval (3).}
-#'   \item{\code{R:I1}}{Fixed-effects estimate of the interaction (1).}
-#'   \item{\code{R:I2}}{Fixed-effects estimate of the interaction (2).}
-#'   \item{\code{R:I3}}{Fixed-effects estimate of the interaction (3).}
-#'   \item{dev1}{Deviance for the model including the effect(s) of interest.}
-#'   \item{dev2}{Deviance for the model excluding the effect(s) of interest.}
-#'   \item{chisq_RI}{Chi-square value for the likelihood ratio test.}
-#'   \item{p_RI}{Associated p-value.}
-#'   \item{thresh.1|2}{First cut-point (threshold).}
-#'   \item{thresh.2|3}{Second cut-point.}
-#'   \item{thresh.3|4}{Third cut-point.}
-#'   \item{thresh.4|5}{Fourth cut-point.}
-#'   \item{thresh.5|6}{Fifth cut-point.}
-#'   \item{thresh.6|7}{Sixth cut-point.}
-#' }
-#'
-#' @seealso \code{\link{gen_data}}, \code{\link{power_sim}}.
-#' 
-#' @examples
-#' set.seed(62)
-#' dat <- gen_data(40) 
-#' fit_gamm(dat, TRUE) # test main effect
-#' 
-#' @export
-fit_gamm <- function(.data, main_effect = FALSE) {
-  form <- form2 <- NULL
-
-  .data[["trating"]] <- as.integer(.data[["trating"]])
-
-  if (main_effect) {
-    form <- trating ~ R * (I1 + I2 + I3) +
-      s(subj_id, bs = "re") +
-      s(subj_id, R, bs = "re") +
-      s(stim_id, bs = "re") +
-      s(stim_id, R, bs = "re")
-
-    form2 <- trating ~ I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
-      s(subj_id, bs = "re") +
-      s(subj_id, R, bs = "re") +
-      s(stim_id, bs = "re") +
-      s(stim_id, R, bs = "re")    
-  } else {
-    form <- trating ~ R * (I1 + I2 + I3) +
-      s(subj_id, bs = "re") +
-      s(subj_id, R, I1, bs = "re") +
-      s(subj_id, R, I2, bs = "re") +
-      s(subj_id, R, I3, bs = "re") +
-      s(stim_id, bs = "re") +
-      s(stim_id, R, I1, bs = "re") +
-      s(stim_id, R, I2, bs = "re") +
-      s(stim_id, R, I3, bs = "re")
-
-    form2 <- trating ~ R + I1 + I2 + I3 +
-      s(subj_id, bs = "re") +
-      s(subj_id, R, I1, bs = "re") +
-      s(subj_id, R, I2, bs = "re") +
-      s(subj_id, R, I3, bs = "re") +
-      s(stim_id, bs = "re") +
-      s(stim_id, R, I1, bs = "re") +
-      s(stim_id, R, I2, bs = "re") +
-      s(stim_id, R, I3, bs = "re")
-  }
-
-  ## fit the model and print the results
-  el1 <- suppressWarnings(mgcv::bam(form, family = mgcv::ocat(R = 7), .data))
-  el2 <- suppressWarnings(mgcv::bam(form2, family = mgcv::ocat(R = 7), .data))
-
-  fef <- coefficients(el1)[1:8]
-
-  mychisq1 <- deviance(el2) - deviance(el1)
-  pval1 <- pchisq(abs(mychisq1), 3, lower.tail = FALSE)
-
-  thetas <- el1$family$getTheta(TRUE)
-  names(thetas) <- paste0("thresh.", 1:6, "|", 2:7)
-  
-  c(fef, dev1 = deviance(el1), dev2 = deviance(el2), 
-    chisq_RI = mychisq1, p_RI = pval1,
-    thetas)
-}
-
-
-#' Fit Cumulative Logit Mixed-Effects Model to Ratings Data
+#' Fit Cumulative Link Mixed-Effects Model to Simulated Ratings
 #'
 #' @inheritParams fit_lmem
 #' 
-#' @details Fits a cumulative logit mixed-effects model to the data
+#' @details Fits a cumulative link mixed-effects model to the data
 #'   and tests the specified effect (interaction or main effect) using
 #'   a likelihood-ratio test using \code{ordinal::clmm()}. The
 #'   function's main purpose is to be used in power simulation.
@@ -427,10 +293,9 @@ strip <- function(x) {
 
 #' Fit CLMM and Run Equivalence Test
 #'
-#' @param .data Data frame.
+#' @inheritParams fit_lmem
 #'
-#' @param main_effect Whether to run the test for the main effect
-#'   (TRUE) or the interaction (FALSE).
+#' @importFrom stats C
 #'
 #' @param delta Smallest (raw) effect size of interest (log odds scale).
 #'
@@ -539,3 +404,4 @@ equivtest <- function(mod, .data, main_effect = FALSE, delta = .14) {
     etest    
   }
 }
+

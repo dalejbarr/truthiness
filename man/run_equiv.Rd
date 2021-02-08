@@ -7,10 +7,12 @@
 run_equiv(.data, main_effect = FALSE, delta = 0.14)
 }
 \arguments{
-\item{.data}{Data frame.}
+\item{.data}{Data frame, with the format as resulting from a call
+to \code{\link{gen_data}}.}
 
-\item{main_effect}{Whether to run the test for the main effect
-(TRUE) or the interaction (FALSE).}
+\item{main_effect}{Whether to test the main effect of repetition
+(TRUE) or the repetition-by-interval interaction (FALSE; the
+default).}
 
 \item{delta}{Smallest (raw) effect size of interest (log odds scale).}
 }
