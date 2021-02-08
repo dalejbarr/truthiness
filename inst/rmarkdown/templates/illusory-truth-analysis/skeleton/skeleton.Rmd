@@ -216,7 +216,7 @@ Applying these criteria resulted in the removal of
 
 ### Exclusions by phase and gender
 
-```{r excl-phase-and-gender, message=FALSE}
+```{r excl-phase-and-gender, message=FALSE, warning=FALSE}
 subj_excl <- sessions %>%
   filter(!keep) %>%
   mutate(phase_id = factor(excl_phase, levels = 1:4)) %>%
