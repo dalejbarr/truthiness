@@ -8,7 +8,7 @@
 <!-- badges: end -->
 
 The truthiness package contains data, code, and utilities related to the
-Longitudinal Illusory Truth study by Henderson, Simons, and Barr (2021).
+Longitudinal Illusory Truth study by Henderson, Simons, and Barr (2020).
 The package includes anonymized data from the study, the key
 preprocessing and analysis scripts that underlie the published results,
 tables describing the design of the study in full detail, and functions
@@ -33,40 +33,38 @@ true on a scale from 1 (definitely false) to 7 (definitely true). (Note
 that each statement that was repeated was repeated only once, at one of
 the four intervals.)
 
+For more details about the study, please see the project repository at
+<https://osf.io/nvugt/>.
+
 ## Installation
 
-The package has not yet been released on
-[CRAN](https://CRAN.R-project.org). Once it is available, you can
-install it using:
+Package version 1.2.4 is available on the [Comprehensive R Archive
+Network
+(CRAN)](https://cran.r-project.org/web/packages/truthiness/index.html).
+Install it using:
 
 ``` r
 install.packages("truthiness")
 ```
 
-The development version is available from [GitHub](https://github.com/)
-with:
-
-``` r
-# install.packages("devtools")
-devtools::install_github("dalejbarr/truthiness")
-```
-
 We’ve put a lot of work into making our data and analysis scripts
 readily available. If you find this package useful, please cite
-Henderson et al. (2021).
+Henderson et al. (2020).
+
+If you encounter any problems using the package, or have any
+suggestions, please file an issue at the [package development site on
+github](https://github.com/dalejbarr/truthiness).
 
 ## Basic Usage
 
-All of the data from the study is built in to the package, in four data
-objects:
+All of the data collected during Stage 2 of the study has beeen built in
+to the package, in four data objects:
 
   - `sessions`: information about each participant
   - `phases`: information about each participant’s performance in each
     phase
   - `cjudgments` : category judgments (exposure task)
   - `ratings` : truth ratings
-  - `truth_trajectory_models` : cumulative link mixed-effects models
-    fitted to the data for analysis
 
 Information about the design of the study is available in these objects:
 
@@ -77,9 +75,15 @@ Information about the design of the study is available in these objects:
   - `stimulus_categories` : the correct categorizations for each
     statement
 
-See the help pages entitled `truth_trajectory_data`,
-`truth_trajectory_design`, and `truth_trajectory_models` for
-documentation of these objects.
+Finally, the fitted model objects from the analysis have also been made
+available:
+
+  - `truth_trajectory_models` : cumulative link mixed-effects models
+    (CLMMs) fitted to the data for analysis
+
+See the help documentation `?truth_trajectory_data`,
+`?truth_trajectory_design`, and `?truth_trajectory_models` for further
+information.
 
 ### Reproducing the findings
 
@@ -93,10 +97,15 @@ report <- reproduce_analysis()
 browseURL(report) # view the report in your browser
 ```
 
-### Further exploration
+Alternatively, you can access the R Markdown file through the RStudio
+interface using *File -\> New File -\> R Markdown… -\> From Template -\>
+Illusory Truth Analysis.*
+
+### Exploring and visualizing the data
 
 The code below calculates the illusory truth trajectory for each
-participant, and plots them together along with the subject means.
+participant, and plots the distribution along of participant means along
+with the cell means.
 
 ``` r
 library(truthiness)
@@ -114,22 +123,23 @@ all_ratings <- ratings %>%
 ## calculate subject means
 subj_means <- all_ratings %>%
   group_by(ID, repetition, interval) %>%
-  summarize(mean_rating = mean(trating), .groups = "drop") %>%
-  pivot_wider(names_from = repetition,
-              values_from = mean_rating) %>%
-  mutate(effect = repeated - new)          # illusory truth effect
+  summarize(mean_rating = mean(trating), .groups = "drop")
 
 ## calculate cell means
 cell_means <- subj_means %>%
-  group_by(interval) %>%
-  summarize(effect = mean(effect), .groups = "drop")
+  group_by(repetition, interval) %>%
+  summarize(mean_rating = mean(mean_rating), .groups = "drop")
 
 ggplot(subj_means,
-       aes(interval, effect)) +
-  geom_violin() +
-  geom_point(data = cell_means, size = 3) +
-  geom_line(data = cell_means, group = 1) +
-  labs(y = "illusory truth effect (repeated - new)")
+       aes(interval, mean_rating)) +
+  geom_violin(aes(fill = repetition), color = NA,
+              alpha = .1, position = "identity") +
+  geom_point(aes(color = repetition), data = cell_means, size = 3) +
+  geom_line(aes(color = repetition, group = repetition), data = cell_means) +
+  labs(y = "truth rating (1 = definitely false, 7 = definitely true)") +
+  scale_y_continuous(breaks = 1:7) +
+  theme_light() +
+  theme(panel.grid.minor.y = element_blank())
 ```
 
 <img src="man/figures/README-example-1.png" width="100%" />
@@ -141,6 +151,7 @@ and the conference of referential
 validity.](https://doi.org/10.1016/S0022-5371\(77\)80012-1) *Journal of
 Verbal Learning and Verbal Behavior*, *16*, 107–112.
 
-Henderson, Emma L., Simons, Daniel J., and Barr, Dale J. (2021). The
-Trajectory of Truth: A Longitudinal Study of the Illusory Truth Effect.
-Registered report accepted in principle at the *Journal of Cognition*.
+Henderson, Emma L., Simons, Daniel J., and Barr, Dale J. (2020). [The
+Trajectory of Truth: A Longitudinal Study of the Illusory Truth Effect
+(Stage 1 registered report).](https://osf.io/vqnx2/) Accepted in
+principle at the *Journal of Cognition*.
