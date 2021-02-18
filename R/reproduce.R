@@ -16,9 +16,16 @@
 #' @param savefig Whether to save the two plots as separate PNG files
 #'   (\code{means_plot.png} and \code{validation_plot.png}).
 #'
+#' @param parallel Whether to fit models using a single CPU processing
+#'   core (\code{FALSE}) or multiple cores (\code{TRUE}, the
+#'   default). If \code{refit} is \code{FALSE}, this parameter is
+#'   ignored.
+#'
 #' @param infile Path to the R Markdown script; \code{NULL} to use the
 #'   built-in script.
 #'
+#' @return A string with the path to the generated HTML report.
+#' 
 #' @details Runs R Markdown script containing the analysis code. The
 #'   analysis is performed on the built-in preprocessed anonymized
 #'   data (documented in \code{\link{truth_trajectory_data}}). The
@@ -34,22 +41,27 @@
 #' @seealso \code{\link{reproduce_analysis_sim}}
 #'
 #' @examples
+#' \donttest{
 #' tf <- tempfile(fileext = ".html")
+#' 
+#' ## Run the built-in R Markdown script without refitting models.
+#' ## To re-fit the models, set refit = TRUE
+#' ## (NB: refitting can take ~ 24 hours)
+#' reproduce_analysis(tf)
 #'
-#' result <- reproduce_analysis(tf) # without re-fitting; default
+#' browseURL(tf)
 #'
-#' \dontrun{
-#' browseURL(result)
-#'
-#' ## to re-fit the data (takes VERY long):
-#' result <- reproduce_analysis(refit = TRUE)
+#' ## clean up
+#' if (file.exists(tf)) file.remove(tf)
 #' }
+#'
 #' 
 #' @export
 reproduce_analysis <- function(outfile = "analysis.html",
                                refit = FALSE,
                                savefig = FALSE,
                                recipe = FALSE,
+                               parallel = TRUE,
                                infile = NULL) {
 
   if (is.null(infile)) {
@@ -64,9 +76,11 @@ reproduce_analysis <- function(outfile = "analysis.html",
                              knit_root_dir = getwd(),
                              envir = new.env(),
                              output_dir = dirname(outfile),
+                             quiet = TRUE,
                              params = list(recipe = recipe,
                                            savefig = savefig,
-                                           refit = refit))
+                                           refit = refit,
+                                           parallel = parallel))
   invisible(ofile)
 }
 
@@ -83,6 +97,10 @@ reproduce_analysis <- function(outfile = "analysis.html",
 #' @param outfile Path to the HTML output file.
 #'
 #' @param recipe Include instructions on how to reproduce the analysis.
+#'
+#' @param parallel Whether to fit models using a single CPU processing
+#'   core (\code{FALSE}) or multiple cores (\code{TRUE}, the
+#'   default).
 #'
 #' @param infile Path to the R Markdown script; \code{NULL} to use the
 #'   built-in script.
@@ -105,15 +123,31 @@ reproduce_analysis <- function(outfile = "analysis.html",
 #' ## simulate data and preprocess it
 #'
 #' set.seed(62)
-#' simulate_resp_files(40, path = td_raw, overwrite = TRUE)
-#' report <- preprocess_simulated(td_raw, td_anon)
+#' simulate_resp_files(32, path = td_raw, overwrite = TRUE)
 #' 
-#' \dontrun{
-#' reproduce_analysis_sim(td_anon)
+#' \donttest{
+#' ## temporary files 
+#' tf1 <- tempfile(fileext = ".html")
+#' tf2 <- tempfile(fileext = ".html")
+#' 
+#' ## run the built-in R Markdown preprocessing script
+#' pp_report <- preprocess_simulated(path = td_raw, outpath = td_anon,
+#'                                   report = tf1)
+#'
+#' ## run the built-in R Markdown analysis script
+#' ## this can take very long due to the CLMM fits
+#' a_report <- reproduce_analysis_sim(path = td_anon,
+#'                                    outfile = tf2,
+#'                                    parallel = FALSE)
+#'
+#' browseURL(a_report)
+#'
+#' ## clean up
+#' file.remove(pp_report)
+#' file.remove(a_report)
 #' }
 #'
 #' ## clean up
-#' file.remove(report)
 #' unlink(td_raw, TRUE, TRUE)
 #' unlink(td_anon, TRUE, TRUE)
 #' 
@@ -121,6 +155,7 @@ reproduce_analysis <- function(outfile = "analysis.html",
 reproduce_analysis_sim <- function(path,
                                    outfile = "analysis.html",
                                    recipe = FALSE,
+                                   parallel = TRUE,
                                    infile = NULL) {
 
   path <- normalize_path(path)
@@ -136,7 +171,10 @@ reproduce_analysis_sim <- function(path,
   ofile <- rmarkdown::render(infile, output_file = basename(outfile),
                              knit_root_dir = getwd(),
                              output_dir = dirname(outfile),
+                             envir = new.env(),
+                             quiet = TRUE,
                              params = list(subdir = path,
-                                           recipe = recipe))
+                                           recipe = recipe,
+                                           parallel = parallel))
   invisible(ofile)
 }

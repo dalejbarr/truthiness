@@ -5,6 +5,10 @@
 #' 
 #' @param subdir Subdirectory with the anonymized data.
 #'
+#' @return A character vector containing a warning about simulated
+#'   data, which is wrapped in HTML \code{<div>} tags for inclusion in
+#'   the HTML document output by \code{\link{preprocess_simulated}}.
+#' 
 #' @export
 warn <- function(subdir) {
   if (truthiness::check_fake(subdir)) {

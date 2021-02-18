@@ -2,16 +2,20 @@
 % Please edit documentation in R/preprocess.R
 \name{validate_filenames}
 \alias{validate_filenames}
-\title{Validate Filenames in Directory}
+\title{Validate Simulated Data Filenames}
 \usage{
 validate_filenames(path)
 }
 \arguments{
 \item{path}{Path to the files.}
 }
+\value{
+\code{TRUE}, if files in the directory \code{path} have
+  names in the expected format; otherwise, an error is thrown.
+}
 \description{
 Make sure all the files needed for the analysis are present in a
-given directory.
+directory containing simulated data.
 }
 \details{
 Output files from the study must match the pattern

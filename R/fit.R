@@ -236,11 +236,14 @@ fit_lmem <- function(.data, main_effect = FALSE) {
 #' @seealso \code{\link{gen_data}}, \code{\link{power_sim}}.
 #'
 #' @examples
-#' \dontrun{
-#'   set.seed(62)
-#'   dat <- gen_data(24) # test main effect
-#'   fit_clmm(dat, TRUE) # takes a few minutes
+#'
+#' set.seed(62)
+#' dat <- gen_data(24) # test main effect
+#' \donttest{
+#' fit_clmm(dat, TRUE) # takes a few minutes
 #' }
+#'
+#' @export
 fit_clmm <- function(.data, main_effect = FALSE) {
   if (main_effect) {
     form <- trating ~ R + I1 + I2 + I3 + R:I1 + R:I2 + R:I3 +
@@ -261,6 +264,7 @@ fit_clmm <- function(.data, main_effect = FALSE) {
   }
 
   ## fit the model and print the results
+  browser()
   el1 <- ordinal::clmm(form, .data, Hess = FALSE)
   el2 <- ordinal::clmm(form2, .data, Hess = FALSE)
 
@@ -310,7 +314,7 @@ strip <- function(x) {
 #' 
 #' set.seed(62)
 #' dat <- gen_data(24)
-#' \dontrun{run_equiv(dat, main_effect = TRUE)}
+#' \donttest{run_equiv(dat, main_effect = TRUE)}
 #' 
 #' @export
 run_equiv <- function(.data, main_effect = FALSE, delta = .14) {

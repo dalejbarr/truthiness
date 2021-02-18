@@ -68,11 +68,13 @@ are compared.
    (1 + R | stim_id)}.
 }
 \examples{
-\dontrun{
-  set.seed(62)
-  dat <- gen_data(24) # test main effect
-  fit_clmm(dat, TRUE) # takes a few minutes
+
+set.seed(62)
+dat <- gen_data(24) # test main effect
+\donttest{
+fit_clmm(dat, TRUE) # takes a few minutes
 }
+
 }
 \seealso{
 \code{\link{gen_data}}, \code{\link{power_sim}}.

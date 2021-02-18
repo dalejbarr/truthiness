@@ -9,6 +9,7 @@ reproduce_analysis(
   refit = FALSE,
   savefig = FALSE,
   recipe = FALSE,
+  parallel = TRUE,
   infile = NULL
 )
 }
@@ -25,10 +26,17 @@ default is set to \code{FALSE}.}
 
 \item{recipe}{Include instructions on how to reproduce the analysis.}
 
+\item{parallel}{Whether to fit models using a single CPU processing
+core (\code{FALSE}) or multiple cores (\code{TRUE}, the
+default). If \code{refit} is \code{FALSE}, this parameter is
+ignored.}
+
 \item{infile}{Path to the R Markdown script; \code{NULL} to use the
 built-in script.}
 }
 \value{
+A string with the path to the generated HTML report.
+
 Path to the rendered HTML report.
 }
 \description{
@@ -48,16 +56,20 @@ Runs R Markdown script containing the analysis code. The
                        "illusory-truth-analysis", "truthiness")}
 }
 \examples{
+\donttest{
 tf <- tempfile(fileext = ".html")
 
-result <- reproduce_analysis(tf) # without re-fitting; default
+## Run the built-in R Markdown script without refitting models.
+## To re-fit the models, set refit = TRUE
+## (NB: refitting can take ~ 24 hours)
+reproduce_analysis(tf)
 
-\dontrun{
-browseURL(result)
+browseURL(tf)
 
-## to re-fit the data (takes VERY long):
-result <- reproduce_analysis(refit = TRUE)
+## clean up
+if (file.exists(tf)) file.remove(tf)
 }
+
 
 }
 \seealso{

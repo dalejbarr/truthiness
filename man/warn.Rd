@@ -9,6 +9,11 @@ warn(subdir)
 \arguments{
 \item{subdir}{Subdirectory with the anonymized data.}
 }
+\value{
+A character vector containing a warning about simulated
+  data, which is wrapped in HTML \code{<div>} tags for inclusion in
+  the HTML document output by \code{\link{preprocess_simulated}}.
+}
 \description{
 Check whether the data in \code{subdir} is simulated data and
 generate a warning to include in an R Markdown document.

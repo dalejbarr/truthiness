@@ -58,6 +58,9 @@ read_tratings_simulated(path)
 
 \item{report}{Filename of the HTML preprocessing report.}
 }
+\value{
+A string with the path to the generated HTML report.
+}
 \description{
 Functions to import and preprocess raw (or simulated) data.
 }
@@ -182,17 +185,20 @@ td_anon <- tempfile() # temp dir for preprocessed data
 set.seed(62)
 simulate_resp_files(40, path = td_raw, overwrite = TRUE)
 
-report <- preprocess_simulated(td_raw, td_anon)
+\donttest{
+## run the built-in R Markdown script
+tf1 <- tempfile(fileext = ".html") # temporary file for report
+report <- preprocess_simulated(td_raw, td_anon, tf1)
 
-\dontrun{
-  browseURL(report) # view the preprocessing report
+browseURL(report) # view the HTML preprocessing report
+
+file.remove(report) # clean up
 }
 
 sess <- import_sessions_simulated(td_raw)
 sess_p1 <- read_sessions_simulated(file.path(td_raw, "P1L1.csv"))
 
-# just clean up
-file.remove(report)
+# clean up temp files
 unlink(td_raw, TRUE, TRUE)
 unlink(td_anon, TRUE, TRUE)
 

@@ -19,6 +19,8 @@ normalize_path <- function(path) {
 #'   that it is not confused with genuine data. When an analysis
 #'   report is compiled against data from that subdirectory, the
 #'   report will contain a warning that the data is not real.
+#'
+#' @return No return value, called only for its side effect.
 #' 
 #' @export
 flag_fake <- function(path) {

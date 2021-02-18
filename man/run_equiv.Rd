@@ -32,6 +32,6 @@ This function is intended to be used in data simulation.
 
 set.seed(62)
 dat <- gen_data(24)
-\dontrun{run_equiv(dat, main_effect = TRUE)}
+\donttest{run_equiv(dat, main_effect = TRUE)}
 
 }

@@ -11,6 +11,7 @@ params:
   recipe: FALSE
   savefig: FALSE
   refit: FALSE
+  parallel: TRUE
 bibliography: '`r system.file("refs.bib", package = "truthiness")`'
 ---
 
@@ -424,7 +425,7 @@ cat("<div class=\"warn\">",
     sep = "\n")
 ```
 
-```{r fit-clmm-no-parallel, eval = (!parallel_installed) & params$refit, echo = (!parallel_installed)}
+```{r fit-clmm-no-parallel, eval = params$refit & ((!parallel_installed) | (!params$parallel)), echo = ((!parallel_installed) | (!params$parallel))}
 ## fit models using serial version (no multi-core)
 mods <- list()
 
@@ -470,7 +471,7 @@ cat("* Total computation time: ",
     sprintf("%0.2f minutes", dur / 60), "\n")
 ```
 
-```{r fit-clmm-parallel, eval = parallel_installed & params$refit, echo = parallel_installed, results = 'asis'}
+```{r fit-clmm-parallel, eval = params$refit & parallel_installed & params$parallel, echo = parallel_installed & params$parallel, results = 'asis'}
 ## fit models using parallelized version (multi-core)
 ncores <- parallel::detectCores() - 1L
 ncores <- if (ncores < 1L) 1L else ncores

@@ -108,9 +108,14 @@ globalVariables(c("clmm_maximal", "NE_exp1", "NE_items",
 #'   \item{\code{task_id}}{Unique identifier of the task/stimulus combination.}
 #' }
 #'
-#' The \code{stimulus_materials} data frame lists all 128 statements
-#' used in the study. Each stimulus is given a unique identifier,
-#' \code{stim_id}, that appears across related tables.
+#' The \code{stimulus_materials} data frame lists all 128 trivia
+#' statements used in the study. These statements were adapted from
+#' \insertCite{Nadarevic2014;textual}{truthiness} and
+#' \insertCite{Dekeersmaecker2019;textual}{truthiness}, who in turn
+#' adapted their materials from those original compiled by
+#' \insertCite{Unkelbach_Rom_2017;textual}{truthiness}. Each stimulus is
+#' given a unique identifier, \code{stim_id}, that appears across
+#' related tables.
 #'
 #' The \code{stimulus_categories} data frame gives information about
 #' which category each stimulus statement belongs to. Note that each
@@ -123,7 +128,7 @@ globalVariables(c("clmm_maximal", "NE_exp1", "NE_items",
 #'
 #' There were eight separate presentation lists used in the study for
 #' counterbalancing purposes. These lists are provided in
-#' the \code{presentation lists} data frame.
+#' the \code{presentation_lists} data frame.
 #'
 #' @name truth_trajectory_design
 #' @references

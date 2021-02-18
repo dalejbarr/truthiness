@@ -10,6 +10,11 @@
 #' @details  Runs all six ways of comparing the simple effects of
 #' the two-level factor. For use with the emmeans package.
 #'
+#' @return A data frame to be passed to the \code{specs} argument of
+#'   \code{\link[emmeans]{emmeans}}, each column of which represents
+#'   predictor codings that contrast the illusory truth effect across
+#'   two intervals.
+#' 
 #' @examples
 #' library(ordinal)
 #' library(emmeans)

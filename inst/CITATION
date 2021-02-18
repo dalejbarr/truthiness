@@ -1,20 +1,17 @@
 citHeader("To cite truthiness in publications use:")
 
 citEntry(entry = "Article",
-  title        = "The Trajectory of Truth: A Longitudinal Study of the Illusory Truth Effect",
+  title        = "The Trajectory of Truth: A Longitudinal Study of the Illusory Truth Effect (Stage 1 Registered Report)",
   author       = personList(as.person("Emma L. Henderson"),
                             as.person("Daniel J. Simons"),
                             as.person("Dale J. Barr")),
   journal      = "Journal of Cognition",
-  year         = "2021",
-  volume       = "XX",
-  number       = "X",
-  pages        = "x--xx",
-  url          = "TODO",
+  year         = "2020",
+  url          = "https://osf.io/vqnx2/",
 
   textVersion  =
-  paste("Henderson, Emma L., Simons, Daniel J., and Barr, Dale J. (2021).",
-        "The Trajectory of Truth: A Longitudinal Study of the Illusory Truth Effect.",
-        "Journal of Cognition, XX(X), x-xx.",
-        "URL TODO.")
+  paste("Henderson, Emma L., Simons, Daniel J., and Barr, Dale J. (2020).",
+        "The Trajectory of Truth: A Longitudinal Study of the Illusory Truth Effect (Stage 1 Registered Report).",
+        "Journal of Cognition.",
+        "https://osf.io/vqnx2/")
 )

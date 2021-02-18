@@ -36,8 +36,9 @@ Power Simulation For Equivalence Test
 }
 \examples{
 set.seed(62)
-\dontrun{power_equiv(c(0, .14, .14, .14), .1, "main", 40, 1, NULL)}
-\dontrun{
-power_equiv(c(0, .14, .14, .14), .1, "main", 24, 1, NULL) # takes ~10 minutes
+
+\donttest{
+## takes a few minutes to complete
+power_equiv(c(0, .14, .14, .14), .1, "main", 24, 1, NULL) 
 }
 }

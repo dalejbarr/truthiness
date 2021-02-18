@@ -9,6 +9,9 @@ flag_fake(path)
 \arguments{
 \item{path}{Path to subdirectory.}
 }
+\value{
+No return value, called only for its side effect.
+}
 \description{
 Flag Subdirectory as Having Simulated Data
 }

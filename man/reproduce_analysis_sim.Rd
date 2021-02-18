@@ -8,6 +8,7 @@ reproduce_analysis_sim(
   path,
   outfile = "analysis.html",
   recipe = FALSE,
+  parallel = TRUE,
   infile = NULL
 )
 }
@@ -19,6 +20,10 @@ anonymized (simulated) data files (see
 \item{outfile}{Path to the HTML output file.}
 
 \item{recipe}{Include instructions on how to reproduce the analysis.}
+
+\item{parallel}{Whether to fit models using a single CPU processing
+core (\code{FALSE}) or multiple cores (\code{TRUE}, the
+default).}
 
 \item{infile}{Path to the R Markdown script; \code{NULL} to use the
 built-in script.}
@@ -47,15 +52,31 @@ td_anon <- tempfile() # temp dir for preprocessed data
 ## simulate data and preprocess it
 
 set.seed(62)
-simulate_resp_files(40, path = td_raw, overwrite = TRUE)
-report <- preprocess_simulated(td_raw, td_anon)
+simulate_resp_files(32, path = td_raw, overwrite = TRUE)
 
-\dontrun{
-reproduce_analysis_sim(td_anon)
+\donttest{
+## temporary files 
+tf1 <- tempfile(fileext = ".html")
+tf2 <- tempfile(fileext = ".html")
+
+## run the built-in R Markdown preprocessing script
+pp_report <- preprocess_simulated(path = td_raw, outpath = td_anon,
+                                  report = tf1)
+
+## run the built-in R Markdown analysis script
+## this can take very long due to the CLMM fits
+a_report <- reproduce_analysis_sim(path = td_anon,
+                                   outfile = tf2,
+                                   parallel = FALSE)
+
+browseURL(a_report)
+
+## clean up
+file.remove(pp_report)
+file.remove(a_report)
 }
 
 ## clean up
-file.remove(report)
 unlink(td_raw, TRUE, TRUE)
 unlink(td_anon, TRUE, TRUE)
 

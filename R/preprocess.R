@@ -8,6 +8,8 @@
 #'
 #' @param report Filename of the HTML preprocessing report.
 #'
+#' @return A string with the path to the generated HTML report.
+#' 
 #' @details The purpose of these functions are to import, transform,
 #'   and anonymize raw data files from the Truth Trajectory study by
 #'   \insertCite{Henderson_Simons_Barr_2021;textual}{truthiness}. As
@@ -124,17 +126,20 @@
 #' set.seed(62)
 #' simulate_resp_files(40, path = td_raw, overwrite = TRUE)
 #'
-#' report <- preprocess_simulated(td_raw, td_anon)
+#' \donttest{
+#' ## run the built-in R Markdown script
+#' tf1 <- tempfile(fileext = ".html") # temporary file for report
+#' report <- preprocess_simulated(td_raw, td_anon, tf1)
 #'
-#' \dontrun{
-#'   browseURL(report) # view the preprocessing report
+#' browseURL(report) # view the HTML preprocessing report
+#'
+#' file.remove(report) # clean up
 #' }
 #'
 #' sess <- import_sessions_simulated(td_raw)
 #' sess_p1 <- read_sessions_simulated(file.path(td_raw, "P1L1.csv"))
 #'
-#' # just clean up
-#' file.remove(report)
+#' # clean up temp files
 #' unlink(td_raw, TRUE, TRUE)
 #' unlink(td_anon, TRUE, TRUE)
 #'
@@ -169,6 +174,7 @@ preprocess <- function(path,
                              output_dir = this_wd,
                              knit_root_dir = this_wd,
                              envir = new.env(),
+                             quiet = TRUE,
                              params = list(subdir = path,
                                            anondir = outpath))
   file.copy(ofile, report)
@@ -203,6 +209,7 @@ preprocess_simulated <- function(path,
                              output_dir = this_wd,
                              knit_root_dir = this_wd,
                              envir = new.env(),
+                             quiet = TRUE,
                              params = list(subdir = path,
                                            anondir = outpath))
   file.copy(ofile, report)
@@ -636,16 +643,19 @@ prolific_cleanup <- function(filename) {
 }
 
 
-#' Validate Filenames in Directory
+#' Validate Simulated Data Filenames
 #'
 #' Make sure all the files needed for the analysis are present in a
-#' given directory.
+#' directory containing simulated data.
 #'
 #' @param path Path to the files.
 #'
 #' @details Output files from the study must match the pattern
 #'   \code{PXLY.csv} where X is phase number (1-4) and Y is list
 #'   number (1-8).
+#'
+#' @return \code{TRUE}, if files in the directory \code{path} have
+#'   names in the expected format; otherwise, an error is thrown.
 #' 
 #' @export
 validate_filenames <- function(path) {

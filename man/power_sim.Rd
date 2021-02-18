@@ -45,7 +45,5 @@ Run Power Simulations
 \examples{
 set.seed(62)
 power_sim("lmem", c(0, .14, .14, .14), "main", 40, 1, NULL)
-\dontrun{
-power_sim("clmm", c(0, .14, .14, .14), "main", 24, 1, NULL) # takes ~10 minutes
-}
+
 }

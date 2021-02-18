@@ -10,6 +10,7 @@ output:
 params:
   subdir: NULL
   recipe: FALSE
+  parallel: TRUE
 bibliography: '`r system.file("refs.bib", package = "truthiness")`'
 ---
 
@@ -74,8 +75,6 @@ if (is.null(params$subdir)) {
 if (!dir.exists(params$subdir)) {
   stop("subdirectory '", params$subdir, "' does not exist")
 }
-
-cache_dir <- paste0(basename(params$subdir), "/cache/")
 ```
 
 # Import and preprocess
@@ -101,7 +100,7 @@ For information about the structure of the anonymized data files and stimulus ma
 
 `r warn(params$subdir)`
 
-```{r import, cache=TRUE, cache.path=(cache_dir)}
+```{r import}
 sess <- read_csv(file.path(params$subdir, "ANON_sessions.csv"),
                  col_types = "cfccccllllllc") %>%
   mutate(list_id = fct_relevel(list_id,
@@ -147,7 +146,7 @@ There were four main exclusion criteria for removing participants, applied in th
 3. Flat lining; i.e., using only one response category across an entire phase of the study;
 4. Failing to complete all phases in a reasonable amount of time (for Phase 1, between 3 and 40 minutes; for all other phases, between 1 and 30 minutes).
 
-```{r remove-nonnative, cache=TRUE, cache.path=(cache_dir), dependson = "import"}
+```{r remove-nonnative}
 sess_native <- sess %>%
   filter(chk_native)
 
@@ -197,7 +196,7 @@ sess_keep0 %>%
 In total, the exclusion criteria resulted in the removal of 
 `r .pi(n_total)` participants.
 
-```{r exclude, cache=TRUE, cache.path=(cache_dir), dependson = c("import", "remove-nonnative")}
+```{r exclude}
 ## remove truth ratings from excluded participants
 ratings2 <- ratings %>%
   semi_join(sess_keep0, "ID")
@@ -216,7 +215,7 @@ participants resulted in the removal of
 
 The only exclusion criterion applied at the phase-level was failure to complete all of the ratings in the phase.
 
-```{r phase-finished, cache=TRUE, cache.path=(cache_dir), dependson = c("import", "remove-nonnative", "exclude")}
+```{r phase-finished}
 phase_trim <- phase %>%
   semi_join(sess_keep0, "ID")
 
@@ -256,7 +255,7 @@ phase_fin %>%
 
 `r warn(params$subdir)`
 
-```{r final-prep, cache=TRUE, cache.path=(cache_dir), dependson = c("import", "remove-nonnative", "exclude", "phase-finished")}
+```{r final-prep}
 ## do the final stages of pre-processing and
 ## prepare the data for modeling
 
@@ -438,7 +437,7 @@ where:
 
 The comparison of models 1 and 2 test the significance of the main effect of repetition (`R`). The comparison of models 3 and 4 test the significance of the repetition-by-interval interaction (coded by `R:I1`, `R:I2`, and `R:I3`).
 
-```{r fit-clmm-no-parallel, eval = (!parallel_installed), echo = (!parallel_installed), cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(3:4, 6:7, 9)}
+```{r fit-clmm-no-parallel, eval = ((!parallel_installed) | (!params$parallel)), echo = ((!parallel_installed) | (!parallel))}
 ## fit models using serial version (no multi-core)
 mods <- list()
 
@@ -484,7 +483,7 @@ cat("* Total computation time: ",
     sprintf("%0.2f minutes", dur / 60), "\n")
 ```
 
-```{r fit-clmm-parallel, eval = parallel_installed, echo = parallel_installed, cache=TRUE, cache.path=(cache_dir), cache.vars="mods", dependson=c(3:4, 6:7, 9), results = 'asis'}
+```{r fit-clmm-parallel, eval = parallel_installed & params$parallel, echo = parallel_installed & params$parallel}
 ## fit models using parallelized version (multi-core)
 ncores <- parallel::detectCores()
 ncores <- if (ncores > 6L) 6L else ncores

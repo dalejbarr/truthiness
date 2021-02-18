@@ -25,9 +25,7 @@
 #' @examples
 #' set.seed(62)
 #' power_sim("lmem", c(0, .14, .14, .14), "main", 40, 1, NULL)
-#' \dontrun{
-#' power_sim("clmm", c(0, .14, .14, .14), "main", 24, 1, NULL) # takes ~10 minutes
-#' }
+#' 
 #' @export
 power_sim <- function(model,
                       phase_eff,
@@ -119,9 +117,10 @@ power_sim <- function(model,
 #'
 #' @examples
 #' set.seed(62)
-#' \dontrun{power_equiv(c(0, .14, .14, .14), .1, "main", 40, 1, NULL)}
-#' \dontrun{
-#' power_equiv(c(0, .14, .14, .14), .1, "main", 24, 1, NULL) # takes ~10 minutes
+#'
+#' \donttest{
+#' ## takes a few minutes to complete
+#' power_equiv(c(0, .14, .14, .14), .1, "main", 24, 1, NULL) 
 #' }
 #' @export
 power_equiv <- function(phase_eff,

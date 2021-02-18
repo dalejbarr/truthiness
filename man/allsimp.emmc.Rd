@@ -11,6 +11,12 @@ allsimp.emmc(levels, ...)
 
 \item{...}{Any other arguments (NB: currently ignored).}
 }
+\value{
+A data frame to be passed to the \code{specs} argument of
+  \code{\link[emmeans]{emmeans}}, each column of which represents
+  predictor codings that contrast the illusory truth effect across
+  two intervals.
+}
 \description{
 Create a contrast matrix for equivalence test of a 2x4
 interaction.
