@@ -614,14 +614,14 @@ locate_data_files <- function(path, full.names = TRUE) {
 
 get_varnames <- function(path) {
   ## read in the header row from a CSV file
-  df <- suppressWarnings({readr::read_csv(readLines(path)[-c(2:3)])})
+  df <- suppressWarnings({readr::read_csv(I(readLines(path)[-c(2:3)]))})
   names(df)
 }
 
 scrape_cols <- function(path, cols) {
   ## read in specified columns from the CSV file
   df <- suppressWarnings({
-    readr::read_csv(readLines(path)[-c(2:3)],
+    readr::read_csv(I(readLines(path)[-c(2:3)]),
                     col_types = readr::cols(.default = readr::col_character()))})
   df[, cols]
 }
