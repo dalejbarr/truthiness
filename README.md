@@ -34,7 +34,7 @@ For more details about the study, please see the project repository at
 
 ## Installation
 
-Package version 1.2.4 is available on the [Comprehensive R Archive
+Package version 1.2.5 is available on the [Comprehensive R Archive
 Network
 (CRAN)](https://cran.r-project.org/web/packages/truthiness/index.html).
 Install it using:
