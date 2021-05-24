@@ -14,24 +14,20 @@ preprocessing and analysis scripts that underlie the published results,
 tables describing the design of the study in full detail, and functions
 for data simulation that the authors used in study planning. The package
 was created to enable verification of the analytical methods, to
-facilitate reproduction of the main findings, to encourage replication,
-extension, and further exploration of a rich longitudinal dataset on the
-Illusory Truth phenomenon.
+facilitate reproduction of the main findings, and to encourage
+replication, extension, and further exploration of a rich longitudinal
+dataset on the Illusory Truth phenomenon.
 
 The Illusory Truth phenomenon is the tendency of people to consider
 statements they have heard before as more likely to be true relative to
-novel statements (Hasher, Goldstein, & Toppino, 1977). In a typical
-experiment, participants are exposed to a set of true and false
-statements during an exposure phase, and are later asked to rate how
-likely they are to be true. People generally rate statements they have
-seen before as more true. Our study examined the persistence of this
-effect across four time intervals: immediately, one day, one week, and
-one month following exposure. Five hundred and sixty seven participants
-saw 64 out of 128 statements of ambiguous veracity during an exposure
-phase, and later rated how likely the full set of statements were to be
-true on a scale from 1 (definitely false) to 7 (definitely true). (Note
-that each statement that was repeated was repeated only once, at one of
-the four intervals.)
+novel statements (Hasher, Goldstein, & Toppino, 1977). Our study
+examined the persistence of this effect across four time intervals:
+immediately, one day, one week, and one month following exposure. Five
+hundred and sixty seven participants saw 64 out of 128 statements of
+ambiguous veracity during an exposure phase, and later rated the full
+set of statements on a scale from 1 (definitely false) to 7 (definitely
+true). (Each repeated statement was repeated only once, at one of the
+four intervals.)
 
 For more details about the study, please see the project repository at
 <https://osf.io/nvugt/>.
@@ -47,9 +43,9 @@ Install it using:
 install.packages("truthiness")
 ```
 
-We’ve put a lot of work into making our data and analysis scripts
-readily available. If you find this package useful, please cite
-Henderson et al. (2020).
+We put a lot of work into making our data and analysis scripts readily
+available. If you find this package useful, please cite Henderson et
+al. (2021).
 
 If you encounter any problems using the package, or have any
 suggestions, please file an issue at the [package development site on
@@ -57,8 +53,8 @@ github](https://github.com/dalejbarr/truthiness).
 
 ## Basic Usage
 
-All of the data collected during Stage 2 of the study has beeen built in
-to the package, in four data objects:
+All of the datasets collected during Stage 2 of the study are included
+in the package, in four data objects:
 
   - `sessions`: information about each participant
   - `phases`: information about each participant’s performance in each
@@ -104,8 +100,8 @@ Illusory Truth Analysis.*
 ### Exploring and visualizing the data
 
 The code below calculates the illusory truth trajectory for each
-participant, and plots the distribution along of participant means along
-with the cell means.
+participant, and plots the distribution of participant means along with
+the cell means.
 
 ``` r
 library(truthiness)
@@ -151,7 +147,7 @@ and the conference of referential
 validity.](https://doi.org/10.1016/S0022-5371\(77\)80012-1) *Journal of
 Verbal Learning and Verbal Behavior*, *16*, 107–112.
 
-Henderson, Emma L., Simons, Daniel J., and Barr, Dale J. (2020). [The
+Henderson, Emma L., Simons, Daniel J., and Barr, Dale J. (2021). [The
 Trajectory of Truth: A Longitudinal Study of the Illusory Truth Effect
-(Stage 1 registered report).](https://osf.io/vqnx2/) Accepted in
-principle at the *Journal of Cognition*.
+(Stage 1 registered report).](https://osf.io/vqnx2/) Manuscript in press
+at *Journal of Cognition*.
