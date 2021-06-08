@@ -8,7 +8,7 @@
 <!-- badges: end -->
 
 The truthiness package contains data, code, and utilities related to the
-Longitudinal Illusory Truth study by Henderson, Simons, and Barr (2020).
+Longitudinal Illusory Truth study by Henderson, Simons, and Barr (2021).
 The package includes anonymized data from the study, the key
 preprocessing and analysis scripts that underlie the published results,
 tables describing the design of the study in full detail, and functions
@@ -29,8 +29,9 @@ set of statements on a scale from 1 (definitely false) to 7 (definitely
 true). (Each repeated statement was repeated only once, at one of the
 four intervals.)
 
-For more details about the study, please see the project repository at
-<https://osf.io/nvugt/>.
+More details about the study can be found in the project repository at
+<https://osf.io/nvugt/> and in the [article at the Journal of
+Cognition](http://doi.org/10.5334/joc.161).
 
 ## Installation
 
@@ -43,9 +44,25 @@ Install it using:
 install.packages("truthiness")
 ```
 
-We put a lot of work into making our data and analysis scripts readily
-available. If you find this package useful, please cite Henderson et
-al. (2021).
+We put a lot of effort into making our data and analysis scripts readily
+available. If you find this package useful in your work, please cite the
+paper:
+
+Henderson, Emma L., Simons, Daniel J., and Barr, Dale J. (2021). The
+trajectory of truth: A longitudinal study of the Illusory Truth Effect.
+*Journal of Cognition*, *4*, 29. <http://doi.org/10.5334/joc.161>
+
+``` 
+  @Article{,
+    title = {The trajectory of truth: A longitudinal study of the Illusory Truth Effect},
+    author = {Emma L. Henderson and Daniel J. Simons and Dale J. Barr},
+    journal = {Journal of Cognition},
+    year = {2021},
+    volume = {4},
+    pages = {29},
+    url = {http://doi.org/10.5334/joc.161},
+  }
+```
 
 If you encounter any problems using the package, or have any
 suggestions, please file an issue at the [package development site on
@@ -106,6 +123,18 @@ the cell means.
 ``` r
 library(truthiness)
 library(tidyverse)
+#> ── Attaching packages ──────────────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──
+#> ✔ ggplot2 3.3.3          ✔ purrr   0.3.4     
+#> ✔ tibble  3.1.2          ✔ dplyr   1.0.6     
+#> ✔ tidyr   1.1.3          ✔ stringr 1.4.0     
+#> ✔ readr   1.9.9.9000     ✔ forcats 0.5.1
+#> ── Conflicts ─────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+#> ✖ readr::edition_get()   masks testthat::edition_get()
+#> ✖ dplyr::filter()        masks stats::filter()
+#> ✖ purrr::is_null()       masks testthat::is_null()
+#> ✖ dplyr::lag()           masks stats::lag()
+#> ✖ readr::local_edition() masks testthat::local_edition()
+#> ✖ dplyr::matches()       masks tidyr::matches(), testthat::matches()
 
 ## combine info from tidy tables
 all_ratings <- ratings %>%
@@ -148,6 +177,6 @@ validity.](https://doi.org/10.1016/S0022-5371\(77\)80012-1) *Journal of
 Verbal Learning and Verbal Behavior*, *16*, 107–112.
 
 Henderson, Emma L., Simons, Daniel J., and Barr, Dale J. (2021). [The
-Trajectory of Truth: A Longitudinal Study of the Illusory Truth Effect
-(Stage 1 registered report).](https://osf.io/vqnx2/) Manuscript in press
-at *Journal of Cognition*.
+trajectory of truth: A longitudinal study of the Illusory Truth
+Effect.](http://doi.org/10.5334/joc.161). *Journal of Cognition*, *4*,
+29.

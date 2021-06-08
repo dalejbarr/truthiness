@@ -18,11 +18,11 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The truthiness package contains data, code, and utilities related to the Longitudinal Illusory Truth study by Henderson, Simons, and Barr (2020). The package includes anonymized data from the study, the key preprocessing and analysis scripts that underlie the published results, tables describing the design of the study in full detail, and functions for data simulation that the authors used in study planning. The package was created to enable verification of the analytical methods, to facilitate reproduction of the main findings, and to encourage replication, extension, and further exploration of a rich longitudinal dataset on the Illusory Truth phenomenon.
+The truthiness package contains data, code, and utilities related to the Longitudinal Illusory Truth study by Henderson, Simons, and Barr (2021). The package includes anonymized data from the study, the key preprocessing and analysis scripts that underlie the published results, tables describing the design of the study in full detail, and functions for data simulation that the authors used in study planning. The package was created to enable verification of the analytical methods, to facilitate reproduction of the main findings, and to encourage replication, extension, and further exploration of a rich longitudinal dataset on the Illusory Truth phenomenon.
 
 The Illusory Truth phenomenon is the tendency of people to consider statements they have heard before as more likely to be true relative to novel statements (Hasher, Goldstein, & Toppino, 1977). Our study examined the persistence of this effect across four time intervals: immediately, one day, one week, and one month following exposure. Five hundred and sixty seven participants saw 64 out of 128 statements of ambiguous veracity during an exposure phase, and later rated the full set of statements on a scale from 1 (definitely false) to 7 (definitely true). (Each repeated statement was repeated only once, at one of the four intervals.)
 
-For more details about the study, please see the project repository at <https://osf.io/nvugt/>.
+More details about the study can be found in the project repository at <https://osf.io/nvugt/> and in the [article at the Journal of Cognition](http://doi.org/10.5334/joc.161).
 
 ## Installation
 
@@ -32,7 +32,21 @@ Package version 1.2.5 is available on the [Comprehensive R Archive Network (CRAN
 install.packages("truthiness")
 ```
 
-We put a lot of work into making our data and analysis scripts readily available. If you find this package useful, please cite Henderson et al. (2021).
+We put a lot of effort into making our data and analysis scripts readily available. If you find this package useful in your work, please cite the paper:
+
+Henderson, Emma L., Simons, Daniel J., and Barr, Dale J. (2021). The trajectory of truth: A longitudinal study of the Illusory Truth Effect. *Journal of Cognition*, *4*, 29. http://doi.org/10.5334/joc.161
+
+```
+  @Article{,
+    title = {The trajectory of truth: A longitudinal study of the Illusory Truth Effect},
+    author = {Emma L. Henderson and Daniel J. Simons and Dale J. Barr},
+    journal = {Journal of Cognition},
+    year = {2021},
+    volume = {4},
+    pages = {29},
+    url = {http://doi.org/10.5334/joc.161},
+  }
+```
 
 If you encounter any problems using the package, or have any suggestions, please file an issue at the [package development site on github](https://github.com/dalejbarr/truthiness).
 
@@ -114,4 +128,4 @@ ggplot(subj_means,
 
 Hasher, Lynn, Goldstein, David, and Toppino, Thomas (1977). [Frequency and the conference of referential validity.](https://doi.org/10.1016/S0022-5371(77)80012-1) *Journal of Verbal Learning and Verbal Behavior*, *16*, 107--112.
 
-Henderson, Emma L., Simons, Daniel J., and Barr, Dale J. (2021). [The Trajectory of Truth: A Longitudinal Study of the Illusory Truth Effect (Stage 1 registered report).](https://osf.io/vqnx2/) Manuscript in press at *Journal of Cognition*.
+Henderson, Emma L., Simons, Daniel J., and Barr, Dale J. (2021). [The trajectory of truth: A longitudinal study of the Illusory Truth Effect.](http://doi.org/10.5334/joc.161). *Journal of Cognition*, *4*, 29.
